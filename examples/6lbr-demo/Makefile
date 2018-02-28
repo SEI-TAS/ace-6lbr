@@ -16,6 +16,7 @@ WITH_DTLS_COAP?=0
 WITH_LLSEC?=0
 WITH_TCP?=0
 WITH_COAP_PROFILE?=IPSO_APP_FW
+WITH_ACE?=1
 
 # UDP client configuration
 
@@ -133,6 +134,7 @@ ifneq ($(WITH_DTLSECHO), 0)
 CFLAGS += -DWITH_DTLS_ECHO=1
 PROJECT_SOURCEFILES += dtls-echo.c
 endif
+
 
 # Platform specific configuration
 

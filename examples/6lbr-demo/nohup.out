@@ -1,0 +1,95 @@
+  CC        ./apps/udp-client/udp-client.c
+  CC        ./platform/contiki/contiki-resources.c
+  CC        6lbr-demo-main.c
+  CC        ../../apps/er-coap/er-coap-engine.c
+  CC        ../../apps/er-coap/er-coap-res-authz-info.c
+../../apps/er-coap/er-coap-res-authz-info.c:19:1: warning: return type defaults to ‘int’ [-Wreturn-type]
+../../apps/er-coap/er-coap-res-authz-info.c:19:1: warning: conflicting types for ‘res_post_handler’ [enabled by default]
+../../apps/er-coap/er-coap-res-authz-info.c:15:13: note: previous declaration of ‘res_post_handler’ was here
+../../apps/er-coap/er-coap-res-authz-info.c: In function ‘res_post_handler’:
+../../apps/er-coap/er-coap-res-authz-info.c:27:5: warning: assignment makes integer from pointer without a cast [enabled by default]
+  CC        ../../apps/er-coap/er-coap-res-pair.c
+../../apps/er-coap/er-coap-res-pair.c:20:1: warning: return type defaults to ‘int’ [-Wreturn-type]
+../../apps/er-coap/er-coap-res-pair.c:20:1: warning: conflicting types for ‘res_post_handler’ [enabled by default]
+../../apps/er-coap/er-coap-res-pair.c:16:13: note: previous declaration of ‘res_post_handler’ was here
+../../apps/er-coap/er-coap-res-pair.c: In function ‘res_post_handler’:
+../../apps/er-coap/er-coap-res-pair.c:26:17: error: redeclaration of ‘n’ with no linkage
+../../apps/er-coap/er-coap-res-pair.c:24:7: note: previous declaration of ‘n’ was here
+../../apps/er-coap/er-coap-res-pair.c:22:9: warning: unused variable ‘AS_key’ [-Wunused-variable]
+../../Makefile.include:240: recipe for target 'obj_native/er-coap-res-pair.o' failed
+make: *** [obj_native/er-coap-res-pair.o] Error 1
+mkdir -p ./dyn_resources
+./tools/coap/mk_resource.sh ./tools/coap/ipso-app-fw-resource-template.h sht-temp sht-humidity battery radio-lqi radio-rssi button led-red led-green led-blue
+mv -f sht-temp-resource.h sht-humidity-resource.h battery-resource.h radio-lqi-resource.h radio-rssi-resource.h button-resource.h led-red-resource.h led-green-resource.h led-blue-resource.h ./dyn_resources/
+mkdir obj_native
+  CC        ../../apps/er-coap/er-coap.c
+  CC        ../../apps/er-coap/er-coap-engine.c
+  CC        ../../apps/er-coap/er-coap-transactions.c
+  CC        ../../apps/er-coap/er-coap-observe.c
+  CC        ../../apps/er-coap/er-coap-separate.c
+  CC        ../../apps/er-coap/er-coap-res-well-known-core.c
+  CC        ../../apps/er-coap/er-coap-block1.c
+  CC        ../../apps/er-coap/er-coap-observe-client.c
+  CC        ../../apps/er-coap/er-coap-res-authz-info.c
+../../apps/er-coap/er-coap-res-authz-info.c:19:1: warning: return type defaults to ‘int’ [-Wreturn-type]
+../../apps/er-coap/er-coap-res-authz-info.c:19:1: warning: conflicting types for ‘res_post_handler’ [enabled by default]
+../../apps/er-coap/er-coap-res-authz-info.c:15:13: note: previous declaration of ‘res_post_handler’ was here
+../../apps/er-coap/er-coap-res-authz-info.c: In function ‘res_post_handler’:
+../../apps/er-coap/er-coap-res-authz-info.c:27:5: warning: assignment makes integer from pointer without a cast [enabled by default]
+  CC        ../../apps/er-coap/er-coap-res-pair.c
+../../apps/er-coap/er-coap-res-pair.c:20:1: warning: return type defaults to ‘int’ [-Wreturn-type]
+../../apps/er-coap/er-coap-res-pair.c:20:1: warning: conflicting types for ‘res_post_handler’ [enabled by default]
+../../apps/er-coap/er-coap-res-pair.c:16:13: note: previous declaration of ‘res_post_handler’ was here
+../../apps/er-coap/er-coap-res-pair.c: In function ‘res_post_handler’:
+../../apps/er-coap/er-coap-res-pair.c:22:9: warning: unused variable ‘AS_key’ [-Wunused-variable]
+  CC        ../../apps/er-coap/aes.c
+  CC        ../../apps/er-coap/cn-cbor.c
+  CC        ../../apps/er-coap/cn-create.c
+  CC        ../../apps/er-coap/cn-encoder.c
+  CC        ../../apps/er-coap/cn-error.c
+  CC        ../../apps/er-coap/cn-get.c
+  CC        ../../apps/er-coap/ace-cwt.c
+../../apps/er-coap/ace-cwt.c: In function ‘authenticate’:
+../../apps/er-coap/ace-cwt.c:42:7: warning: format ‘%d’ expects argument of type ‘int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+../../apps/er-coap/ace-cwt.c:54:9: warning: implicit declaration of function ‘read_cbor’ [-Wimplicit-function-declaration]
+../../apps/er-coap/ace-cwt.c:75:23: warning: variable ‘n’ set but not used [-Wunused-but-set-variable]
+../../apps/er-coap/ace-cwt.c:91:5: warning: format ‘%d’ expects argument of type ‘int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+../../apps/er-coap/ace-cwt.c:126:7: warning: format ‘%d’ expects argument of type ‘int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+../../apps/er-coap/ace-cwt.c:143:3: warning: ‘return’ with a value, in function returning void [enabled by default]
+../../apps/er-coap/ace-cwt.c: At top level:
+../../apps/er-coap/ace-cwt.c:150:16: error: conflicting types for ‘read_cbor’
+../../apps/er-coap/ace-cwt.c:54:9: note: previous implicit declaration of ‘read_cbor’ was here
+../../apps/er-coap/ace-cwt.c: In function ‘read_cbor’:
+../../apps/er-coap/ace-cwt.c:162:3: warning: return makes pointer from integer without a cast [enabled by default]
+../../apps/er-coap/ace-cwt.c: In function ‘read_cose’:
+../../apps/er-coap/ace-cwt.c:168:14: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘-’ token
+../../apps/er-coap/ace-cwt.c:168:15: error: ‘token’ undeclared (first use in this function)
+../../apps/er-coap/ace-cwt.c:168:15: note: each undeclared identifier is reported only once for each function it appears in
+../../apps/er-coap/ace-cwt.c:169:20: error: ‘cose’ undeclared (first use in this function)
+../../apps/er-coap/ace-cwt.c:172:3: warning: implicit declaration of function ‘un_cose’ [-Wimplicit-function-declaration]
+../../apps/er-coap/ace-cwt.c:173:3: warning: implicit declaration of function ‘decrypt_cose’ [-Wimplicit-function-declaration]
+../../apps/er-coap/ace-cwt.c:173:7: error: incompatible types when assigning to type ‘char[1000]’ from type ‘int’
+../../apps/er-coap/ace-cwt.c:174:3: warning: pointer targets in passing argument 1 of ‘read_cbor’ differ in signedness [-Wpointer-sign]
+../../apps/er-coap/ace-cwt.c:150:16: note: expected ‘const unsigned char *’ but argument is of type ‘char *’
+../../apps/er-coap/ace-cwt.c: At top level:
+../../apps/er-coap/ace-cwt.c:179:13: warning: conflicting types for ‘un_cose’ [enabled by default]
+../../apps/er-coap/ace-cwt.c:179:13: error: static declaration of ‘un_cose’ follows non-static declaration
+../../apps/er-coap/ace-cwt.c:172:3: note: previous implicit declaration of ‘un_cose’ was here
+../../apps/er-coap/ace-cwt.c: In function ‘un_cose’:
+../../apps/er-coap/ace-cwt.c:182:7: warning: unused variable ‘i’ [-Wunused-variable]
+../../apps/er-coap/ace-cwt.c:181:5: error: label ‘done’ used but not defined
+../../apps/er-coap/ace-cwt.c: At top level:
+../../apps/er-coap/ace-cwt.c:221:7: error: conflicting types for ‘decrypt_cose’
+../../apps/er-coap/ace-cwt.c:173:9: note: previous implicit declaration of ‘decrypt_cose’ was here
+../../apps/er-coap/ace-cwt.c: In function ‘decrypt_cose’:
+../../apps/er-coap/ace-cwt.c:223:40: error: ‘context’ undeclared (first use in this function)
+../../apps/er-coap/ace-cwt.c:223:3: warning: pointer targets in passing argument 4 of ‘dtls_ccm_decrypt_message’ differ in signedness [-Wpointer-sign]
+../../apps/tinydtls/dtls_ccm.h:56:1: note: expected ‘unsigned char *’ but argument is of type ‘char *’
+../../apps/er-coap/ace-cwt.c:223:3: warning: pointer targets in passing argument 5 of ‘dtls_ccm_decrypt_message’ differ in signedness [-Wpointer-sign]
+../../apps/tinydtls/dtls_ccm.h:56:1: note: expected ‘unsigned char *’ but argument is of type ‘char *’
+../../apps/er-coap/ace-cwt.c: At top level:
+../../apps/er-coap/ace-cwt.c:179:13: warning: ‘un_cose’ defined but not used [-Wunused-function]
+../../apps/er-coap/ace-cwt.c: In function ‘read_cose’:
+../../apps/er-coap/ace-cwt.c:176:1: warning: control reaches end of non-void function [-Wreturn-type]
+../../Makefile.include:240: recipe for target 'obj_native/ace-cwt.o' failed
+make: *** [obj_native/ace-cwt.o] Error 1
