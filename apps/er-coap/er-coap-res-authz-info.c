@@ -24,7 +24,7 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
   char const *const failure_message = "Failed to add ACE credentials";
 
   len = REST.get_request_payload(request, (const uint8_t **)&token);
-  n = read_cose(token, len);
+  /* n = read_cose(token, len); */
   if(n == 0){
     memcpy(buffer, success_message, strlen(success_message));
   } else {
