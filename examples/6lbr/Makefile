@@ -99,6 +99,7 @@ CFLAGS += -DWITH_TINYDTLS=1
 PROJECTDIRS+=$(CONTIKI)/apps/tinydtls/aes $(CONTIKI)/apps/tinydtls/sha2 $(CONTIKI)/apps/tinydtls/ecc
 endif
 
+
 ifneq ($(WITH_DTLSECHO), 0)
 CFLAGS += -DWITH_DTLS_ECHO=1
 PROJECTDIRS += $(6LBR)/../6lbr-demo/apps/dtls-echo

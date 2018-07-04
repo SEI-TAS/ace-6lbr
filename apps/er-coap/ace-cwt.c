@@ -17,6 +17,7 @@
 #define CBOR_CONTEXT_PARAM
 #endif
 
+#define A_DATA_LEN 13
 
 
 static void authenticate(unsigned long *claim, cwt *token, const cn_cbor* cb, char* out, char** end, int indent) {
@@ -61,8 +62,17 @@ static void authenticate(unsigned long *claim, cwt *token, const cn_cbor* cb, ch
         printf("cti is %s\n", token->cti);
         break;
       case 0:
-        token->kid = (char *) malloc(cb->length+1);
-        strncpy(token->kid, cb->v.str, cb->length);
+        token->kid = (char *) malloc(17);
+
+        int i, j;
+        unsigned char* lookupid;
+        i = 16 - cb->length;
+        for (j = 0; j <= i - 1; j++){
+          lookupid[j] = "0";
+        }
+        strncpy(lookupid[j], cb->v.str, cb->length);
+
+        strncpy(token->kid, lookupid, 16);
         token->kid[cb->length+1] = '\0';
         printf("kid is %s\n", token->kid);
         break;
@@ -76,7 +86,6 @@ static void authenticate(unsigned long *claim, cwt *token, const cn_cbor* cb, ch
         fd_write = cfs_open(token_file, CFS_WRITE);
         if(fd_write != -1){
           n = cfs_write(fd_write, token->kid, cb->length);  
-          n = cfs_write(fd_write, ":", 1);  
           n = cfs_write(fd_write, token->k, cb->length);  
           cfs_close(fd_write);
         }
@@ -149,77 +158,47 @@ done:
 
 unsigned char* read_cbor(const unsigned char* payload, int i_len) {
   char buf[1000];
-  char *bufend;
+  char *bufend = NULL;
+  char *buffer;
+  char *buffer2;
+  char* nonce;
+  char key[16] = {0xa1, 0xa2, 0xa3, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10};
   cwt t;
   cwt *token = &t;
-  /* token->sub = "a"; */
+  unsigned char A_DATA[A_DATA_LEN];
   unsigned long claim = 0;
+  printf("Received COSE message, last byte is %x\n", payload[112]);
+  buffer = (char *) malloc(81);
+  memcpy(buffer, &payload[31], 81);
+
+  /*
   cn_cbor *cb = cn_cbor_decode(payload, i_len CBOR_CONTEXT_PARAM, 0);
   if (cb) {
     authenticate(&claim, token, cb, buf, &bufend, 0);
+  }
+  else {
+    printf("CBOR decode failed\n");
+    return 1;
+  }
+  */
+
+  nonce = (char *) malloc(13);
+  memcpy(nonce, &payload[16], 13);
+  buffer2 = (char *) malloc(100);
+  int u_len;
+  u_len = dtls_decrypt(buffer, 81, buffer2, nonce, key, 16, A_DATA, A_DATA_LEN);
+  int i;
+  printf("%d bytes COSE decrypted\n", u_len);
+  for (i=0; i<81; i++){
+    printf(" %x",buffer2[i]);
+  }
+  printf("\n");
+  cn_cbor *cb2 = cn_cbor_decode(buffer2, i_len CBOR_CONTEXT_PARAM, 0);
+  if (cb2) {
+    authenticate(&claim, token, cb2, buf, &bufend, 0);
     return 0;
   }
+  printf("CBOR decode failed\n");
   return 1;
 }
 
-unsigned char* read_cose(const unsigned char* payload, int i_len) {
-  char buf[1000];
-  char *bufend;
-  cosewt cose-token;
-  cosewt *token = &cose-token;
-  unsigned long claim = 0;
-  cn_cbor *cb = cn_cbor_decode(payload, i_len CBOR_CONTEXT_PARAM, 0);
-  un_cose(&claim, token, cb, buf, &bufend, 0);
-  buf = decrypt_cose(token);
-  read_cbor(buf, sizeof(buf));
-
-}
-
-
-static void un_cose(unsigned long *claim, cosewt *token, const cn_cbor* cb, char* out, char** end, int indent) {
-  if (!cb)
-    goto done;
-  int i;
-  cn_cbor* cp;
-
-  printf("Type: %d\n",cb->type);
-  switch (cb->type) {
-
-  case CN_CBOR_ARRAY: goto sequence;
-  case CN_CBOR_MAP: goto sequence;
-
-  sequence:
-    for (cp = cb->first_child; cp; cp = cp->next) {
-      un_cose(claim, token, cp, out, &out, indent+2);
-    }
-    break;
-
-  case CN_CBOR_BYTES:
-    if (cb->length == 13){
-      token->nonce = (char *) malloc(cb->length+1);
-      strncpy(token->nonce, cb->v.str, cb->length);
-      token->nonce[cb->length+1] = '\0';
-      printf("nonce is %s\n", token->nonce);
-      break;
-    }
-    if (cb->length > 13){
-      token->pay = (char *) malloc(cb->length+1);
-      strncpy(token->pay, cb->v.str, cb->length);
-      token->pay[cb->length+1] = '\0';
-      printf("pay is %s\n", token->pay);
-      break;
-    }
-
-
-    break;
-  default: break;
-  }
-
-
-}
-
-char* decrypt_cose(cosewt* token){
-  char* plaintext;
-  plaintext = dtls_ccm_decrypt_message(context, 16, 64, token->nonce, token->pay, sizeof(token->pay), NULL, 0); 
-  return plaintext;
-}

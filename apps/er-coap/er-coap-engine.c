@@ -333,9 +333,6 @@ coap_get_rest_method(void *packet)
 extern resource_t res_well_known_core;
 extern resource_t res_authz_info;
 extern resource_t res_pair;
-#ifdef WITH_DTLS
-extern resource_t res_dtls;
-#endif
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(coap_engine, ev, data)

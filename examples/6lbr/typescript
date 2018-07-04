@@ -1,0 +1,89 @@
+Script started on Sun 03 Jun 2018 07:04:14 UTC
+
+]0;pi@raspberrypi: ~/work/6lbr/examples/6lbr[01;32mpi@raspberrypi[00m [01;34m~/work/6lbr/examples/6lbr $[00m 
+]0;pi@raspberrypi: ~/work/6lbr/examples/6lbr[01;32mpi@raspberrypi[00m [01;34m~/work/6lbr/examples/6lbr $[00m sudo make install
+install -d /etc/6lbr
+cp -r package/etc/6lbr /etc
+install -d /etc/init.d
+install package/etc/init.d/* /etc/init.d
+install -d /usr/bin
+install package/usr/bin/* /usr/bin
+install -d /usr/lib/6lbr
+cp -r package/usr/lib/6lbr /usr/lib
+install -d /usr/lib/6lbr/bin
+install bin/* /usr/lib/6lbr/bin
+install tools/nvm_tool /usr/lib/6lbr/bin
+]0;pi@raspberrypi: ~/work/6lbr/examples/6lbr[01;32mpi@raspberrypi[00m [01;34m~/work/6lbr/examples/6lbr $[00m man script
+[?1049h[?1h=SCRIPT(1)                        User Commands                       SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — make typescript of terminal session[m
+[m
+[1mSYNOPSIS[0m[m
+     [1mscript[0m [[1m-a[0m] [[1m-c[0m [4mcommand[24m] [[1m-e[0m] [[1m-f[0m] [[1m-q[0m] [[1m-t[0m[=[4mfile[24m]] [[1m-V[0m] [[1m-h[0m] [[4mfile[24m][m
+[m
+[1mDESCRIPTION[0m[m
+     [1mscript[0m makes a typescript of everything printed on your terminal.  It is[m
+     useful for students who need a hardcopy record of an interactive session[m
+     as proof of an assignment, as the typescript file can be printed out[m
+     later with lpr(1).[m
+[m
+     If the argument [4mfile[24m is given, [1mscript[0m saves all dialogue in [4mfile[24m.  If no[m
+     file name is given, the typescript is saved in the file [4mtypescript[24m.[m
+[m
+     Options:[m
+[m
+     [1m-a,[0m [1m--append[0m[m
+             Append the output to [4mfile[24m or [4mtypescript[24m, retaining the prior con‐[m
+             tents.[m
+[m
+[7m Manual page script(1) line 1 (press h for help or q to quit)[27m[K[K     [1m-c,[0m [1m--command[0m [4mcommand[24m[m
+[7m Manual page script(1) line 2 (press h for help or q to quit)[27m[K[K             Run the [4mcommand[24m rather than an interactive shell.  This makes it[m
+             easy for a script to capture the output of a program that behaves[m
+             differently when its stdout is not a tty.[m
+[m
+     [1m-e,[0m [1m--return[0m[m
+             Return the exit code of the child process.  Uses the same format[m
+             as bash termination on signal termination exit code is 128+n.[m
+[m
+     [1m-f,[0m [1m--flush[0m[m
+             Flush output after each write.  This is nice for telecooperation:[m
+             one person does `mkfifo foo; script -f foo', and another can[m
+             supervise real-time what is being done using `cat foo'.[m
+[m
+     [1m--force[0m[m
+             Allow the default output destination, i.e. the typescript file,[m
+             to be a hard or symbolic link.  The command will follow a sym‐[m
+             bolic link.[m
+[m
+     [1m-q,[0m [1m--quiet[0m[m
+             Be quiet.[m
+[m
+     [1m-t,[0m [1m--timing[0m[=[4mfile[24m][m
+             Output timing data to standard error, or to [4mfile[24m when given.[m
+[7m Manual page script(1) line 25 (press h for help or q to quit)[27m[K[K             This data contains two fields, separated by a space.  The first[m
+             field indicates how much time elapsed since the previous output.[m
+             The second field indicates how many characters were output this[m
+             time.  This information can be used to replay typescripts with[m
+             realistic typing and output delays.[m
+[m
+     [1m-V,[0m [1m--version[0m[m
+             Output version information and exit.[m
+[m
+     [1m-h,[0m [1m--help[0m[m
+             Output help and exit.[m
+[m
+     The script ends when the forked shell exits (a [4mcontrol-D[24m to exit the[m
+     Bourne shell (sh(1)), and [4mexit[24m, [4mlogout[24m or [4mcontrol-d[24m (if [4mignoreeof[24m is not[m
+     set) for the C-shell, csh(1)).[m
+[m
+     Certain interactive commands, such as vi(1), create garbage in the type‐[m
+     script file.  [1mScript[0m works best with commands that do not manipulate the[m
+     screen, the results are meant to emulate a hardcopy terminal.[m
+[m
+[1mENVIRONMENT[0m[m
+     The following environment variable is utilized by [1mscript[0m:[m
+[m
+[7m Manual page script(1) line 48 (press h for help or q to quit)[27m[K[K[?1l>[?1049l]0;pi@raspberrypi: ~/work/6lbr/examples/6lbr[01;32mpi@raspberrypi[00m [01;34m~/work/6lbr/examples/6lbr $[00m exit
+
+Script done on Sun 03 Jun 2018 07:04:52 UTC
