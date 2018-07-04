@@ -333,9 +333,8 @@ coap_get_rest_method(void *packet)
 extern resource_t res_well_known_core;
 extern resource_t res_authz_info;
 extern resource_t res_pair;
-#ifdef WITH_DTLS
-extern resource_t res_dtls;
-#endif
+extern resource_t res_hello;
+extern resource_t res_lock;
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(coap_engine, ev, data)
@@ -345,6 +344,8 @@ PROCESS_THREAD(coap_engine, ev, data)
 
   rest_activate_resource(&res_authz_info, "authz-info");
   rest_activate_resource(&res_pair, "pair");
+  rest_activate_resource(&res_hello, "hello");
+  rest_activate_resource(&res_lock, "lock");
 
 #if WITH_WELL_KNOWN_CORE
   rest_activate_resource(&res_well_known_core, ".well-known/core");
