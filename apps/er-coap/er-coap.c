@@ -475,12 +475,10 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
       coap_pkt->payload_len = data_len - (coap_pkt->payload - data);
 
       /* also for receiving, the Erbium upper bound is REST_MAX_CHUNK_SIZE */
-      /*
       if(coap_pkt->payload_len > REST_MAX_CHUNK_SIZE) {
         coap_pkt->payload_len = REST_MAX_CHUNK_SIZE;
         /* null-terminate payload */
       }
-      */
       coap_pkt->payload[coap_pkt->payload_len] = '\0';
 
       break;

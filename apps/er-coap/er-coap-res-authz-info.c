@@ -38,7 +38,7 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
 
   fd_read = cfs_open(token_file, CFS_READ);
   if (fd_read != -1){
-    o = cfs_read(fd_read, buffer, 64);
+    o = cfs_read(fd_read, buffer, 128);
     cfs_close(fd_read);
   } else {
     memcpy(buffer, failure_message, strlen(failure_message));

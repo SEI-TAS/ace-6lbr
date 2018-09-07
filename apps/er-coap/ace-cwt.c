@@ -20,7 +20,7 @@
 #define A_DATA_LEN 0
 
 
-static void authenticate(signed long *claim, cwt *token, const cn_cbor* cb, char* out, char** end, int indent) {
+static void create_token(signed long *claim, cwt *token, const cn_cbor* cb, char* out, char** end, int indent) {
   if (!cb)
     goto done;
   int i;
@@ -34,7 +34,7 @@ static void authenticate(signed long *claim, cwt *token, const cn_cbor* cb, char
 
   sequence:
     for (cp = cb->first_child; cp; cp = cp->next) {
-      authenticate(claim, token, cp, out, &out, indent+2);
+      create_token(claim, token, cp, out, &out, indent+2);
     }
     break;
 
@@ -64,24 +64,6 @@ static void authenticate(signed long *claim, cwt *token, const cn_cbor* cb, char
       case 2:
         token->kid = (char *) malloc(17);
         printf("kid len is %d\n", cb->length);
-/*
-        int i, j;
-        unsigned char* lookupid;
-        lookupid = (char *) malloc(17);
-        i = 16 - cb->length;
-        for (j = 0; j <= i - 1; j++){
-          lookupid[j] = "0";
-        }
-        printf("kid len is %s\n", cb->length);
-        strncpy(lookupid[j], cb->v.str, cb->length);
-        for (i = 0; i < cb->length; i++){
-          memcpy(lookupid[j], cb->v.str[i], 1);
-          j++;
-        }
-
-        memcpy(token->kid, lookupid, 16);
-*/
-
         strncpy(token->k, cb->v.str, cb->length);
         token->kid[cb->length+1] = '\0';
         printf("kid is %s\n", token->kid);
@@ -91,15 +73,6 @@ static void authenticate(signed long *claim, cwt *token, const cn_cbor* cb, char
         strncpy(token->k, cb->v.str, cb->length);
         token->k[cb->length+1] = '\0';
         printf("k is %s\n", token->k);
-        char *token_file = "tokens";
-        int fd_write, n;
-        fd_write = cfs_open(token_file, CFS_WRITE | CFS_APPEND);
-        if(fd_write != -1){
-          n = cfs_write(fd_write, "\x00\x00\x00\x00\x00\x00\x00\x00" , 8);  
-          n = cfs_write(fd_write, token->kid, 8);  
-          n = cfs_write(fd_write, token->k, 16);  
-          cfs_close(fd_write);
-        }
         break;
 
     }
@@ -205,8 +178,19 @@ unsigned char* read_cbor(const unsigned char* payload, int i_len) {
   memcpy(buffer3, buffer2, u_len);
   cn_cbor *cb2 = cn_cbor_decode(buffer3, u_len CBOR_CONTEXT_PARAM, 0);
   if (cb2) {
-    authenticate(&claim, token, cb2, buf, &bufend, 0);
-    return 0;
+    create_token(&claim, token, cb2, buf, &bufend, 0);
+    char *token_file = "tokens";
+    int fd_write, n;
+    fd_write = cfs_open(token_file, CFS_WRITE | CFS_APPEND);
+    if(fd_write != -1){
+          n = cfs_write(fd_write, "\x00\x00\x00\x00\x00\x00\x00\x00" , 8);  
+          n = cfs_write(fd_write, token->kid, 8);  
+          n = cfs_write(fd_write, token->k, 16);  
+          n = cfs_write(fd_write, u_len, u_len);
+          n = cfs_write(fd_write, buffer3, u_len);
+          cfs_close(fd_write);
+    }
+    return token->kid;
   } else {
     printf("CBOR decode failed\n");
     return 1;
