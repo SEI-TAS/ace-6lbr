@@ -29,4 +29,10 @@ typedef struct cosewt {
   char* pay;
 } cosewt;
 
+typedef struct token_entry {
+  char* kid;
+  char* key
+  char* cbor;
+} token_entry;
+
 unsigned char* read_cbor(const unsigned char* payload, int i_len);
