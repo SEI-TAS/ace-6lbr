@@ -43,6 +43,6 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
   }
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-  REST.set_response_payload(response, buffer, sizeof(buffer));
+  REST.set_response_payload(response, buffer, strlen(buffer));
 }
 

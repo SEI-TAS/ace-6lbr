@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "cfs/cfs.h"
-#include "./cwt.h"
 
 uint8_t* read_token(unsigned char *index, size_t idx_len,
          token_entry *result){
@@ -32,8 +31,8 @@ uint8_t* read_token(unsigned char *index, size_t idx_len,
         result->key = key;
         cfs_read(fd_read, cbor_len, 4);
         cfs_read(fd_read, result->cbor, cbor_len);
-        i = cfs_seek(fd_read, 0, CFS_SEEK_CUR);
     }
+      i = cfs_seek(fd_read, 0, CFS_SEEK_CUR);
 
   }
   if (cbor_len == 0)
