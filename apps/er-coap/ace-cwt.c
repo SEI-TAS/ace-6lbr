@@ -186,7 +186,7 @@ unsigned char* read_cbor(const unsigned char* payload, int i_len) {
           n = cfs_write(fd_write, "\x00\x00\x00\x00\x00\x00\x00\x00" , 8);  
           n = cfs_write(fd_write, token->kid, 8);  
           n = cfs_write(fd_write, token->k, 16);  
-          n = cfs_write(fd_write, u_len, u_len);
+          n = cfs_write(fd_write, u_len, 4);
           n = cfs_write(fd_write, buffer3, u_len);
           cfs_close(fd_write);
     }
