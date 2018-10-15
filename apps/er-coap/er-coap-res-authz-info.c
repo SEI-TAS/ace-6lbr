@@ -40,10 +40,16 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
   if (fd_read != -1){
     o = cfs_read(fd_read, buffer, 128);
     cfs_close(fd_read);
+    printf("File:");
+    int i;
+    for (i=0; i<128; i++){
+      printf(" %x",buffer[i]);
+    }
+    printf("\n");
   } else {
     memcpy(buffer, failure_message, strlen(failure_message));
   }
 
-  REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+  REST.set_header_content_type(response, REST.type.APPLICATION_OCTET_STREAM);
   REST.set_response_payload(response, buffer, strlen(buffer));
 }

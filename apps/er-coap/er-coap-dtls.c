@@ -82,20 +82,6 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
         
       printf("Looking up id: %s\n", id);
       lookup_dtls_key(id, id_len, result, result_length); 
-/*
-      int i;
-      for (i = 0; i < sizeof(psk)/sizeof(struct keymap_t); i++) {
-        if (id_len == psk[i].id_length && memcmp(id, psk[i].id, id_len) == 0) {
-          if (result_length < psk[i].key_length) {
-            dtls_warn("buffer too small for PSK");
-            return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
-          }
-
-          memcpy(result, psk[i].key, psk[i].key_length); 
-          return psk[i].key_length;
-        }
-      }
-*/
 
       return result_length;
     }
