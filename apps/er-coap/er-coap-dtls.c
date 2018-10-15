@@ -58,6 +58,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
   } psk[1] = {
     { (unsigned char *)DTLS_IDENTITY_HINT, DTLS_IDENTITY_HINT_LENGTH, (unsigned char *)DTLS_PSK_KEY_VALUE, DTLS_PSK_KEY_VALUE_LENGTH },
   };
+    printf("Checking key type\n");
   if (type ==  DTLS_PSK_IDENTITY) {
     if (id_len) {
       dtls_debug("got psk_identity_hint: '%.*s'\n", id_len, id);
@@ -71,6 +72,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
     memcpy(result, psk[0].id, psk[0].id_length);
     return psk[0].id_length;
   } else if (type == DTLS_PSK_KEY) {
+    printf("Key is a psk\n");
     if (id) {
       int i, j;
       unsigned char* lookupid;

@@ -31,7 +31,7 @@ typedef struct cosewt {
 
 typedef struct token_entry {
   char* kid;
-  char* key
+  char* key;
   char* cbor;
 } token_entry;
 

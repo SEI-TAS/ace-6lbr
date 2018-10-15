@@ -331,7 +331,6 @@ coap_get_rest_method(void *packet)
 
 /* the discover resource is automatically included for CoAP */
 extern resource_t res_well_known_core;
-extern resource_t res_authz_info;
 extern resource_t res_pair;
 extern resource_t res_hello;
 extern resource_t res_lock;
@@ -342,7 +341,6 @@ PROCESS_THREAD(coap_engine, ev, data)
   PROCESS_BEGIN();
   PRINTF("Starting %s receiver...\n", coap_rest_implementation.name);
 
-  rest_activate_resource(&res_authz_info, "authz-info");
   rest_activate_resource(&res_pair, "pair");
   rest_activate_resource(&res_hello, "hello");
   rest_activate_resource(&res_lock, "lock");

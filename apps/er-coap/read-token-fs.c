@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "cfs/cfs.h"
+#include "./cwt.h"
 
 uint8_t* read_token(unsigned char *index, size_t idx_len,
          token_entry *result){
