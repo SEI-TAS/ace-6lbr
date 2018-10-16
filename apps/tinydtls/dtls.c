@@ -3718,10 +3718,13 @@ dtls_handle_message(dtls_context_t *ctx,
     switch (msg[0]) {
 
     case DTLS_CT_CHANGE_CIPHER_SPEC:
+      printf("Enter case\n");
       if (peer) {
         dtls_stop_retransmission(ctx, peer);
       }
+      printf("Before handle_ccs\n");
       err = handle_ccs(ctx, peer, msg, data, data_length);
+      printf("After handle_ccs\n");
       if (err < 0) {
 	dtls_warn("error while handling ChangeCipherSpec message\n");
 	dtls_alert_send_from_err(ctx, peer, session, err);

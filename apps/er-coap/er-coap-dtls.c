@@ -75,15 +75,15 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
     printf("Key is a psk\n");
     if (id) {
       int i, j;
-      unsigned char* lookupid;
+      unsigned char lookupid[17] = { 0 };
       i = 16 - id_len;
       for (j = 0; j <= i - 1; j++){
         lookupid[j] = "0";
       }
       strcat(lookupid, id);
         
-      printf("Looking up id: %s\n", id);
-      lookup_dtls_key(id, id_len, result, result_length); 
+      printf("Looking up id: %s\n", lookupid);
+      lookup_dtls_key(lookupid, id_len, result, result_length); 
 /*
       int i;
       for (i = 0; i < sizeof(psk)/sizeof(struct keymap_t); i++) {
