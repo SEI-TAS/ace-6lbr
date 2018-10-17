@@ -84,6 +84,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
         
       printf("Looking up id: %s\n", lookupid);
       lookup_dtls_key(lookupid, id_len, result, result_length); 
+      printf("PSK is: %s\n", result);
 /*
       int i;
       for (i = 0; i < sizeof(psk)/sizeof(struct keymap_t); i++) {
