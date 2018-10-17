@@ -7,12 +7,13 @@
 
 
 uint8_t* lookup_dtls_key(unsigned char *id, size_t id_len,
-         uint8_t *result, size_t result_length){
+         unsigned char *result, size_t result_length){
 
   token_entry tok;
 
   if (read_token(id,id_len,&tok) > 0){
-    result = tok.key;
+    printf("key here %s\n", tok.key);
+    strncpy(result,tok.key,16);
     result_length = 17;
   }
   else {
