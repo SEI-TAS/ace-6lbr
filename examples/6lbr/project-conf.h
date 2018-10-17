@@ -80,7 +80,7 @@
 #define RPL_CONF_INIT_LINK_METRIC			2
 
 // Avoid 6lowpan fragmentation
-#define REST_MAX_CHUNK_SIZE                 64
+#define REST_MAX_CHUNK_SIZE                 256
 
 // Support dynamic attributes in CoAP resources
 #define REST_HAS_ATTR_METHOD                1
