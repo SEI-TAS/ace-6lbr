@@ -135,6 +135,10 @@ coap_receive(context_t * ctx)
           /* invoke resource handler */
           if(service_cbk) {
 
+            // TODO: Call function to verify if client can access resource.
+            // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
+            // Current URL and method can be obtained from coap_get_header_uri_path() and coap_get_rest_method()
+
             /* call REST framework and check if found and allowed */
             if(service_cbk
                  (message, response, transaction->packet + COAP_MAX_HEADER_SIZE,
