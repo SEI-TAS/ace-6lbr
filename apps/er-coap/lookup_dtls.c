@@ -6,24 +6,22 @@
 #include "./cwt.h"
 
 
-uint8_t* lookup_dtls_key(unsigned char *id, size_t id_len,
+int lookup_dtls_key(unsigned char *id, size_t id_len,
          unsigned char *result, size_t result_length){
 
   token_entry tok;
 
+  int key_length = 0;
   if (read_token(id,id_len,&tok) > 0){
     printf("key here %s\n", tok.key);
     strncpy(result,tok.key,16);
-    result_length = 17;
+    key_length = 16;
   }
   else {
-    result_length = 0;
     printf("No DTLS PSK found\n");
   }
 
-
-
-  return result_length;
+  return key_length;
 }
 
 

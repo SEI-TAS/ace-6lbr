@@ -83,7 +83,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
       strcat(lookupid, id);
         
       printf("Looking up id: %s\n", lookupid);
-      lookup_dtls_key(lookupid, id_len, result, result_length); 
+      int key_length = lookup_dtls_key(lookupid, id_len, result, result_length);
       printf("PSK is: %s\n", result);
 /*
       int i;
@@ -100,7 +100,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
       }
 */
 
-      return result_length;
+      return key_length;
     }
   } else {
     return 0;

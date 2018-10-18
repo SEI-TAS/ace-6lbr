@@ -16,16 +16,19 @@ uint8_t* read_token(unsigned char *index, size_t idx_len,
   printf("File size is %d\n", file_size);
   file_pos = cfs_seek(fd_read, 0, CFS_SEEK_SET);
   printf("Reading record identified by: %s\n", index);
+
   int i, j;
   i = 0;
   j = 0;
   char cbor_len[4] = { 0 };;
+  int key_found = 0;
   while(i < file_size){
     i += cfs_read(fd_read, kid, 16);
     i += cfs_read(fd_read, key, 16);
     if (strncmp(index, kid, 16) == 0 ||
       strncmp(index, key, 16) == 0){
         printf("Matched!\n");
+        key_found = 1;
         result->kid = (char *) malloc(17);
         strncpy(result->kid, kid, 17);
         result->key = (char *) malloc(17);
@@ -44,10 +47,11 @@ uint8_t* read_token(unsigned char *index, size_t idx_len,
     printf("File position is %d\n", k);
 
   }
-  if (j == 0)
+
+  cfs_close(fd_read);
+  if (key_found == 0)
   {
         printf("No matching entry\n");
   }
-  return j;
-
+  return key_found;
 }
