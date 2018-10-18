@@ -158,24 +158,32 @@ unsigned char* read_cbor(const unsigned char* payload, int i_len) {
   char *buffer2;
   char *buffer3;
   char* nonce;
+  char* header;
+  char length[4];
   char key[16] = {0xa1, 0xa2, 0xa3, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10};
   cwt t;
   cwt *token = &t;
   unsigned char A_DATA[A_DATA_LEN];
   signed long claim = 0;
-  printf("Received COSE message, last byte is %x\n", payload[112]);
-  buffer = (char *) malloc(82);
-  memcpy(buffer, &payload[31], 82);
+  header = (char*) malloc(6);
+  memcpy(header, payload, 6);
+  if (header == "\xD0\x83\x43\xA1\x01\x0A"){
+    printf("Received COSE message, last byte is %x\n", payload[112]);
+    buffer = (char *) malloc(82);
+    memcpy(buffer, &payload[31], 82);
 
-  nonce = (char *) malloc(13);
-  memcpy(nonce, &payload[16], 13);
-  buffer2 = (char *) malloc(100);
-  buffer3 = (char *) malloc(100);
-  int u_len;
-  u_len = dtls_decrypt(buffer, 82, buffer2, nonce, key, 16, A_DATA, A_DATA_LEN);
-  int i;
-  printf("%d bytes COSE decrypted\n", u_len);
-  memcpy(buffer3, buffer2, u_len);
+    nonce = (char *) malloc(13);
+    memcpy(nonce, &payload[16], 13);
+    buffer2 = (char *) malloc(100);
+    buffer3 = (char *) malloc(100);
+    int u_len;
+    u_len = dtls_decrypt(buffer, 82, buffer2, nonce, key, 16, A_DATA, A_DATA_LEN);
+    printf("%d bytes COSE decrypted\n", u_len);
+    memcpy(buffer3, buffer2, u_len);
+  } else {
+    buffer3 = (char *) malloc(100);
+    memcpy(buffer3, payload, i_len); 
+  }
   cn_cbor *cb2 = cn_cbor_decode(buffer3, u_len CBOR_CONTEXT_PARAM, 0);
   if (cb2) {
     create_token(&claim, token, cb2, buf, &bufend, 0);
@@ -186,7 +194,8 @@ unsigned char* read_cbor(const unsigned char* payload, int i_len) {
           n = cfs_write(fd_write, "\x00\x00\x00\x00\x00\x00\x00\x00" , 8);  
           n = cfs_write(fd_write, token->kid, 8);  
           n = cfs_write(fd_write, token->k, 16);  
-          n = cfs_write(fd_write, u_len, 4);
+          length = itoa(u_len);
+          n = cfs_write(fd_write, length, 4);
           n = cfs_write(fd_write, buffer3, u_len);
           cfs_close(fd_write);
     }
@@ -194,6 +203,26 @@ unsigned char* read_cbor(const unsigned char* payload, int i_len) {
   } else {
     printf("CBOR decode failed\n");
     return 1;
+  }
+}
+
+/* The following base64 decode function is copied from Contiki's shell-base64 */
+
+static int
+base64_decode_char(char c)
+{
+  if(c >= 'A' && c <= 'Z') {
+    return c - 'A';
+  } else if(c >= 'a' && c <= 'z') {
+    return c - 'a' + 26;
+  } else if(c >= '0' && c <= '9') {
+    return c - '0' + 52;
+  } else if(c == '+') {
+    return 62;
+  } else if(c == '/') {
+    return 63;
+  } else {
+    return 0;
   }
 }
 

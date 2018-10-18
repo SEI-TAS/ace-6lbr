@@ -30,11 +30,11 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
   printf("Len is %d\n", len);
   printf("Token:");
   int i;
-  for (i=0; i<80; i++){
+  for (i=0; i<len; i++){
     printf(" %x",aes_token[i]);
   }
   printf("\n");
-  n = read_cbor(aes_token, 79);
+  n = read_cbor(aes_token, len);
 
   if(n == 0){
     memcpy(buffer, success_message, strlen(success_message));
