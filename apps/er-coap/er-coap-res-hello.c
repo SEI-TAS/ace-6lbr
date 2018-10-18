@@ -15,7 +15,7 @@
 
 static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
-RESOURCE(res_hello, NULL, NULL, res_get_handler, NULL, NULL);
+RESOURCE(res_hello, NULL, res_get_handler, NULL, NULL, NULL);
 
 res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   int n = 0;
