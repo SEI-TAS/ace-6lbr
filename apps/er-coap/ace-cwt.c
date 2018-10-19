@@ -165,9 +165,10 @@ unsigned char* read_cbor(const unsigned char* payload, int i_len) {
   cwt *token = &t;
   unsigned char A_DATA[A_DATA_LEN];
   signed long claim = 0;
-  header = (char*) malloc(6);
-  memcpy(header, payload, 6);
-  if (header == "\xD0\x83\x43\xA1\x01\x0A"){
+
+  ///header = (char*) malloc(6);
+  ///memcpy(header, payload, 6);
+  ///if (header == "\xD0\x83\x43\xA1\x01\x0A"){
     printf("Received COSE message, last byte is %x\n", payload[112]);
     buffer = (char *) malloc(82);
     memcpy(buffer, &payload[31], 82);
@@ -180,10 +181,11 @@ unsigned char* read_cbor(const unsigned char* payload, int i_len) {
     u_len = dtls_decrypt(buffer, 82, buffer2, nonce, key, 16, A_DATA, A_DATA_LEN);
     printf("%d bytes COSE decrypted\n", u_len);
     memcpy(buffer3, buffer2, u_len);
-  } else {
-    buffer3 = (char *) malloc(100);
-    memcpy(buffer3, payload, i_len); 
-  }
+  //} else {
+  //  buffer3 = (char *) malloc(100);
+  //  memcpy(buffer3, payload, i_len);
+  //}
+
   cn_cbor *cb2 = cn_cbor_decode(buffer3, u_len CBOR_CONTEXT_PARAM, 0);
   if (cb2) {
     create_token(&claim, token, cb2, buf, &bufend, 0);
