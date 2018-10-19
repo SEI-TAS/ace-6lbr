@@ -139,3 +139,5 @@ LOG_OPENOCD
 # nRF52 build artifacts
 *.jlink
 *.nrf52dk
+
+.idea/*
