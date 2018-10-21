@@ -60,7 +60,7 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
   }
   else {
     REST.set_response_status(response, BAD_REQUEST_4_00);
-    memcpy(response_buffer, no_token_message, strlen(no_token_message))
+    memcpy(response_buffer, no_token_message, strlen(no_token_message));
   }
 
   REST.set_header_content_type(response, REST.type.APPLICATION_OCTET_STREAM);
