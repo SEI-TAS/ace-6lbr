@@ -58,6 +58,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
   } psk[1] = {
     { (unsigned char *)DTLS_IDENTITY_HINT, DTLS_IDENTITY_HINT_LENGTH, (unsigned char *)DTLS_PSK_KEY_VALUE, DTLS_PSK_KEY_VALUE_LENGTH },
   };
+    printf("Checking key type\n");
   if (type ==  DTLS_PSK_IDENTITY) {
     if (id_len) {
       dtls_debug("got psk_identity_hint: '%.*s'\n", id_len, id);
@@ -71,19 +72,35 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
     memcpy(result, psk[0].id, psk[0].id_length);
     return psk[0].id_length;
   } else if (type == DTLS_PSK_KEY) {
+    printf("Key is a psk\n");
     if (id) {
       int i, j;
-      unsigned char* lookupid;
+      unsigned char lookupid[17] = { 0 };
       i = 16 - id_len;
       for (j = 0; j <= i - 1; j++){
         lookupid[j] = "0";
       }
       strcat(lookupid, id);
         
-      printf("Looking up id: %s\n", id);
-      lookup_dtls_key(id, id_len, result, result_length); 
+      printf("Looking up id: %s\n", lookupid);
+      int key_length = lookup_dtls_key(lookupid, id_len, result, result_length);
+      printf("PSK is: %s\n", result);
+/*
+      int i;
+      for (i = 0; i < sizeof(psk)/sizeof(struct keymap_t); i++) {
+        if (id_len == psk[i].id_length && memcmp(id, psk[i].id, id_len) == 0) {
+          if (result_length < psk[i].key_length) {
+            dtls_warn("buffer too small for PSK");
+            return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
+          }
 
-      return result_length;
+          memcpy(result, psk[i].key, psk[i].key_length); 
+          return psk[i].key_length;
+        }
+      }
+*/
+
+      return key_length;
     }
   } else {
     return 0;

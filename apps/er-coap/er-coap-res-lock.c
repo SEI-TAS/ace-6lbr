@@ -15,10 +15,10 @@
 
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
-RESOURCE(res_pair, NULL, NULL, res_post_handler, NULL, NULL);
+RESOURCE(res_lock, NULL, NULL, res_post_handler, NULL, NULL);
 
 res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
-  const uint8_t *aes_token = NULL;
+  uint8_t *aes_token = NULL;
   char* AS_key;
   size_t len;
   char *token_file = "tokens";
@@ -27,14 +27,14 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
   char const *const failure_message = "Failed to add AS credentials";
 
   len = REST.get_request_payload(request, (const uint8_t **)&aes_token);
-  printf("Len is %d\n", len);
-  printf("Token:");
-  int i;
-  for (i=0; i<len; i++){
-    printf(" %x",aes_token[i]);
+
+  fd_write = cfs_open(token_file, CFS_WRITE);
+  if(fd_write != -1){
+    n = cfs_write(fd_write, "Authentication01", 16);
+    n = cfs_write(fd_write, ":", 1);
+    n = cfs_write(fd_write, aes_token, len);
+    cfs_close(fd_write);
   }
-  printf("\n");
-  n = read_cbor(aes_token, len);
 
   if(n == 0){
     memcpy(buffer, success_message, strlen(success_message));
@@ -43,6 +43,6 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
   }
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-  REST.set_response_payload(response, buffer, strlen(buffer));
+  REST.set_response_payload(response, buffer, sizeof(buffer));
 }
 
