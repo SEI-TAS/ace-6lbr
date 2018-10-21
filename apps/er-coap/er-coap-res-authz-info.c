@@ -18,7 +18,6 @@ RESOURCE(res_authz_info, NULL, NULL, res_post_handler, NULL, NULL);
 
 res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   const uint8_t *token = NULL;
-  int n;
 
   size_t token_len = REST.get_request_payload(request, (const uint8_t **)&token);
   printf("token_len is %d\n", token_len);
@@ -30,7 +29,7 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
       printf(" %x",token[i]);
     }
     printf("\n");
-    n = read_cbor(token, token_len);
+    int n = read_cbor(token, token_len);
 
     char *token_file = "tokens";
     int fd_read;
