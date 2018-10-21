@@ -1,11 +1,16 @@
 er-coap_src = er-coap.c er-coap-engine.c er-coap-transactions.c      \
   er-coap-observe.c er-coap-separate.c er-coap-res-well-known-core.c \
-  er-coap-block1.c er-coap-observe-client.c er-coap-res-authz-info.c \
-  er-coap-res-pair.c aes.c \
-  cn-cbor.c cn-create.c cn-encoder.c cn-error.c cn-get.c ace-cwt.c \
-  er-coap-udp.c
+  er-coap-block1.c er-coap-observe-client.c \
+  aes.c cn-cbor.c cn-create.c cn-encoder.c cn-error.c cn-get.c \
+  ace-cwt.c read-token-fs.c \
 
 # Erbium will implement the REST Engine
 CFLAGS += -DREST=coap_rest_implementation
 
-
+ifeq ($(WITH_DTLS_COAP),1)
+CFLAGS += -DWITH_DTLS_COAP=1
+er-coap_src += er-coap-dtls.c lookup_dtls.c er-coap-res-pair.c er-coap-res-hello.c er-coap-res-lock.c
+else
+CFLAGS += -DWITH_DTLS_COAP=0
+er-coap_src += er-coap-udp.c er-coap-res-authz-info.c
+endif

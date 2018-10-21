@@ -468,7 +468,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
   unsigned int option_delta = 0;
   size_t option_length = 0;
 
-  printf("REST_MAX_CHUNK_SIZE is %d\n", REST_MAX_CHUNK_SIZE);
+  PRINTF("REST_MAX_CHUNK_SIZE is %d\n", REST_MAX_CHUNK_SIZE);
   while(current_option < data + data_len) {
     /* payload marker 0xFF, currently only checking for 0xF* because rest is reserved */
     if((current_option[0] & 0xF0) == 0xF0) {
@@ -476,7 +476,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
       coap_pkt->payload_len = data_len - (coap_pkt->payload - data);
 
       /* also for receiving, the Erbium upper bound is REST_MAX_CHUNK_SIZE */
-      printf("payload_len is %d\n", coap_pkt->payload_len);
+      PRINTF("payload_len is %d\n", coap_pkt->payload_len);
       if(coap_pkt->payload_len > REST_MAX_CHUNK_SIZE) {
         coap_pkt->payload_len = REST_MAX_CHUNK_SIZE;
         /* null-terminate payload */

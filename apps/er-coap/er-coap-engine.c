@@ -135,6 +135,10 @@ coap_receive(context_t * ctx)
           /* invoke resource handler */
           if(service_cbk) {
 
+          // TODO: Call function to verify if client can access resource.
+          // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
+          // Current URL and method can be obtained from coap_get_header_uri_path() and coap_get_rest_method()
+
             /* call REST framework and check if found and allowed */
             if(service_cbk
                  (message, response, transaction->packet + COAP_MAX_HEADER_SIZE,
@@ -331,8 +335,14 @@ coap_get_rest_method(void *packet)
 
 /* the discover resource is automatically included for CoAP */
 extern resource_t res_well_known_core;
-extern resource_t res_authz_info;
+
+#if WITH_DTLS_COAP
 extern resource_t res_pair;
+extern resource_t res_hello;
+extern resource_t res_lock;
+#else
+extern resource_t res_authz_info;
+#endif
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(coap_engine, ev, data)
@@ -340,8 +350,14 @@ PROCESS_THREAD(coap_engine, ev, data)
   PROCESS_BEGIN();
   PRINTF("Starting %s receiver...\n", coap_rest_implementation.name);
 
+#if WITH_DTLS_COAP
   rest_activate_resource(&res_authz_info, "authz-info");
+  rest_activate_resource(&res_hello, "hello");
+  rest_activate_resource(&res_lock, "lock");
+#else
   rest_activate_resource(&res_pair, "pair");
+#endif
+
 
 #if WITH_WELL_KNOWN_CORE
   rest_activate_resource(&res_well_known_core, ".well-known/core");
