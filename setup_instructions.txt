@@ -2,10 +2,8 @@ sudo apt install autoconf
 
 git clone https://github.com/SEI-TTG/ace-6lbr
 cd ace-6lbr
-git checkout dtls
 git submodule update --init --recursive
 cd examples/6lbr
 cd ../../apps/tinydtls
 bash reconf.sh
 cd ../../examples/6lbr
-make WITH_TINYDTLS=1 WITH_COAPSERVER=1 WITH_DTLS_COAP=1 all
