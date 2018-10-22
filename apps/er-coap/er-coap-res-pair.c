@@ -19,8 +19,6 @@ RESOURCE(res_pair, NULL, NULL, res_post_handler, NULL, NULL);
 
 res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   char* AS_key;
-  char *token_file = "tokens";
-  int fd_write;
 
   const uint8_t *pairing_info = NULL;
   int len = REST.get_request_payload(request, (const uint8_t **)&pairing_info);
@@ -35,6 +33,17 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
     printf("\n");
 
     int n = read_cbor(pairing_info, len);
+
+    const char *token_file = "tokens";
+    int fd_write = cfs_open(token_file, CFS_WRITE);
+    int bytes_written = 0;
+    if(fd_write != -1){
+      bytes_written = cfs_write(fd_write, "Authentication01", 16);
+      bytes_written = cfs_write(fd_write, ":", 1);
+      bytes_written = cfs_write(fd_write, aes_token, len);
+      cfs_close(fd_write);
+    }
+
     if(n == 0){
       REST.set_response_status(response, REST.status.CREATED);
       const char* success_message = "AS credentials added";
