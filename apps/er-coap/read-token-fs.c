@@ -52,7 +52,7 @@ uint8_t* read_token(unsigned char *index, size_t idx_len,
         result->cbor = (char *) malloc(cbor_len + 1);
         bytes_read += cfs_read(fd_read, result->cbor, cbor_len);
         result->cbor[cbor_len] = 0;
-        printf("Readed cbor into struct: %d\n");
+        printf("Readed cbor into struct: %s\n", result->cbor);
     }
     printf("bytes read is %d\n", bytes_read);
   }
