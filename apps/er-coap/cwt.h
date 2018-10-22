@@ -36,3 +36,5 @@ typedef struct token_entry {
 } token_entry;
 
 unsigned char* read_cbor(const unsigned char* payload, int i_len);
+
+#define KEY_LENGTH 16

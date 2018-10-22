@@ -5,47 +5,56 @@
 #include "cfs/cfs.h"
 #include "./cwt.h"
 
+#define KEY_ID_LENGTH 16
+#define CBOR_SIZE_LENGTH 4
+
 uint8_t* read_token(unsigned char *index, size_t idx_len,
          token_entry *result){
-  char kid[17] = { 0 };
-  char key[17] = { 0 };
-  char *token_file = "tokens";
-  int fd_read, file_size, file_pos;
-  fd_read = cfs_open(token_file, CFS_READ);
-  file_size = cfs_seek(fd_read, 0, CFS_SEEK_END);
-  printf("File size is %d\n", file_size);
-  file_pos = cfs_seek(fd_read, 0, CFS_SEEK_SET);
-  printf("Reading record identified by: %s\n", index);
+  char kid[KEY_ID_LENGTH + 1] = { 0 };
+  char key[KEY_LENGTH + 1] = { 0 };
 
-  int i, j;
-  i = 0;
-  j = 0;
-  char cbor_len[4] = { 0 };;
+  char *token_file = "tokens";
+  int fd_read = cfs_open(token_file, CFS_READ);
+  int file_size = cfs_seek(fd_read, 0, CFS_SEEK_END);
+  printf("File size is %d\n", file_size);
+  int file_pos = cfs_seek(fd_read, 0, CFS_SEEK_SET);
+  printf("Looking for record identified by: %s\n", index);
+
+  int bytes_read = 0;
+  char cbor_len_buffer[4] = { 0 };
   int key_found = 0;
-  while(i < file_size){
-    i += cfs_read(fd_read, kid, 16);
-    i += cfs_read(fd_read, key, 16);
-    if (strncmp(index, kid, 16) == 0 ||
-      strncmp(index, key, 16) == 0){
+  while(bytes_read < file_size) {
+    bytes_read += cfs_read(fd_read, kid, KEY_ID_LENGTH);
+    bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
+    if (strncmp(index, kid, KEY_ID_LENGTH) == 0 ||
+      strncmp(index, key, KEY_LENGTH) == 0){
         printf("Matched!\n");
         key_found = 1;
-        result->kid = (char *) malloc(17);
-        strncpy(result->kid, kid, 17);
-        result->key = (char *) malloc(17);
-        strncpy(result->key, key, 17);
-        printf("Readed into struct key = %s\n", result->key);
-        i += cfs_read(fd_read, cbor_len, 4);
-        printf("Readed length kid into char pointer\n"); 
-        j = atoi(cbor_len); 
-        result->cbor = (char *) malloc(j+1);
-      
-        i += cfs_read(fd_read, result->cbor, j);
-        printf("Readed cbor into struct\n"); 
-    }
-    printf("bytes read is %d\n", i);
-    int k = cfs_seek(fd_read, 0, CFS_SEEK_CUR);
-    printf("File position is %d\n", k);
 
+        result->kid = (char *) malloc(KEY_ID_LENGTH + 1);
+        memcpy(result->kid, kid, KEY_ID_LENGTH);
+        result->kid[KEY_ID_LENGTH] = 0;
+
+        result->key = (char *) malloc(KEY_LENGTH);
+        memcpy(result->key, key, KEY_LENGTH);
+        printf("Readed into struct key: ");
+        int i;
+        for (i=0; i<KEY_LENGTH; i++){
+          printf(" %x",result->key[i]);
+        }
+        printf("\n");
+
+        bytes_read += cfs_read(fd_read, cbor_len_buffer, CBOR_SIZE_LENGTH);
+        printf("Readed length kid into char pointer\n"); 
+        int cbor_len = atoi(cbor_len_buffer);
+        printf("Cbor len: %d\n", cbor_len);
+
+        result->cbor = (char *) malloc(cbor_len + 1);
+        bytes_read += cfs_read(fd_read, result->cbor, cbor_len);
+        result->cbor[cbor_len] = 0;
+        printf("Readed cbor into struct: %d\n");
+    }
+    printf("bytes read is %d\n", bytes_read);
   }
 
   cfs_close(fd_read);

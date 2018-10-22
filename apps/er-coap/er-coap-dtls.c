@@ -30,6 +30,8 @@
 #define DTLS_PSK_KEY_VALUE_LENGTH 9
 #endif
 
+#define MAX_KEY_ID_LEN 16
+
 /*---------------------------------------------------------------------------*/
 
 static int
@@ -58,7 +60,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
   } psk[1] = {
     { (unsigned char *)DTLS_IDENTITY_HINT, DTLS_IDENTITY_HINT_LENGTH, (unsigned char *)DTLS_PSK_KEY_VALUE, DTLS_PSK_KEY_VALUE_LENGTH },
   };
-    printf("Checking key type\n");
+    printf("Checking key type request\n");
   if (type ==  DTLS_PSK_IDENTITY) {
     if (id_len) {
       dtls_debug("got psk_identity_hint: '%.*s'\n", id_len, id);
@@ -72,19 +74,26 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
     memcpy(result, psk[0].id, psk[0].id_length);
     return psk[0].id_length;
   } else if (type == DTLS_PSK_KEY) {
-    printf("Key is a psk\n");
+    printf("Requesting psk key\n");
     if (id) {
-      int i, j;
-      unsigned char lookupid[17] = { 0 };
-      i = 16 - id_len;
-      for (j = 0; j <= i - 1; j++){
+      printf("Id length is %d\n", id_len);
+      unsigned char lookupid[MAX_KEY_ID_LEN + 1] = { 0 };
+      int padding_len = MAX_KEY_ID_LEN - id_len;
+      int j;
+      for (j = 0; j <= padding_len - 1; j++){
         lookupid[j] = "0";
       }
       strcat(lookupid, id);
         
       printf("Looking up id: %s\n", lookupid);
       int key_length = lookup_dtls_key(lookupid, id_len, result, result_length);
-      printf("PSK is: %s\n", result);
+      printf("PSK has been found: \n");
+      int item;
+      for (item=0; item < key_length; item++){
+        printf(" %x",result[item]);
+      }
+      printf("\n");
+
 /*
       int i;
       for (i = 0; i < sizeof(psk)/sizeof(struct keymap_t); i++) {

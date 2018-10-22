@@ -32,9 +32,9 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
     }
     printf("\n");
 
-    int n = read_cbor(pairing_info, len);
+    char* decode_success = read_cbor(pairing_info, len);
 
-    const char *token_file = "tokens";
+    /*const char *token_file = "tokens";
     int fd_write = cfs_open(token_file, CFS_WRITE);
     int bytes_written = 0;
     if(fd_write != -1){
@@ -42,9 +42,9 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
       bytes_written = cfs_write(fd_write, ":", 1);
       bytes_written = cfs_write(fd_write, aes_token, len);
       cfs_close(fd_write);
-    }
+    }*/
 
-    if(n == 0){
+    if(decode_success != 0){
       REST.set_response_status(response, REST.status.CREATED);
       const char* success_message = "AS credentials added";
       REST.set_response_payload(response, success_message, strlen(success_message));
