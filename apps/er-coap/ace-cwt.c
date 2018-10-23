@@ -18,8 +18,11 @@
 #endif
 
 #define A_DATA_LEN 0
+#define NONCE_SIZE 13
+#define MAX_CBOR_CLAIMS_LEN 200
+#define COSE_PROTECTED_HEADER_SIZE 6
 
-
+// Parses the unencrypted CBOR bytes of a CWT token, and loads all claims into a cwt C struct object.
 static void create_token(signed long *claim, cwt *token, const cn_cbor* cb, char* out, char** end, int indent) {
   if (!cb)
     goto done;
@@ -52,7 +55,7 @@ static void create_token(signed long *claim, cwt *token, const cn_cbor* cb, char
         token->cnf[cb->length+1] = '\0';
         printf("cnf is %s\n", token->cnf);
         token->in_cnf = 1;
-        read_cbor(cb->v.str, cb->length);
+        parse_cwt_token(cb->v.str, cb->length);
         token->in_cnf = 0;
         break;
       case 7:
@@ -64,15 +67,15 @@ static void create_token(signed long *claim, cwt *token, const cn_cbor* cb, char
       case 2:
         token->kid = (char *) malloc(17);
         printf("kid len is %d\n", cb->length);
-        strncpy(token->k, cb->v.str, cb->length);
+        strncpy(token->key, cb->v.str, cb->length);
         token->kid[cb->length+1] = '\0';
         printf("kid is %s\n", token->kid);
         break;
       case -1:
-        token->k = (char *) malloc(cb->length+1);
-        strncpy(token->k, cb->v.str, cb->length);
-        token->k[cb->length+1] = '\0';
-        printf("k is %s\n", token->k);
+        token->key = (char *) malloc(cb->length+1);
+        strncpy(token->key, cb->v.str, cb->length);
+        token->key[cb->length+1] = '\0';
+        printf("key is %s\n", token->key);
         break;
 
     }
@@ -150,60 +153,119 @@ done:
   *end = out;
 }
 
+// Reads a CWT token in CBOR byte format, and loads it into a cwt C struct.
+cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
+  char *encrypted_cbor_claims;
+  char *decrypted_cbor_claims;
+  char* nonce;
+  char key[KEY_LENGTH] = {0xa1, 0xa2, 0xa3, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10};
+  cwt* token = (cwt*) malloc(sizeof(cwt));
+  unsigned char A_DATA[A_DATA_LEN];
 
-unsigned char* read_cbor(const unsigned char* payload, int i_len) {
+  // The structure of this wrapper is: 16 [<protected-headers-as-b-string>, <unprotected-headers-as-map>, <cyphertext-as-b-string>]
+  // We assume byte 1 in CWT is 0xD0, 16, which means COSE_Encrypt0, the type of COSE wrapper we are using.
+  // We assume byte 2 is 83, which indicates we have an array.
+  // We assume byte 3, 43, indicates a byte string of 3 bytes.
+  // Bytes 4,5,6 should be A1010A, meaning profile AES_CCM_16_64_128 for the encrypted cypher.
+  // Byte 7 should be A2, indicating a map for the unprotected header params.
+  // Byte 8 should be 04, indicating the key id to be used.
+
+  //char protected_header[COSE_PROTECTED_HEADER_SIZE];
+  //memcpy(header, cbor_token, COSE_PROTECTED_HEADER_SIZE);
+  ///if (header == "\xD0\x83\x43\xA1\x01\x0A\xA2\04\"){
+
+  printf("Received COSE message, last byte is %x\n", cbor_token[token_length - 1]);
+
+  // Byte 9 is 4x, indicating a byte string of x bytes.
+  // Byte 10 indicates we have a CBOR array (81), byte 11 that the first value is text of size x (6x).
+  // The actual size is the last 5 bits.
+  // Bytes x after that indicate the actual key ID.
+  int key_id_size_pos = 10;
+  int key_id_size = cbor_token[key_id_size_pos] & 0x1F;
+  printf("Key id size is %d.\n", key_id_size);
+
+  int key_id_pos = key_id_size_pos + 1;
+  char* key_id = (char*) malloc(key_id_size + 1);
+  memcpy(key_id, &cbr_token[key_id_pos], key_id_size);
+  key_id[key_id_size] = 0;
+  printf("Key id is %s.\n", key_id);
+
+  // After the key id, there are 2 bytes indicating that the nonce is coming, and it size. We assume it will always be 13.
+  int nonce_pos = key_id_pos + key_id_size + 2;
+  printf("Getting nonce.\n");
+  nonce = (char *) malloc(NONCE_SIZE);
+  memcpy(nonce, &cbor_token[nonce_pos], NONCE_SIZE);
+
+  // After the nonce there are 2 bytes indicating that a byte string is coming and its size.
+  printf("Getting encrypted claims.\n");
+  int encrypted_cbor_claims_pos = nonce_pos + NONCE_SIZE + 2;
+  int encrypted_cbor_claims_length = token_length - encrypted_cbor_claims_pos;
+  encrypted_cbor_claims = (char *) malloc(encrypted_cbor_claims_length);
+  memcpy(encrypted_cbor_claims, &cbor_token[encrypted_cbor_claims_pos], encrypted_cbor_claims_length);
+
+  printf("Decrypting claims.\n")
+  char* decrypted_cbor_claims = (char*) malloc(MAX_CBOR_CLAIMS_LEN);
+  int decrypted_cbor_claims_len = dtls_decrypt(encrypted_cbor_claims, encrypted_cbor_claims_length,
+                                               decrypted_cbor_claims, nonce, key, KEY_LENGTH, A_DATA, A_DATA_LEN);
+  printf("%d bytes COSE decrypted\n", decrypted_cbor_claims_len);
+  //free(encrypted_cbor_claims);
+
+  printf("Decoding claims CBOR.\n")
+  signed long claim = 0;
   char buf[1000];
   char *bufend = NULL;
-  char *buffer;
-  char *buffer2;
-  char *buffer3;
-  char* nonce;
-  char* header;
-  char length[4];
-  char key[16] = {0xa1, 0xa2, 0xa3, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10};
-  cwt t;
-  cwt *token = &t;
-  unsigned char A_DATA[A_DATA_LEN];
-  signed long claim = 0;
-
-  ///header = (char*) malloc(6);
-  ///memcpy(header, payload, 6);
-  ///if (header == "\xD0\x83\x43\xA1\x01\x0A"){
-    printf("Received COSE message, last byte is %x\n", payload[112]);
-    buffer = (char *) malloc(82);
-    memcpy(buffer, &payload[31], 82);
-
-    nonce = (char *) malloc(13);
-    memcpy(nonce, &payload[16], 13);
-    buffer2 = (char *) malloc(100);
-    buffer3 = (char *) malloc(100);
-    int u_len;
-    u_len = dtls_decrypt(buffer, 82, buffer2, nonce, key, 16, A_DATA, A_DATA_LEN);
-    printf("%d bytes COSE decrypted\n", u_len);
-    memcpy(buffer3, buffer2, u_len);
-  //} else {
-  //  buffer3 = (char *) malloc(100);
-  //  memcpy(buffer3, payload, i_len);
-  //}
-
-  cn_cbor *cb2 = cn_cbor_decode(buffer3, u_len CBOR_CONTEXT_PARAM, 0);
-  if (cb2) {
-    create_token(&claim, token, cb2, buf, &bufend, 0);
-    char *token_file = "tokens";
-    int fd_write, n;
-    fd_write = cfs_open(token_file, CFS_WRITE | CFS_APPEND);
-    if(fd_write != -1){
-          n = cfs_write(fd_write, "\x00\x00\x00\x00\x00\x00\x00\x00" , 8);  
-          n = cfs_write(fd_write, token->kid, 8);  
-          n = cfs_write(fd_write, token->k, 16);  
-          //length = itoa(u_len);
-          n = cfs_write(fd_write, length, 4);
-          n = cfs_write(fd_write, buffer3, u_len);
-          cfs_close(fd_write);
-    }
-    return token->kid;
+  cn_cbor* claims = cn_cbor_decode(buffer3, decrypted_cbor_claims_len CBOR_CONTEXT_PARAM, 0);
+  if (claims) {
+    printf("Creating cwt struct from CBOR object.\n");
+    create_token(&claim, token, claims, buf, &bufend, 0);
+    token->cbor_claims = decrypted_cbor_claims;
+    token->cbor_claims_length = decrypted_cbor_claims_len;
+    return token;
   } else {
     printf("CBOR decode failed\n");
     return 0;
   }
+}
+
+// Stores the given token into the tokens file.
+int store_token(cwt* token) {
+  int bytes_written;
+  int fd_tokens_file = cfs_open(TOKENS_FILE_NAME, CFS_WRITE | CFS_APPEND);
+  if(fd_tokens_file != -1){
+    // First write key id and key.
+    printf("Storing key id and key.\n");
+    char* padded_id = pad_with_zeros(token->kid, KEY_LENGTH);
+    bytes_written = cfs_write(fd_tokens_file, padded_id, strlen(padded_id));
+    //free(padded_id);
+    bytes_written = cfs_write(fd_tokens_file, token->key, KEY_LENGTH);
+
+    // Now write CBOR claims length, and the CBOR claims.
+    printf("Storing CBOR claims length and claims.\n");
+    char length_as_string[CBOR_SIZE_LENGTH] = { 0 };
+    itoa(token->cbor_claims_length, length_as_string, 10);
+    char* padded_length_as_string = pad_with_zeros(length_as_string, CBOR_SIZE_LENGTH)
+    bytes_written = cfs_write(fd_tokens_file, padded_length_as_string, strlen(padded_length_as_string));
+    //free(padded_length_as_string);
+    bytes_written = cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_length);
+
+    cfs_close(fd_tokens_file);
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
+
+// Add padding so that the given string always uses the max given bytes. "0" are added as padding.
+char* pad_with_zeros(char* initial_string, int final_length) {
+  printf("Unpadded id length is %d\n", strlen(initial_string));
+  char* padded_string = (char *) malloc(final_length + 1);
+  int padding_len = final_length - strlen(initial_string);
+  int j;
+  for (j = 0; j < padding_len; j++){
+    padded_string[j] = "0";
+  }
+  padded_string[padding_len] = 0;
+  strcat(padded_string, initial_string);
+  return padded_string;
 }

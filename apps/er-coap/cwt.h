@@ -20,8 +20,10 @@ typedef struct cwt {
   char* cnf;
   char* kid;
   char* ktype;
-  char* k;
+  char* key;
   int in_cnf;
+  char* cbor_claims;
+  int cbor_claims_length;
 } cwt ;
 
 typedef struct cosewt {
@@ -35,6 +37,11 @@ typedef struct token_entry {
   char* cbor;
 } token_entry;
 
-unsigned char* read_cbor(const unsigned char* payload, int i_len);
+cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
+int store_token(cwt* token);
 
+#define MAX_KEY_ID_LEN 16
+#define KEY_ID_LENGTH 16
 #define KEY_LENGTH 16
+#define CBOR_SIZE_LENGTH 4
+#define TOKENS_FILE_NAME "tokens"

@@ -32,7 +32,7 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
     }
     printf("\n");
 
-    char* decode_success = read_cbor(pairing_info, len);
+    char* decode_success = parse_cwt_token(pairing_info, len);
 
     /*const char *token_file = "tokens";
     int fd_write = cfs_open(token_file, CFS_WRITE);

@@ -5,8 +5,6 @@
 #include "cfs/cfs.h"
 #include "./cwt.h"
 
-#define KEY_ID_LENGTH 16
-#define CBOR_SIZE_LENGTH 4
 
 uint8_t* read_token(unsigned char *index, size_t idx_len,
          token_entry *result){

@@ -30,8 +30,6 @@
 #define DTLS_PSK_KEY_VALUE_LENGTH 9
 #endif
 
-#define MAX_KEY_ID_LEN 16
-
 /*---------------------------------------------------------------------------*/
 
 static int
