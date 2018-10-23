@@ -28,7 +28,7 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
     printf("Pairing info:");
     int i;
     for (i=0; i<len; i++){
-      printf(" %x",pairing_info[i]);
+      printf(" %02x",pairing_info[i]);
     }
     printf("\n");
 

@@ -26,7 +26,7 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
     printf("CBOR token:");
     int i;
     for (i=0; i<token_len; i++){
-      printf(" %x",cbor_token[i]);
+      printf(" %02x",cbor_token[i]);
     }
     printf("\n");
 
@@ -57,7 +57,7 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
       printf("File:");
       int i;
       for (i=0; i<128; i++){
-        printf(" %x",buffer[i]);
+        printf(" %02x",buffer[i]);
       }
       printf("\n");
     } else {

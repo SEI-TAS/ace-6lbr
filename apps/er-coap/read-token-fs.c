@@ -38,7 +38,7 @@ uint8_t* read_token(unsigned char *index, size_t idx_len,
         printf("Readed into struct key: ");
         int i;
         for (i=0; i<KEY_LENGTH; i++){
-          printf(" %x",result->key[i]);
+          printf(" %02x",result->key[i]);
         }
         printf("\n");
 

@@ -89,7 +89,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
       printf("PSK has been found: \n");
       int item;
       for (item=0; item < key_length; item++){
-        printf(" %x",result[item]);
+        printf(" %02x",result[item]);
       }
       printf("\n");
 

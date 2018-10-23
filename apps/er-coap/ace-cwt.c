@@ -165,7 +165,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   //memcpy(header, cbor_token, COSE_PROTECTED_HEADER_SIZE);
   ///if (header == "\xD0\x83\x43\xA1\x01\x0A\xA2\04\"){
 
-  printf("Received COSE message, last byte is %x\n", cbor_token[token_length - 1]);
+  printf("Received COSE message, last byte is %02x\n", cbor_token[token_length - 1]);
 
   // Byte 9 is 4x, indicating a byte string of x bytes.
   // Byte 10 indicates we have a CBOR array (81), byte 11 that the first value is text of size x (6x).
@@ -189,35 +189,35 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 
   // After the nonce there are 2 bytes indicating that a byte string is coming and its size.
   printf("Getting encrypted claims.\n");
-  int encrypted_cbor_claims_pos = nonce_pos + NONCE_SIZE + 2;
-  int encrypted_cbor_claims_length = token_length - encrypted_cbor_claims_pos;
-  char* encrypted_cbor_claims = (char *) malloc(encrypted_cbor_claims_length);
-  memcpy(encrypted_cbor_claims, &cbor_token[encrypted_cbor_claims_pos], encrypted_cbor_claims_length);
+  int encrypted_cbor_pos = nonce_pos + NONCE_SIZE + 2;
+  int encrypted_cbor_length = token_length - encrypted_cbor_pos;
+  char* encrypted_cbor = (char *) malloc(encrypted_cbor_length);
+  memcpy(encrypted_cbor, &cbor_token[encrypted_cbor_pos], encrypted_cbor_length);
 
   printf("Decrypting claims.\n");
-  unsigned char* decrypted_cbor_claims = (unsigned char*) malloc(MAX_CBOR_CLAIMS_LEN);
-  int decrypted_cbor_claims_len = dtls_decrypt(encrypted_cbor_claims, encrypted_cbor_claims_length,
-                                               decrypted_cbor_claims, nonce, key, KEY_LENGTH, A_DATA, A_DATA_LEN);
-  printf("%d bytes COSE decrypted\n", decrypted_cbor_claims_len);
-  //free(encrypted_cbor_claims);
+  unsigned char* decrypted_cbor = (unsigned char*) malloc(MAX_CBOR_CLAIMS_LEN);
+  int decrypted_cbor_len = dtls_decrypt(encrypted_cbor, encrypted_cbor_length,
+                                        decrypted_cbor, nonce, key, KEY_LENGTH, A_DATA, A_DATA_LEN);
+  printf("%d bytes COSE decrypted\n", decrypted_cbor_len);
+  //free(encrypted_cbor);
 
   printf("Decrypted CBOR:");
   int i;
-  for (i=0; i < decrypted_cbor_claims_len; i++){
-    printf(" %x", decrypted_cbor_claims[i]);
+  for (i=0; i < decrypted_cbor_len; i++){
+    printf(" %02x", decrypted_cbor[i]);
   }
   printf("\n");
 
   printf("Decoding claims CBOR.\n");
   char buf[1000];
   char *bufend = NULL;
-  cn_cbor* claims = cn_cbor_decode(decrypted_cbor_claims, decrypted_cbor_claims_len CBOR_CONTEXT_PARAM, 0);
+  cn_cbor* claims = cn_cbor_decode(decrypted_cbor, decrypted_cbor_len CBOR_CONTEXT_PARAM, 0);
   if (claims) {
     signed long claim = 0;
     printf("Creating cwt struct from CBOR object.\n");
     create_token(&claim, token, claims, buf, &bufend, 0);
-    token->cbor_claims = decrypted_cbor_claims;
-    token->cbor_claims_length = decrypted_cbor_claims_len;
+    token->cbor_claims = decrypted_cbor;
+    token->cbor_claims_length = decrypted_cbor_len;
     return token;
   } else {
     printf("CBOR decode failed\n");
