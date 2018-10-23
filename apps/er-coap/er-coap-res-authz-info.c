@@ -31,7 +31,7 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
     printf("\n");
 
     cwt* token = parse_cwt_token(cbor_token, token_len);
-    if(cwt == 0) {
+    if(token == 0) {
       REST.set_response_status(response, REST.status.BAD_REQUEST);
       const char* error_message = "Error parsing CWT token";
       REST.set_response_payload(response, error_message, strlen(error_message));
