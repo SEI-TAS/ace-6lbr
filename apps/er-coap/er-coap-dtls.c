@@ -3,6 +3,7 @@
 #include "er-coap.h"
 #include "er-coap-engine.h"
 #include "er-coap-dtls.h"
+#include "cwt.h"
 
 #include "dtls.h"
 
@@ -75,8 +76,8 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
     printf("Requesting psk key\n");
     if (id) {
       printf("Id length is %d\n", id_len);
-      unsigned char lookupid[MAX_KEY_ID_LEN + 1] = { 0 };
-      int padding_len = MAX_KEY_ID_LEN - id_len;
+      unsigned char lookupid[KEY_ID_LENGTH + 1] = { 0 };
+      int padding_len = KEY_ID_LENGTH - id_len;
       int j;
       for (j = 0; j <= padding_len - 1; j++){
         lookupid[j] = "0";

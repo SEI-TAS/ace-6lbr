@@ -41,7 +41,6 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
 int store_token(cwt* token);
 char* pad_with_zeros(char* initial_string, int final_length);
 
-#define MAX_KEY_ID_LEN 16
 #define KEY_ID_LENGTH 16
 #define KEY_LENGTH 16
 #define CBOR_SIZE_LENGTH 4
