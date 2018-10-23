@@ -47,6 +47,7 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
         const char* error_message = "Failed to add ACE credentials, could not open tokens file";
         REST.set_response_payload(response, error_message, strlen(error_message));
       }
+    }
 
     /*int bytes_read;
     int fd_read = cfs_open(token_file, CFS_READ);
