@@ -230,17 +230,24 @@ int store_token(cwt* token) {
   int bytes_written;
   int fd_tokens_file = cfs_open(TOKENS_FILE_NAME, CFS_WRITE | CFS_APPEND);
   if(fd_tokens_file != -1){
+    char padding_format_string[6];
+
     // First write key id and key.
+    snprintf(padding_format_string, 6, "%%0%ds", KEY_ID_LENGTH);
+    printf("Formatting string: %s\n", padding_format_string);
     printf("Storing key id and key.\n");
-    char* padded_id = pad_with_zeros(token->kid, KEY_LENGTH);
+    char padded_id[KEY_ID_LENGTH + 1] = { 0 };
+    snprintf(length_as_string, KEY_LENGTH, padding_format_string, token->cbor_claims_length);
     bytes_written = cfs_write(fd_tokens_file, padded_id, strlen(padded_id));
     //free(padded_id);
     bytes_written = cfs_write(fd_tokens_file, token->key, KEY_LENGTH);
 
     // Now write CBOR claims length, and the CBOR claims.
+    snprintf(padding_format_string, 6, "%%0%dd", CBOR_SIZE_LENGTH);
+    printf("Formatting string: %s\n", padding_format_string);
     printf("Storing CBOR claims length and claims.\n");
-    char length_as_string[CBOR_SIZE_LENGTH] = { 0 };
-    itoa(token->cbor_claims_length, length_as_string, 10);
+    char length_as_string[CBOR_SIZE_LENGTH + 1] = { 0 };
+    snprintf(length_as_string, CBOR_SIZE_LENGTH, padding_format_string, token->cbor_claims_length);
     char* padded_length_as_string = pad_with_zeros(length_as_string, CBOR_SIZE_LENGTH);
     bytes_written = cfs_write(fd_tokens_file, padded_length_as_string, strlen(padded_length_as_string));
     //free(padded_length_as_string);
