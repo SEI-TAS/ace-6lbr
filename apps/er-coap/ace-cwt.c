@@ -48,11 +48,12 @@ static void create_token(signed long *claim, cwt *token, const cn_cbor* cb, char
     printf("HEX:");
     for (i=0; i<cb->length; i++)
       printf("%02x", cb->v.str[i]);
+    printf("\n");
     switch(*claim){
       case 25:
         token->cnf = (char *) malloc(cb->length+1);
         strncpy(token->cnf, cb->v.str, cb->length);
-        token->cnf[cb->length+1] = '\0';
+        token->cnf[cb->length] = '\0';
         printf("cnf is %s\n", token->cnf);
         token->in_cnf = 1;
         parse_cwt_token(cb->v.str, cb->length);
@@ -61,14 +62,14 @@ static void create_token(signed long *claim, cwt *token, const cn_cbor* cb, char
       case 7:
         token->cti = (char *) malloc(cb->length+1);
         strncpy(token->cti, cb->v.str, cb->length);
-        token->cti[cb->length+1] = '\0';
+        token->cti[cb->length] = '\0';
         printf("cti is %s\n", token->cti);
         break;
       case 2:
         token->kid = (char *) malloc(17);
         printf("kid len is %d\n", cb->length);
         strncpy(token->key, cb->v.str, cb->length);
-        token->kid[cb->length+1] = '\0';
+        token->kid[cb->length] = '\0';
         printf("kid is %s\n", token->kid);
         break;
       case -1:
