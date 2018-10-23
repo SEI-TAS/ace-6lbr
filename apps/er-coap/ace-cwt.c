@@ -237,7 +237,7 @@ int store_token(cwt* token) {
     printf("Formatting string: %s\n", padding_format_string);
     printf("Storing key id and key.\n");
     char padded_id[KEY_ID_LENGTH + 1] = { 0 };
-    snprintf(length_as_string, KEY_LENGTH, padding_format_string, token->cbor_claims_length);
+    snprintf(padded_id, KEY_ID_LENGTH, padding_format_string, token->kid);
     bytes_written = cfs_write(fd_tokens_file, padded_id, strlen(padded_id));
     //free(padded_id);
     bytes_written = cfs_write(fd_tokens_file, token->key, KEY_LENGTH);
