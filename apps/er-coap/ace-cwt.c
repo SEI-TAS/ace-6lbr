@@ -24,134 +24,125 @@
 
 // Parses the unencrypted CBOR bytes of a CWT token, and loads all claims into a cwt C struct object.
 static void create_token(signed long *claim, cwt *token, const cn_cbor* cb, char* out, char** end, int indent) {
-  if (!cb)
-    goto done;
+  if (!cb) {
+    *end = out;
+    return;
+  }
   int i;
   cn_cbor* cp;
 
   printf("Type: %d\n",cb->type);
   switch (cb->type) {
-
-  case CN_CBOR_ARRAY: goto sequence;
-  case CN_CBOR_MAP: goto sequence;
-
-  sequence:
-    for (cp = cb->first_child; cp; cp = cp->next) {
-      create_token(claim, token, cp, out, &out, indent+2);
-    }
-    break;
-
-  case CN_CBOR_BYTES: 
-    if(token->in_cnf > 0){
-      printf("\ncnf CLM: %d\n", *claim);
-    }
-    printf("HEX:");
-    for (i=0; i<cb->length; i++)
-      printf("%02x", cb->v.str[i]);
-    printf("\n");
-    switch(*claim){
-      case 25:
-        token->cnf = (char *) malloc(cb->length+1);
-        strncpy(token->cnf, cb->v.str, cb->length);
-        token->cnf[cb->length] = '\0';
-        printf("cnf is %s\n", token->cnf);
-        token->in_cnf = 1;
-        parse_cwt_token(cb->v.str, cb->length);
-        token->in_cnf = 0;
-        break;
-      case 7:
-        token->cti = (char *) malloc(cb->length+1);
-        strncpy(token->cti, cb->v.str, cb->length);
-        token->cti[cb->length] = '\0';
-        printf("cti is %s\n", token->cti);
-        break;
-      case 2:
-        token->kid = (char *) malloc(17);
-        printf("kid len is %d\n", cb->length);
-        strncpy(token->key, cb->v.str, cb->length);
-        token->kid[cb->length] = '\0';
-        printf("kid is %s\n", token->kid);
-        break;
-      case -1:
-        token->key = (char *) malloc(cb->length+1);
-        strncpy(token->key, cb->v.str, cb->length);
-        token->key[cb->length+1] = '\0';
-        printf("key is %s\n", token->key);
-        break;
-
-    }
-    break;
-
-  case CN_CBOR_TEXT:
-    printf("LEN: %d\n",cb->length);
-    printf("\nTXT: %s\n", cb->v.str);
-    printf("CLM: %d\n", *claim);
-
-    switch(*claim){
-      case 1:
-        token->iss = (char *) malloc(cb->length+1);
-        strncpy(token->iss, cb->v.str, cb->length);
-        token->iss[cb->length+1] = '\0';
-        printf("iss is %s\n", token->iss);
-        break;
-      case 2:
-        token->sub = (char *) malloc(cb->length+1);
-        strncpy(token->sub, cb->v.str, cb->length);
-        token->sub[cb->length+1] = '\0';
-        printf("sub is %s\n", token->sub);
-        break;
-      case 3:
-        token->aud = (char *) malloc(cb->length+1);
-        strncpy(token->aud, cb->v.str, cb->length);
-        token->aud[cb->length+1] = '\0';
-        printf("aud is %s\n", token->aud);
-        break;
-      case 12:
-        printf("It's 12\n");
-        token->sco = (char *) malloc(cb->length+1);
-        strncpy(token->sco, cb->v.str, cb->length);
-        token->sco[cb->length+1] = '\0';
-        printf("sco is %s\n", token->sco);
-        break;
-    }
-    break;
-
-  case CN_CBOR_UINT:
-    printf("UINT: %lu\n", cb->v.uint);
-    if(cb->v.uint < 256){
-      *claim = cb->v.uint;
-      printf("CLM: %d\n",*claim);
-    }
-    else {
-      switch(*claim){
-      case 4: token->exp = cb->v.uint; break;
-      case 5: token->nbf = cb->v.uint; break;
-      case 6: token->iat = cb->v.uint; break;
+    case CN_CBOR_ARRAY:
+    case CN_CBOR_MAP:
+      for (cp = cb->first_child; cp; cp = cp->next) {
+        create_token(claim, token, cp, out, &out, indent+2);
       }
-      *claim = 0;
-    }
-      
-    break;
+      break;
 
-  case CN_CBOR_INT:
-    printf("NEGATIVE INT: %ld\n", cb->v.sint);
-    if(cb->v.sint < 256){
-      *claim = cb->v.sint;
-      printf("CLM: %d\n",*claim);
-    }
-    else {
-      *claim = 0;
-    }
-    break;
+    case CN_CBOR_BYTES:
+      if(token->in_cnf > 0){
+        printf("\ncnf CLM: %d\n", *claim);
+      }
+      printf("HEX:");
+      for (i=0; i<cb->length; i++)
+        printf("%02x", cb->v.str[i]);
+      printf("\n");
+      switch(*claim){
+        case 25:
+          token->cnf = (char *) malloc(cb->length+1);
+          strncpy(token->cnf, cb->v.str, cb->length);
+          token->cnf[cb->length] = '\0';
+          printf("cnf is %s\n", token->cnf);
+          token->in_cnf = 1;
+          parse_cwt_token(cb->v.str, cb->length);
+          token->in_cnf = 0;
+          break;
+        case 7:
+          token->cti = (char *) malloc(cb->length+1);
+          strncpy(token->cti, cb->v.str, cb->length);
+          token->cti[cb->length] = '\0';
+          printf("cti is %s\n", token->cti);
+          break;
+        case 2:
+          token->kid = (char *) malloc(17);
+          printf("kid len is %d\n", cb->length);
+          strncpy(token->key, cb->v.str, cb->length);
+          token->kid[cb->length] = '\0';
+          printf("kid is %s\n", token->kid);
+          break;
+        case -1:
+          token->key = (char *) malloc(cb->length+1);
+          strncpy(token->key, cb->v.str, cb->length);
+          token->key[cb->length+1] = '\0';
+          printf("key is %s\n", token->key);
+          break;
+      }
+      break;
 
+    case CN_CBOR_TEXT:
+      printf("LEN: %d\n",cb->length);
+      printf("\nTXT: %s\n", cb->v.str);
+      printf("CLM: %d\n", *claim);
 
-  default: break;
+      switch(*claim){
+        case 1:
+          token->iss = (char *) malloc(cb->length+1);
+          strncpy(token->iss, cb->v.str, cb->length);
+          token->iss[cb->length+1] = '\0';
+          printf("iss is %s\n", token->iss);
+          break;
+        case 2:
+          token->sub = (char *) malloc(cb->length+1);
+          strncpy(token->sub, cb->v.str, cb->length);
+          token->sub[cb->length+1] = '\0';
+          printf("sub is %s\n", token->sub);
+          break;
+        case 3:
+          token->aud = (char *) malloc(cb->length+1);
+          strncpy(token->aud, cb->v.str, cb->length);
+          token->aud[cb->length+1] = '\0';
+          printf("aud is %s\n", token->aud);
+          break;
+        case 12:
+          printf("It's 12\n");
+          token->sco = (char *) malloc(cb->length+1);
+          strncpy(token->sco, cb->v.str, cb->length);
+          token->sco[cb->length+1] = '\0';
+          printf("sco is %s\n", token->sco);
+          break;
+      }
+      break;
+
+    case CN_CBOR_UINT:
+      printf("UINT: %lu\n", cb->v.uint);
+      if(cb->v.uint < 256){
+        *claim = cb->v.uint;
+        printf("CLM: %d\n",*claim);
+      }
+      else {
+        switch(*claim){
+        case 4: token->exp = cb->v.uint; break;
+        case 5: token->nbf = cb->v.uint; break;
+        case 6: token->iat = cb->v.uint; break;
+        }
+        *claim = 0;
+      }
+      break;
+
+    case CN_CBOR_INT:
+      printf("NEGATIVE INT: %ld\n", cb->v.sint);
+      if(cb->v.sint < 256){
+        *claim = cb->v.sint;
+        printf("CLM: %d\n",*claim);
+      }
+      else {
+        *claim = 0;
+      }
+      break;
+
+    default: break;
   }
-
-  return 0;
-
-done:
-  *end = out;
 }
 
 // Reads a CWT token in CBOR byte format, and loads it into a cwt C struct.
@@ -204,7 +195,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   memcpy(encrypted_cbor_claims, &cbor_token[encrypted_cbor_claims_pos], encrypted_cbor_claims_length);
 
   printf("Decrypting claims.\n");
-  char* decrypted_cbor_claims = (char*) malloc(MAX_CBOR_CLAIMS_LEN);
+  unsigned char* decrypted_cbor_claims = (unsigned char*) malloc(MAX_CBOR_CLAIMS_LEN);
   int decrypted_cbor_claims_len = dtls_decrypt(encrypted_cbor_claims, encrypted_cbor_claims_length,
                                                decrypted_cbor_claims, nonce, key, KEY_LENGTH, A_DATA, A_DATA_LEN);
   printf("%d bytes COSE decrypted\n", decrypted_cbor_claims_len);
@@ -212,8 +203,8 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 
   printf("Decrypted CBOR:");
   int i;
-  for (i=0; i<decrypted_cbor_claims_len; i++){
-    printf(" %x",decrypted_cbor_claims[i]);
+  for (i=0; i < decrypted_cbor_claims_len; i++){
+    printf(" %x", decrypted_cbor_claims[i]);
   }
   printf("\n");
 
