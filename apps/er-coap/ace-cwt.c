@@ -155,8 +155,6 @@ done:
 
 // Reads a CWT token in CBOR byte format, and loads it into a cwt C struct.
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
-  char *encrypted_cbor_claims;
-  char *decrypted_cbor_claims;
   char* nonce;
   char key[KEY_LENGTH] = {0xa1, 0xa2, 0xa3, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10};
   cwt* token = (cwt*) malloc(sizeof(cwt));
@@ -200,7 +198,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   printf("Getting encrypted claims.\n");
   int encrypted_cbor_claims_pos = nonce_pos + NONCE_SIZE + 2;
   int encrypted_cbor_claims_length = token_length - encrypted_cbor_claims_pos;
-  encrypted_cbor_claims = (char *) malloc(encrypted_cbor_claims_length);
+  char* encrypted_cbor_claims = (char *) malloc(encrypted_cbor_claims_length);
   memcpy(encrypted_cbor_claims, &cbor_token[encrypted_cbor_claims_pos], encrypted_cbor_claims_length);
 
   printf("Decrypting claims.\n");
