@@ -38,7 +38,7 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
     }
     else {
       if(store_token(token) == 1) {
-        dtls_debug("Stored default pairing key in tokens file.\n");
+        printf("Stored default pairing key in tokens file.\n");
         REST.set_response_status(response, REST.status.CREATED);
         const char* success_message = "ACE credentials added";
         REST.set_response_payload(response, success_message, strlen(success_message));
