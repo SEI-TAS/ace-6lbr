@@ -208,6 +208,13 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   printf("%d bytes COSE decrypted\n", decrypted_cbor_claims_len);
   //free(encrypted_cbor_claims);
 
+  printf("Decrypted CBOR:");
+  int i;
+  for (i=0; i<decrypted_cbor_claims_len; i++){
+    printf(" %x",decrypted_cbor_claims[i]);
+  }
+  printf("\n");
+
   printf("Decoding claims CBOR.\n");
   char buf[1000];
   char *bufend = NULL;
