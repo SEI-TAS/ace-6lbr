@@ -37,6 +37,7 @@ typedef struct token_entry {
 } token_entry;
 
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
+cwt* parse_cbor_claims_into_cwt_struct(unsigned char* cbor_bytes, int cbor_bytes_len);
 int store_token(cwt* token);
 int find_token_entry(const unsigned char* const index, size_t idx_len, token_entry *result);
 unsigned char* left_pad_array(const unsigned char* const byte_array, int array_length, int final_length, char padding);

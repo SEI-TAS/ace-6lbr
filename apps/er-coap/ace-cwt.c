@@ -210,21 +210,31 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   HEX_PRINTF(decrypted_cbor, decrypted_cbor_len)
   printf("Decrypted CBOR length: %d\n", decrypted_cbor_len);
 
+  // Parse bytes into a cwt object.
+  cwt* token_info = parse_cbor_claims_into_cwt_struct(decrypted_cbor, decrypted_cbor_len);
+
+  // Add original CBOR bytes so we can serialize it faster if needed.
+  token_info->cbor_claims = decrypted_cbor;
+  token_info->cbor_claims_len = decrypted_cbor_len;
+  return token_info;
+}
+
+// Gets CBOR bytes with claims and loads into into cwt struct.
+cwt* parse_cbor_claims_into_cwt_struct(unsigned char* cbor_bytes, int cbor_bytes_len) {
   printf("Decoding claims from CBOR bytes into CBOR object.\n");
-  cn_cbor* cbor_claims = cn_cbor_decode(decrypted_cbor, decrypted_cbor_len CBOR_CONTEXT_PARAM, 0);
-  if (cbor_claims) {
-    printf("Parsing claims into cwt object.\n");
-    cwt* token_info = (cwt*) malloc(sizeof(cwt));
-    signed long curr_claim = 0;
-    parse_claims(&curr_claim, token_info, cbor_claims);
-    printf("Finished parsing claims into cwt object.\n");
-    token_info->cbor_claims = decrypted_cbor;
-    token_info->cbor_claims_len = decrypted_cbor_len;
-    return token_info;
-  } else {
+  cn_cbor* cbor_claims = cn_cbor_decode(cbor_bytes, cbor_bytes_len CBOR_CONTEXT_PARAM, 0);
+  if (!cbor_claims) {
     printf("CBOR decode failed\n");
     return 0;
   }
+
+  printf("Parsing claims into cwt object.\n");
+  cwt* token_info = (cwt*) malloc(sizeof(cwt));
+  long curr_claim = 0;
+  parse_claims(&curr_claim, token_info, cbor_claims);
+  printf("Finished parsing claims into cwt object.\n");
+
+  return cwt;
 }
 
 // Stores the given token into the tokens file.

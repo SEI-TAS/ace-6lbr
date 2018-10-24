@@ -20,15 +20,11 @@ RESOURCE(res_pair, NULL, NULL, res_post_handler, NULL, NULL);
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   const uint8_t *pairing_info = NULL;
   int len = REST.get_request_payload(request, (const uint8_t **)&pairing_info);
-  printf("Len is %lu\n", len);
+  printf("Len is %d\n", len);
 
   if(len > 0) {
     printf("Pairing info:");
-    int i;
-    for (i=0; i<len; i++){
-      printf(" %02x",pairing_info[i]);
-    }
-    printf("\n");
+    HEX_PRINTF(pairing_info, len);
 
     cwt* token_info = parse_cwt_token(pairing_info, len);
 
