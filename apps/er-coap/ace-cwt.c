@@ -43,7 +43,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
 
     case CN_CBOR_BYTES:
       printf("Type is Byte String\n");
-      HEX_PRINTF((unsigned char*) (cbor_object->v.str), cbor_object->length)
+      HEX_PRINTF(cbor_object->v.str, cbor_object->length)
       switch(*curr_claim){
         case 7:     // CTI
           token->cti = (char *) malloc(cbor_object->length);
@@ -181,7 +181,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 
   printf("Looking for stored key associated with kid.\n");
   token_entry pairing_key_info;
-  if(find_token_entry(key_id, key_id_size, pairing_key_info) == 0) {
+  if(find_token_entry(key_id, (unsigned char*) key_id_size, &pairing_key_info) == 0) {
     printf("Could not find key to decrypt COSE wrapper of CWT; aborting parsing token.\n");
     return 0;
   }
