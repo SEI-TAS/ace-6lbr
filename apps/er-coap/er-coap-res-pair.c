@@ -18,7 +18,7 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
 RESOURCE(res_pair, NULL, NULL, res_post_handler, NULL, NULL);
 
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
-  const char *pairing_info = NULL;
+  const unsigned char *pairing_info = NULL;
   int len = REST.get_request_payload(request, (const uint8_t **)&pairing_info);
   printf("Len is %d\n", len);
 
