@@ -39,7 +39,7 @@ typedef struct token_entry {
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
 int store_token(cwt* token);
 int find_token_entry(unsigned char* index, size_t idx_len, token_entry *result);
-unsigned char* left_pad_array(unsigned char* byte_array, int array_length, int final_length, char padding);
+unsigned char* left_pad_array(const unsigned char* const byte_array, int array_length, int final_length, char padding);
 
 #define KEY_ID_LENGTH 16
 #define KEY_LENGTH 16
