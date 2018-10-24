@@ -76,39 +76,23 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
     printf("Requesting psk key\n");
     if (id) {
       printf("Id length is %d\n", id_len);
-      unsigned char lookupid[KEY_ID_LENGTH + 1] = { 0 };
-      int padding_len = KEY_ID_LENGTH - id_len;
-      int j;
-      for (j = 0; j <= padding_len - 1; j++){
-        lookupid[j] = "0";
-      }
-      strcat(lookupid, id);
-        
-      printf("Looking up id: %s\n", lookupid);
-      int key_length = lookup_dtls_key(lookupid, id_len, result, result_length);
-      printf("PSK has been found: \n");
-      int item;
-      for (item=0; item < key_length; item++){
-        printf(" %02x",result[item]);
-      }
-      printf("\n");
+      unsigned char* lookupid = left_pad_array(id, id_len, KEY_ID_LENGTH, 0);
 
-/*
-      int i;
-      for (i = 0; i < sizeof(psk)/sizeof(struct keymap_t); i++) {
-        if (id_len == psk[i].id_length && memcmp(id, psk[i].id, id_len) == 0) {
-          if (result_length < psk[i].key_length) {
-            dtls_warn("buffer too small for PSK");
-            return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
-          }
-
-          memcpy(result, psk[i].key, psk[i].key_length); 
-          return psk[i].key_length;
-        }
+      printf("Looking up id: ");
+      HEX_PRINTF(lookupid, KEY_ID_LENGTH);
+      int key_length = lookup_dtls_key(lookupid, KEY_ID_LENGTH, result, result_length);
+      if(key_length == 0) {
+          dtls_warn("Could not find or set PSK.\n");
+          return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
       }
-*/
 
+      printf("PSK has been found: ");
+      HEX_PRINTF(result, key_length);
       return key_length;
+    }
+    else {
+      dtls_warn("Key was requested, but no id was provided.\n");
+      return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
     }
   } else {
     return 0;
