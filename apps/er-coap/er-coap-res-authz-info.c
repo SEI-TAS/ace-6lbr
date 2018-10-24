@@ -16,11 +16,11 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
 
 RESOURCE(res_authz_info, NULL, NULL, res_post_handler, NULL, NULL);
 
-res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
+static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   const uint8_t *cbor_token = NULL;
 
   size_t token_len = REST.get_request_payload(request, (const uint8_t **)&cbor_token);
-  printf("token_len is %d\n", token_len);
+  printf("token_len is %ld\n", token_len);
 
   if(token_len > 0) {
     printf("CBOR token: ");

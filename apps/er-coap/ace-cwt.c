@@ -145,7 +145,6 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
 
 // Reads a CWT token in CBOR byte format, and loads it into a cwt C struct.
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
-  char* nonce;
   //char key[KEY_LENGTH] = {0xa1, 0xa2, 0xa3, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10};
   //char key[KEY_LENGTH] = {0x7d, 0xd4, 0x43, 0x81, 0x1e, 0x32, 0x21, 0x08, 0x13, 0xc3, 0xc5, 0x11, 0x1e, 0x4d, 0x3d, 0xb4};
 
@@ -189,7 +188,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   // After the key id, there are 2 bytes indicating that the nonce is coming, and it size. We assume it will always be 13.
   int nonce_pos = key_id_pos + key_id_size + 2;
   printf("Getting nonce.\n");
-  nonce = (char *) malloc(NONCE_SIZE);
+  unsigned char* nonce = (unsigned char *) malloc(NONCE_SIZE);
   memcpy(nonce, &cbor_token[nonce_pos], NONCE_SIZE);
 
   // After the nonce there are 2 bytes indicating that a byte string is coming and its size.
@@ -253,7 +252,7 @@ int store_token(cwt* token) {
     bytes_written = cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_len);
 
     cfs_close(fd_tokens_file);
-    printf("Finished storing pop key and token in token file.\n");
+    printf("Finished storing pop key and token in token file. Wrote %d bytes.\n", bytes_written);
     return 1;
   }
   else {
@@ -262,8 +261,8 @@ int store_token(cwt* token) {
 }
 
 // Adds the given value as padding to the left of the array.
-char* left_pad_array(char* byte_array, int array_length, int final_length, char padding) {
-  char* padded_array = (char *) malloc(final_length);
+unsigned char* left_pad_array(unsigned char* byte_array, int array_length, int final_length, char padding) {
+  unsigned char* padded_array = (unsigned char *) malloc(final_length);
   memset(padded_array, padding, final_length);
   int padding_len = final_length - array_length;
   memcpy(&padded_array[padding_len], byte_array, array_length);

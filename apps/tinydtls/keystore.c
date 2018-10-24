@@ -6,7 +6,7 @@
 #include "keystore.h"
 #include "dtls.h"
 #include "dtls_debug.h"
-#include "cwt.h""
+#include "cwt.h"
 
 #define PAIRING_KEY_ID "Authentication01"
 #define NON_TOKEN_ENTRY_CBOR_LENGTH "0000"

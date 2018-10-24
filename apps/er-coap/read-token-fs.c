@@ -17,7 +17,7 @@ int find_token_entry(unsigned char* index, size_t idx_len, token_entry *result){
 
   int file_size = cfs_seek(fd_read, 0, CFS_SEEK_END);
   printf("File size is %d\n", file_size);
-  int file_pos = cfs_seek(fd_read, 0, CFS_SEEK_SET);
+  cfs_seek(fd_read, 0, CFS_SEEK_SET);
 
   printf("Looking for record identified by: %s\n", index);
   unsigned char kid[KEY_ID_LENGTH] = { 0 };
