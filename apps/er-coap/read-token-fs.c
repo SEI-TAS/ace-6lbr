@@ -19,7 +19,8 @@ int find_token_entry(unsigned char* index, size_t idx_len, token_entry *result){
   printf("File size is %d\n", file_size);
   cfs_seek(fd_read, 0, CFS_SEEK_SET);
 
-  printf("Looking for record identified by: %s\n", index);
+  printf("Looking for record identified by: ");
+  HEX_PRINTF(index, idx_len)
   unsigned char kid[KEY_ID_LENGTH] = { 0 };
   unsigned char key[KEY_LENGTH] = { 0 };
   char cbor_len_buffer[CBOR_SIZE_LENGTH + 1] = { 0 };
@@ -27,6 +28,11 @@ int find_token_entry(unsigned char* index, size_t idx_len, token_entry *result){
   while(bytes_read < file_size) {
     bytes_read += cfs_read(fd_read, kid, KEY_ID_LENGTH);
     bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
+
+    printf("Current key id: ");
+    HEX_PRINTF(kid, KEY_ID_LENGTH)
+    printf("Current key: ");
+    HEX_PRINTF(key, KEY_LENGTH)
 
     if (memcmp(index, kid, KEY_ID_LENGTH) == 0 || memcmp(index, key, KEY_LENGTH) == 0){
         printf("Matched!\n");
