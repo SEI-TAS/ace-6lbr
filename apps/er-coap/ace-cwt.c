@@ -220,7 +220,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 }
 
 // Gets CBOR bytes with claims and loads into into cwt struct.
-cwt* parse_cbor_claims_into_cwt_struct(unsigned char* cbor_bytes, int cbor_bytes_len) {
+cwt* parse_cbor_claims_into_cwt_struct(const unsigned char* cbor_bytes, int cbor_bytes_len) {
   printf("Decoding claims from CBOR bytes into CBOR object.\n");
   cn_cbor* cbor_claims = cn_cbor_decode(cbor_bytes, cbor_bytes_len CBOR_CONTEXT_PARAM, 0);
   if (!cbor_claims) {
