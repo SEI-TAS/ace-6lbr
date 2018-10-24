@@ -21,7 +21,7 @@ typedef struct cwt {
   char* kid;
   int kid_len;
   unsigned char* key;
-  char* cbor_claims;
+  unsigned char* cbor_claims;
   int cbor_claims_len;
 } cwt ;
 

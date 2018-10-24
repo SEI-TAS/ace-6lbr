@@ -196,7 +196,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   printf("Getting encrypted claims.\n");
   int encrypted_cbor_pos = nonce_pos + NONCE_SIZE + 2;
   int encrypted_cbor_length = token_length - encrypted_cbor_pos;
-  unsigned char* encrypted_cbor = (char *) malloc(encrypted_cbor_length);
+  unsigned char* encrypted_cbor = (unsigned char *) malloc(encrypted_cbor_length);
   memcpy(encrypted_cbor, &cbor_token[encrypted_cbor_pos], encrypted_cbor_length);
 
   printf("Decrypting claims.\n");
