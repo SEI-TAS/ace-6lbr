@@ -230,8 +230,7 @@ int store_token(cwt* token) {
   if(fd_tokens_file != -1){
     // First write key id and key.
     printf("Storing key id and key.\n");
-    char padded_id[KEY_ID_LENGTH];
-    padded_id = left_pad_array(token->kid, token->kid_len, KEY_ID_LENGTH, 0);
+    char* padded_id = left_pad_array(token->kid, token->kid_len, KEY_ID_LENGTH, 0);
     bytes_written = cfs_write(fd_tokens_file, padded_id, KEY_ID_LENGTH);
     //free(padded_id);
     bytes_written = cfs_write(fd_tokens_file, token->key, KEY_LENGTH);
