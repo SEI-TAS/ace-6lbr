@@ -36,7 +36,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
       printf("Type is Map");
       cn_cbor* current;
       for (current = cbor_object->first_child; current; current = current->next) {
-        parse_claims(curr_claim, token, current_object);
+        parse_claims(curr_claim, token, current);
       }
       break;
 
@@ -210,7 +210,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 
   printf("Decoding claims from CBOR bytes into CBOR object.\n");
   cn_cbor* cbor_claims = cn_cbor_decode(decrypted_cbor, decrypted_cbor_len CBOR_CONTEXT_PARAM, 0);
-  if (claims) {
+  if (cbor_claims) {
     printf("Parsing claims into cwt object.\n");
     cwt* token_info = (cwt*) malloc(sizeof(cwt));
     signed long curr_claim = 0;
