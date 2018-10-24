@@ -239,8 +239,7 @@ int store_token(cwt* token) {
     printf("Storing CBOR claims length and claims.\n");
     char length_as_string[CBOR_SIZE_LENGTH + 1] = { 0 };
     snprintf(length_as_string, CBOR_SIZE_LENGTH, "%0*d", CBOR_SIZE_LENGTH, token->cbor_claims_len);
-    char* padded_length_as_string = pad_with_zeros(length_as_string, CBOR_SIZE_LENGTH);
-    bytes_written = cfs_write(fd_tokens_file, padded_length_as_string, strlen(padded_length_as_string));
+    bytes_written = cfs_write(fd_tokens_file, length_as_string, strlen(length_as_string));
     //free(padded_length_as_string);
     bytes_written = cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_len);
 
