@@ -20,7 +20,7 @@ RESOURCE(res_pair, NULL, NULL, res_post_handler, NULL, NULL);
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   const uint8_t *pairing_info = NULL;
   int len = REST.get_request_payload(request, (const uint8_t **)&pairing_info);
-  printf("Len is %d\n", len);
+  printf("Len is %lu\n", len);
 
   if(len > 0) {
     printf("Pairing info:");
@@ -42,7 +42,7 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
       cfs_close(fd_write);
     }*/
 
-    if(decode_success != 0){
+    if(token_info != 0){
       REST.set_response_status(response, REST.status.CREATED);
       const char* success_message = "AS credentials added";
       REST.set_response_payload(response, success_message, strlen(success_message));
