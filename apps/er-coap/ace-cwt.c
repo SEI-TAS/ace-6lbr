@@ -51,7 +51,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
           printf("cti found\n");
           break;
         case 2:     // KID (inside CNF)
-          token->kid = (char *) malloc(cbor_object->length);
+          token->kid = (unsigned char *) malloc(cbor_object->length);
           token->kid_len = cbor_object->length;
           printf("kid len is %d\n", token->kid_len);
           memcpy(token->kid, cbor_object->v.str, token->kid_len);

@@ -31,7 +31,7 @@ void keystore_init(){
     bytes_written = cfs_write(fd_write, padded_test_key_id, KEY_ID_LENGTH);
     bytes_written = cfs_write(fd_write, test_key, KEY_LENGTH);
     bytes_written = cfs_write(fd_write, NON_TOKEN_ENTRY_CBOR_LENGTH, CBOR_SIZE_LENGTH);
-    dtls_debug("Stored test paired key in tokens file.\n");
+    dtls_debug("Stored test paired key in tokens file, wrote %d bytes.\n", bytes_written);
 
     cfs_close(fd_write);
   }

@@ -18,7 +18,7 @@ typedef struct cwt {
   char* cti;
   char* sco;
   char* cnf;
-  char* kid;
+  unsigned char* kid;
   int kid_len;
   unsigned char* key;
   unsigned char* cbor_claims;
