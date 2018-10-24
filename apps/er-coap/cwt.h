@@ -31,14 +31,15 @@ typedef struct cosewt {
 } cosewt;
 
 typedef struct token_entry {
-  char* kid;
-  char* key;
-  char* cbor;
+  unsigned char* kid;
+  unsigned char* key;
+  unsigned char* cbor;
 } token_entry;
 
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
 int store_token(cwt* token);
-char* pad_with_zeros(char* initial_string, int final_length);
+int find_token_entry(unsigned char* index, size_t idx_len, token_entry *result)
+char* left_pad_array(char* byte_array, int array_length, int final_length, char padding);
 
 #define KEY_ID_LENGTH 16
 #define KEY_LENGTH 16

@@ -21,8 +21,6 @@
 #define MAX_CBOR_CLAIMS_LEN 200
 #define COSE_PROTECTED_HEADER_SIZE 6
 
-char* left_pad_array(char* byte_array, int array_length, int final_length, char padding);
-
 // Parses the unencrypted CBOR bytes of a CWT token, and loads all claims into a cwt C struct object.
 static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbor_object) {
   if (!cbor_object) {
@@ -149,7 +147,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   char* nonce;
   //char key[KEY_LENGTH] = {0xa1, 0xa2, 0xa3, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10};
-  char key[KEY_LENGTH] = {0x7d, 0xd4, 0x43, 0x81, 0x1e, 0x32, 0x21, 0x08, 0x13, 0xc3, 0xc5, 0x11, 0x1e, 0x4d, 0x3d, 0xb4};
+  //char key[KEY_LENGTH] = {0x7d, 0xd4, 0x43, 0x81, 0x1e, 0x32, 0x21, 0x08, 0x13, 0xc3, 0xc5, 0x11, 0x1e, 0x4d, 0x3d, 0xb4};
 
   unsigned char A_DATA[A_DATA_LEN];
 
@@ -181,6 +179,13 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   key_id[key_id_size] = 0;
   printf("Key id is %s.\n", key_id);
 
+  printf("Looking for stored key associated with kid.\n");
+  token_entry pairing_key_info;
+  if(find_token_entry(unsigned char* key_id, key_id_size, pairing_key_info) == 0) {
+    printf("Could not find key to decrypt COSE wrapper of CWT; aborting parsing token.\n");
+    return 0;
+  }
+
   // After the key id, there are 2 bytes indicating that the nonce is coming, and it size. We assume it will always be 13.
   int nonce_pos = key_id_pos + key_id_size + 2;
   printf("Getting nonce.\n");
@@ -197,7 +202,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   printf("Decrypting claims.\n");
   unsigned char* decrypted_cbor = (unsigned char*) malloc(MAX_CBOR_CLAIMS_LEN);
   int decrypted_cbor_len = dtls_decrypt(encrypted_cbor, encrypted_cbor_length,
-                                        decrypted_cbor, nonce, key, KEY_LENGTH, A_DATA, A_DATA_LEN);
+                                        decrypted_cbor, nonce, pairing_key_info->key, KEY_LENGTH, A_DATA, A_DATA_LEN);
   printf("%d bytes COSE decrypted\n", decrypted_cbor_len);
   //free(encrypted_cbor);
 
@@ -245,7 +250,6 @@ int store_token(cwt* token) {
     snprintf(length_as_string, CBOR_SIZE_LENGTH + 1, "%0*d", CBOR_SIZE_LENGTH, token->cbor_claims_len);
     printf("Padded CBOR length: %s\n", length_as_string);
     bytes_written = cfs_write(fd_tokens_file, length_as_string, strlen(length_as_string));
-    //free(padded_length_as_string);
     bytes_written = cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_len);
 
     cfs_close(fd_tokens_file);

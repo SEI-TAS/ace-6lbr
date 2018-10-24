@@ -11,7 +11,7 @@ int lookup_dtls_key(unsigned char *id, size_t id_len,
   token_entry tok;
 
   int key_length = 0;
-  if (read_token(id, id_len, &tok) > 0){
+  if (find_token_entry(id, id_len, &tok) > 0){
     printf("Key found!\n");
     memcpy(result, tok.key, KEY_LENGTH);
     key_length = KEY_LENGTH;
