@@ -21,6 +21,8 @@
 #define MAX_CBOR_CLAIMS_LEN 200
 #define COSE_PROTECTED_HEADER_SIZE 6
 
+char* left_pad_array(char* byte_array, int array_length, int final_length, char padding);
+
 // Parses the unencrypted CBOR bytes of a CWT token, and loads all claims into a cwt C struct object.
 static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbor_object) {
   if (!cbor_object) {
@@ -200,7 +202,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   //free(encrypted_cbor);
 
   printf("Decrypted CBOR:");
-  HEX_PRINTF(decrypted_cbor[i], decrypted_cbor_len)
+  HEX_PRINTF(decrypted_cbor, decrypted_cbor_len)
   printf("Decrypted CBOR length: %d", decrypted_cbor_len);
 
   printf("Decoding claims from CBOR bytes into CBOR object.\n");
@@ -228,7 +230,8 @@ int store_token(cwt* token) {
   if(fd_tokens_file != -1){
     // First write key id and key.
     printf("Storing key id and key.\n");
-    char padded_id[KEY_ID_LENGTH] = left_pad_array(token->kid, token->kid_len, KEY_ID_LENGTH, 0);
+    char padded_id[KEY_ID_LENGTH];
+    padded_id = left_pad_array(token->kid, token->kid_len, KEY_ID_LENGTH, 0);
     bytes_written = cfs_write(fd_tokens_file, padded_id, KEY_ID_LENGTH);
     //free(padded_id);
     bytes_written = cfs_write(fd_tokens_file, token->key, KEY_LENGTH);
@@ -255,7 +258,7 @@ int store_token(cwt* token) {
 char* left_pad_array(char* byte_array, int array_length, int final_length, char padding) {
   char* padded_array = (char *) malloc(final_length);
   memset(padded_array, padding, final_length);
-  int padding_len = final_length - array_length);
+  int padding_len = final_length - array_length;
   memcpy(&padded_array[padding_len], byte_array, array_length);
   return padded_array;
 }
