@@ -232,6 +232,7 @@ cwt* parse_cbor_claims_into_cwt_struct(unsigned char* cbor_bytes, int cbor_bytes
   cwt* token_info = (cwt*) malloc(sizeof(cwt));
   long curr_claim = 0;
   parse_claims(&curr_claim, token_info, cbor_claims);
+  token_info->cbor_claims_len = 0;
   printf("Finished parsing claims into cwt object.\n");
 
   return token_info;
@@ -255,12 +256,15 @@ int store_token(cwt* token) {
     bytes_written += cfs_write(fd_tokens_file, token->key, KEY_LENGTH);
 
     // Now write CBOR claims length, and the CBOR claims.
-    printf("Storing CBOR claims length and claims.\n");
+    printf("Storing CBOR claims length.\n");
     char length_as_string[CBOR_SIZE_LENGTH + 1] = { 0 };
     snprintf(length_as_string, CBOR_SIZE_LENGTH + 1, "%0*d", CBOR_SIZE_LENGTH, token->cbor_claims_len);
     printf("Padded CBOR length: %s\n", length_as_string);
     bytes_written += cfs_write(fd_tokens_file, length_as_string, strlen(length_as_string));
-    bytes_written += cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_len);
+    if(token->cbor_claims_len > 0) {
+      printf("Storing CBOR claims.\n")
+      bytes_written += cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_len);
+    }
 
     cfs_close(fd_tokens_file);
     printf("Finished storing pop key and token in token file. Wrote %d bytes.\n", bytes_written);

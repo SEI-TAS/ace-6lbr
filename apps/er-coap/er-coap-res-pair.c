@@ -26,25 +26,31 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
     printf("Pairing info:");
     HEX_PRINTF(pairing_info, len);
 
-    cwt* token_info = parse_cwt_token(pairing_info, len);
+    // We are reusing code to get token claims for pairing info. Pairing info will only
+    // contain a kid and a key, as it comes in the CNF claim of a regular CWT token.
+    cwt* key_info = parse_cbor_claims_into_cwt_struct(pairing_info, len);
 
-    /*const char *token_file = "tokens";
-    int fd_write = cfs_open(token_file, CFS_WRITE);
-    int bytes_written = 0;
-    if(fd_write != -1){
-      bytes_written = cfs_write(fd_write, "Authentication01", 16);
-      bytes_written = cfs_write(fd_write, ":", 1);
-      bytes_written = cfs_write(fd_write, aes_token, len);
-      cfs_close(fd_write);
-    }*/
+    if(key_info != 0){
+      printf("Obtained pairing key id and key\n");
+      printf("Key id: ");
+      HEX_PRINTF(key_info->kid, key_info->kid_len);
+      printf("Key: ");
+      HEX_PRINTF(key_info->key, KEY_LENGTH);
 
-    if(token_info != 0){
-      REST.set_response_status(response, REST.status.CREATED);
-      const char* success_message = "AS credentials added";
-      REST.set_response_payload(response, success_message, strlen(success_message));
+      if(store_token(key_info)) {
+        REST.set_response_status(response, REST.status.CREATED);
+        const char* success_message = "AS credentials added";
+        REST.set_response_payload(response, success_message, strlen(success_message));
+      }
+      else {
+        REST.set_response_status(response, REST.status.INTERNAL_SERVER_ERROR);
+        const char* failure_message = "Failed to store AS credentials";
+        REST.set_response_payload(response, failure_message, strlen(failure_message));
+      }
+
     } else {
       REST.set_response_status(response, REST.status.INTERNAL_SERVER_ERROR);
-      const char* failure_message = "Failed to add AS credentials";
+      const char* failure_message = "Failed to parse AS credentials";
       REST.set_response_payload(response, failure_message, strlen(failure_message));
     }
   } else {
