@@ -234,7 +234,7 @@ cwt* parse_cbor_claims_into_cwt_struct(unsigned char* cbor_bytes, int cbor_bytes
   parse_claims(&curr_claim, token_info, cbor_claims);
   printf("Finished parsing claims into cwt object.\n");
 
-  return cwt;
+  return token_info;
 }
 
 // Stores the given token into the tokens file.
