@@ -28,6 +28,7 @@ int find_token_entry(unsigned char* index, size_t idx_len, token_entry *result){
   while(bytes_read < file_size) {
     bytes_read += cfs_read(fd_read, kid, KEY_ID_LENGTH);
     bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
+    bytes_read += cfs_read(fd_read, cbor_len_buffer, CBOR_SIZE_LENGTH);
 
     printf("Current key id: ");
     HEX_PRINTF(kid, KEY_ID_LENGTH)
@@ -47,8 +48,6 @@ int find_token_entry(unsigned char* index, size_t idx_len, token_entry *result){
         printf("Readed into struct key: ");
         HEX_PRINTF(result->key, KEY_LENGTH)
 
-        bytes_read += cfs_read(fd_read, cbor_len_buffer, CBOR_SIZE_LENGTH);
-        printf("Readed CBOR length into char pointer\n");
         int cbor_len = atoi(cbor_len_buffer);
         printf("Cbor len: %d\n", cbor_len);
 
