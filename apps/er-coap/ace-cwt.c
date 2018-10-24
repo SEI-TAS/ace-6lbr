@@ -43,7 +43,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
 
     case CN_CBOR_BYTES:
       printf("Type is Byte String\n");
-      HEX_PRINTF((unsigned char*) cbor_object->v.str, cbor_object->length)
+      HEX_PRINTF((unsigned char*) (cbor_object->v.str), cbor_object->length)
       switch(*curr_claim){
         case 7:     // CTI
           token->cti = (char *) malloc(cbor_object->length);
@@ -68,7 +68,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
 
     case CN_CBOR_TEXT:
       printf("Type is Text\n");
-      printf("Current CLM: %d\n", *curr_claim);
+      printf("Current CLM: %ld\n", *curr_claim);
       printf("LEN: %d\n",cbor_object->length);
       printf("TXT: %.*s\n", cbor_object->length, cbor_object->v.str);
 
@@ -106,7 +106,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
       printf("UINT: %lu\n", cbor_object->v.uint);
       if(cbor_object->v.uint < 256){
         *curr_claim = cbor_object->v.uint;
-        printf("Found CLM: %d\n", *curr_claim);
+        printf("Found CLM: %ld\n", *curr_claim);
       }
       else {
         switch(*curr_claim){
@@ -132,7 +132,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
       printf("NEGATIVE INT: %ld\n", cbor_object->v.sint);
       if(cbor_object->v.sint < 256){
         *curr_claim = cbor_object->v.sint;
-        printf("Found CLM: %d\n", *curr_claim);
+        printf("Found CLM: %ld\n", *curr_claim);
       }
       else {
         *curr_claim = 0;
@@ -181,7 +181,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 
   printf("Looking for stored key associated with kid.\n");
   token_entry pairing_key_info;
-  if(find_token_entry(unsigned char* key_id, key_id_size, pairing_key_info) == 0) {
+  if(find_token_entry(key_id, key_id_size, pairing_key_info) == 0) {
     printf("Could not find key to decrypt COSE wrapper of CWT; aborting parsing token.\n");
     return 0;
   }
@@ -202,7 +202,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   printf("Decrypting claims.\n");
   unsigned char* decrypted_cbor = (unsigned char*) malloc(MAX_CBOR_CLAIMS_LEN);
   int decrypted_cbor_len = dtls_decrypt(encrypted_cbor, encrypted_cbor_length,
-                                        decrypted_cbor, nonce, pairing_key_info->key, KEY_LENGTH, A_DATA, A_DATA_LEN);
+                                        decrypted_cbor, nonce, pairing_key_info.key, KEY_LENGTH, A_DATA, A_DATA_LEN);
   printf("%d bytes COSE decrypted\n", decrypted_cbor_len);
   //free(encrypted_cbor);
 
