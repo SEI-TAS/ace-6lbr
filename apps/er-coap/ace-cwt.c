@@ -45,7 +45,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
 
     case CN_CBOR_BYTES:
       printf("Type is Byte String\n");
-      HEX_PRINTF(cbor_object->v.str, cbor_object->length)
+      HEX_PRINTF((unsigned char*) cbor_object->v.str, cbor_object->length)
       switch(*curr_claim){
         case 7:     // CTI
           token->cti = (char *) malloc(cbor_object->length);
@@ -60,7 +60,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
           printf("kid found\n");
           break;
         case -1:    // KEY (inside CNF)
-          token->key = (char *) malloc(cbor_object->length);
+          token->key = (unsigned char *) malloc(cbor_object->length);
           memcpy(token->key, cbor_object->v.str, cbor_object->length);
           printf("key found\n");
           break;
@@ -203,16 +203,16 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 
   printf("Decrypted CBOR:");
   HEX_PRINTF(decrypted_cbor, decrypted_cbor_len)
-  printf("Decrypted CBOR length: %d", decrypted_cbor_len);
+  printf("Decrypted CBOR length: %d\n", decrypted_cbor_len);
 
   printf("Decoding claims from CBOR bytes into CBOR object.\n");
   cn_cbor* cbor_claims = cn_cbor_decode(decrypted_cbor, decrypted_cbor_len CBOR_CONTEXT_PARAM, 0);
   if (cbor_claims) {
     printf("Parsing claims into cwt object.\n");
     cwt* token_info = (cwt*) malloc(sizeof(cwt));
-    printf("Finished parsing claims into cwt object.\n");
     signed long curr_claim = 0;
     parse_claims(&curr_claim, token_info, cbor_claims);
+    printf("Finished parsing claims into cwt object.\n");
     token_info->cbor_claims = decrypted_cbor;
     token_info->cbor_claims_len = decrypted_cbor_len;
     return token_info;
@@ -231,14 +231,20 @@ int store_token(cwt* token) {
     // First write key id and key.
     printf("Storing key id and key.\n");
     char* padded_id = left_pad_array(token->kid, token->kid_len, KEY_ID_LENGTH, 0);
+    printf("Padded KID: \n");
+    HEX_PRINTF(padded_id, KEY_ID_LENGTH);
     bytes_written = cfs_write(fd_tokens_file, padded_id, KEY_ID_LENGTH);
     //free(padded_id);
+    printf("KEY: \n");
+    HEX_PRINTF(token->key, KEY_LENGTH);
     bytes_written = cfs_write(fd_tokens_file, token->key, KEY_LENGTH);
 
     // Now write CBOR claims length, and the CBOR claims.
     printf("Storing CBOR claims length and claims.\n");
     char length_as_string[CBOR_SIZE_LENGTH + 1] = { 0 };
     snprintf(length_as_string, CBOR_SIZE_LENGTH, "%0*d", CBOR_SIZE_LENGTH, token->cbor_claims_len);
+    printf("Padded CBOR length: \n");
+    HEX_PRINTF(length_as_string, CBOR_SIZE_LENGTH);
     bytes_written = cfs_write(fd_tokens_file, length_as_string, strlen(length_as_string));
     //free(padded_length_as_string);
     bytes_written = cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_len);

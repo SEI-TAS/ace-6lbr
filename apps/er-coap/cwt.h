@@ -20,7 +20,7 @@ typedef struct cwt {
   char* cnf;
   char* kid;
   int kid_len;
-  char* key;
+  unsigned char* key;
   char* cbor_claims;
   int cbor_claims_len;
 } cwt ;
