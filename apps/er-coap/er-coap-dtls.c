@@ -7,6 +7,9 @@
 
 #include "dtls.h"
 
+extern int lookup_dtls_key(const unsigned char * const id, size_t id_len,
+                const unsigned char *result, size_t result_length);
+
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
@@ -75,7 +78,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
   } else if (type == DTLS_PSK_KEY) {
     printf("Requesting psk key\n");
     if (id) {
-      printf("Id length is %d\n", id_len);
+      printf("Id length is %u\n", id_len);
       unsigned char* lookupid = left_pad_array(id, id_len, KEY_ID_LENGTH, 0);
 
       printf("Looking up id: ");

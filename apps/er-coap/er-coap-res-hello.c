@@ -17,7 +17,7 @@ static void res_get_handler(void *request, void *response, uint8_t *buffer, uint
 
 RESOURCE(res_hello, NULL, res_get_handler, NULL, NULL, NULL);
 
-res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
+static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   int n = 0;
   char const *const success_message = "HelloWorld!";
   char const *const failure_message = "HelloWorld!";

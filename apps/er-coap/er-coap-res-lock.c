@@ -17,9 +17,8 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
 
 RESOURCE(res_lock, NULL, NULL, res_post_handler, NULL, NULL);
 
-res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
+static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   uint8_t *aes_token = NULL;
-  char* AS_key;
   size_t len;
   char *token_file = "tokens";
   int fd_write, n;

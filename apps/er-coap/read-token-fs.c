@@ -6,7 +6,7 @@
 #include "./cwt.h"
 
 
-int find_token_entry(unsigned char* index, size_t idx_len, token_entry *result){
+int find_token_entry(const unsigned char* const index, size_t idx_len, token_entry *result){
   int key_found = 0;
 
   int fd_read = cfs_open(TOKENS_FILE_NAME, CFS_READ);
