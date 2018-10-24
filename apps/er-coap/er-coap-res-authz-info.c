@@ -23,12 +23,8 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
   printf("token_len is %d\n", token_len);
 
   if(token_len > 0) {
-    printf("CBOR token:");
-    int i;
-    for (i=0; i<token_len; i++){
-      printf(" %02x",cbor_token[i]);
-    }
-    printf("\n");
+    printf("CBOR token: ");
+    HEX_PRINTF(cbor_token, token_len)
 
     cwt* token = parse_cwt_token(cbor_token, token_len);
     if(token == 0) {
@@ -48,23 +44,6 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
         REST.set_response_payload(response, error_message, strlen(error_message));
       }
     }
-
-    /*int bytes_read;
-    int fd_read = cfs_open(token_file, CFS_READ);
-    if (fd_read != -1){
-      bytes_read = cfs_read(fd_read, buffer, 128);
-      cfs_close(fd_read);
-      printf("File:");
-      int i;
-      for (i=0; i<128; i++){
-        printf(" %02x",buffer[i]);
-      }
-      printf("\n");
-    } else {
-      REST.set_response_status(response, REST.status.INTERNAL_SERVER_ERROR);
-      const char* failure_message = "Failed to add ACE credentials, could not open tokens file";
-      REST.set_response_payload(response, failure_message, strlen(failure_message));
-    }*/
   }
   else {
     REST.set_response_status(response, REST.status.BAD_REQUEST);

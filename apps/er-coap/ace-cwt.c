@@ -10,7 +10,6 @@
 #include "cfs/cfs.h"
 #include "dtls.h"
 
-
 #ifdef USE_CBOR_CONTEXT
 #define CBOR_CONTEXT_PARAM , NULL
 #else
@@ -31,43 +30,31 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
   printf("Analyzing object of type: %d\n", cbor_object->type);
   switch (cbor_object->type) {
     case CN_CBOR_ARRAY:
-      printf("Type is Array");
+      printf("Type is Array\n");
     case CN_CBOR_MAP:
-      printf("Type is Map");
+      printf("Type is Map\n");
+      printf("Will analyze children objects\n");
       cn_cbor* current;
       for (current = cbor_object->first_child; current; current = current->next) {
         parse_claims(curr_claim, token, current);
       }
+      printf("Finished analyzing children objects\n");
       break;
 
     case CN_CBOR_BYTES:
-      printf("Type is Byte String");
-      if(token->in_cnf > 0){
-        printf("\nInside cnf CLM: %d\n", *curr_claim);
-      }
-      int i;
-      printf("HEX:");
-      for (i=0; i<cbor_object->length; i++)
-        printf("%02x", cbor_object->v.str[i]);
-      printf("\n");
+      printf("Type is Byte String\n");
+      HEX_PRINTF(cbor_object->v.str, cbor_object->length)
       switch(*curr_claim){
-        case 25:    // CNF
-          token->cnf = (char *) malloc(cbor_object->length);
-          memcpy(token->cnf, cbor_object->v.str, cbor_object->length);
-          printf("cnf found\n");
-          token->in_cnf = 1;
-          //parse_cwt_token(cbor_object->v.str, cbor_object->length);
-          token->in_cnf = 0;
-          break;
         case 7:     // CTI
           token->cti = (char *) malloc(cbor_object->length);
           memcpy(token->cti, cbor_object->v.str, cbor_object->length);
           printf("cti found\n");
           break;
         case 2:     // KID (inside CNF)
-          token->kid = (char *) malloc(KEY_ID_LENGTH);
-          printf("kid len is %d\n", cbor_object->length);
-          memcpy(token->kid, cbor_object->v.str, cbor_object->length);
+          token->kid = (char *) malloc(cbor_object->length);
+          token->kid_len = cbor_object->length;
+          printf("kid len is %d\n", token->kid_len);
+          memcpy(token->kid, cbor_object->v.str, token->kid_len);
           printf("kid found\n");
           break;
         case -1:    // KEY (inside CNF)
@@ -76,10 +63,11 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
           printf("key found\n");
           break;
       }
+      *curr_claim = 0;
       break;
 
     case CN_CBOR_TEXT:
-      printf("Type is Text");
+      printf("Type is Text\n");
       printf("Current CLM: %d\n", *curr_claim);
       printf("LEN: %d\n",cbor_object->length);
       printf("TXT: %.*s\n", cbor_object->length, cbor_object->v.str);
@@ -110,10 +98,11 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
           printf("sco is %s\n", token->sco);
           break;
       }
+      *curr_claim = 0;
       break;
 
     case CN_CBOR_UINT:
-      printf("Type is Positive Int");
+      printf("Type is Positive Int\n");
       printf("UINT: %lu\n", cbor_object->v.uint);
       if(cbor_object->v.uint < 256){
         *curr_claim = cbor_object->v.uint;
@@ -121,16 +110,25 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
       }
       else {
         switch(*curr_claim){
-          case 4: token->exp = cbor_object->v.uint; break;
-          case 5: token->nbf = cbor_object->v.uint; break;
-          case 6: token->iat = cbor_object->v.uint; break;
+          case 4:
+            token->exp = cbor_object->v.uint;
+            printf("exp is %lu\n", token->exp);
+            break;
+          case 5:
+            token->nbf = cbor_object->v.uint;
+            printf("nbf is %lu\n", token->nbf);
+            break;
+          case 6:
+            token->iat = cbor_object->v.uint;
+            printf("iat is %lu\n", token->iat);
+            break;
         }
         *curr_claim = 0;
       }
       break;
 
     case CN_CBOR_INT:
-      printf("Type is Negative Int");
+      printf("Type is Negative Int\n");
       printf("NEGATIVE INT: %ld\n", cbor_object->v.sint);
       if(cbor_object->v.sint < 256){
         *curr_claim = cbor_object->v.sint;
@@ -202,21 +200,19 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   //free(encrypted_cbor);
 
   printf("Decrypted CBOR:");
-  int i;
-  for (i=0; i < decrypted_cbor_len; i++){
-    printf(" %02x", decrypted_cbor[i]);
-  }
-  printf("\n");
+  HEX_PRINTF(decrypted_cbor[i], decrypted_cbor_len)
+  printf("Decrypted CBOR length: %d", decrypted_cbor_len);
 
   printf("Decoding claims from CBOR bytes into CBOR object.\n");
   cn_cbor* cbor_claims = cn_cbor_decode(decrypted_cbor, decrypted_cbor_len CBOR_CONTEXT_PARAM, 0);
   if (cbor_claims) {
     printf("Parsing claims into cwt object.\n");
     cwt* token_info = (cwt*) malloc(sizeof(cwt));
+    printf("Finished parsing claims into cwt object.\n");
     signed long curr_claim = 0;
     parse_claims(&curr_claim, token_info, cbor_claims);
     token_info->cbor_claims = decrypted_cbor;
-    token_info->cbor_claims_length = decrypted_cbor_len;
+    token_info->cbor_claims_len = decrypted_cbor_len;
     return token_info;
   } else {
     printf("CBOR decode failed\n");
@@ -226,33 +222,28 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 
 // Stores the given token into the tokens file.
 int store_token(cwt* token) {
+  printf("Storing pop key and token in token file.\n");
   int bytes_written;
   int fd_tokens_file = cfs_open(TOKENS_FILE_NAME, CFS_WRITE | CFS_APPEND);
   if(fd_tokens_file != -1){
-    char padding_format_string[6];
-
     // First write key id and key.
-    snprintf(padding_format_string, 6, "%%0%ds", KEY_ID_LENGTH);
-    printf("Formatting string: %s\n", padding_format_string);
     printf("Storing key id and key.\n");
-    char padded_id[KEY_ID_LENGTH + 1] = { 0 };
-    snprintf(padded_id, KEY_ID_LENGTH, padding_format_string, token->kid);
-    bytes_written = cfs_write(fd_tokens_file, padded_id, strlen(padded_id));
+    char padded_id[KEY_ID_LENGTH] = left_pad_array(token->kid, token->kid_len, KEY_ID_LENGTH, 0);
+    bytes_written = cfs_write(fd_tokens_file, padded_id, KEY_ID_LENGTH);
     //free(padded_id);
     bytes_written = cfs_write(fd_tokens_file, token->key, KEY_LENGTH);
 
     // Now write CBOR claims length, and the CBOR claims.
-    snprintf(padding_format_string, 6, "%%0%dd", CBOR_SIZE_LENGTH);
-    printf("Formatting string: %s\n", padding_format_string);
     printf("Storing CBOR claims length and claims.\n");
     char length_as_string[CBOR_SIZE_LENGTH + 1] = { 0 };
-    snprintf(length_as_string, CBOR_SIZE_LENGTH, padding_format_string, token->cbor_claims_length);
+    snprintf(length_as_string, CBOR_SIZE_LENGTH, "%0*d", CBOR_SIZE_LENGTH, token->cbor_claims_len);
     char* padded_length_as_string = pad_with_zeros(length_as_string, CBOR_SIZE_LENGTH);
     bytes_written = cfs_write(fd_tokens_file, padded_length_as_string, strlen(padded_length_as_string));
     //free(padded_length_as_string);
-    bytes_written = cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_length);
+    bytes_written = cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_len);
 
     cfs_close(fd_tokens_file);
+    printf("Finished storing pop key and token in token file.\n");
     return 1;
   }
   else {
@@ -260,16 +251,11 @@ int store_token(cwt* token) {
   }
 }
 
-// Add padding so that the given string always uses the max given bytes. "0" are added as padding.
-char* pad_with_zeros(char* initial_string, int final_length) {
-  printf("Unpadded id length is %d\n", strlen(initial_string));
-  char* padded_string = (char *) malloc(final_length + 1);
-  int padding_len = final_length - strlen(initial_string);
-  int j;
-  for (j = 0; j < padding_len; j++){
-    padded_string[j] = "0";
-  }
-  padded_string[padding_len] = 0;
-  strcat(padded_string, initial_string);
-  return padded_string;
+// Adds the given value as padding to the left of the array.
+char* left_pad_array(char* byte_array, int array_length, int final_length, char padding) {
+  char* padded_array = (char *) malloc(final_length);
+  memset(padded_array, padding, final_length);
+  int padding_len = final_length - array_length);
+  memcpy(&padded_array[padding_len], byte_array, array_length);
+  return padded_array;
 }

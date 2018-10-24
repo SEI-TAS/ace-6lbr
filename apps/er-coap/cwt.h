@@ -19,11 +19,10 @@ typedef struct cwt {
   char* sco;
   char* cnf;
   char* kid;
-  char* ktype;
+  int kid_len;
   char* key;
-  int in_cnf;
   char* cbor_claims;
-  int cbor_claims_length;
+  int cbor_claims_len;
 } cwt ;
 
 typedef struct cosewt {
@@ -45,3 +44,11 @@ char* pad_with_zeros(char* initial_string, int final_length);
 #define KEY_LENGTH 16
 #define CBOR_SIZE_LENGTH 4
 #define TOKENS_FILE_NAME "tokens"
+
+#define HEX_PRINTF(byte_array, length) {     \
+        printf("Bytes: ");                   \
+        int i;                               \
+        for (i=0; i < length; i++)           \
+          printf("%02x ", byte_array[i]);    \
+        printf("\n");                        \
+     }
