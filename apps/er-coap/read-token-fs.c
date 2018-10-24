@@ -39,7 +39,7 @@ int find_token_entry(unsigned char* index, size_t idx_len, token_entry *result){
         result->key = (unsigned char *) malloc(KEY_LENGTH);
         memcpy(result->key, key, KEY_LENGTH);
         printf("Readed into struct key: ");
-        HEX_PRINT(result->key, KEY_LENGTH)
+        HEX_PRINTF(result->key, KEY_LENGTH)
 
         bytes_read += cfs_read(fd_read, cbor_len_buffer, CBOR_SIZE_LENGTH);
         printf("Readed CBOR length into char pointer\n");
@@ -50,7 +50,7 @@ int find_token_entry(unsigned char* index, size_t idx_len, token_entry *result){
           result->cbor = (unsigned char *) malloc(cbor_len);
           bytes_read += cfs_read(fd_read, result->cbor, cbor_len);
           printf("Readed cbor into struct: \n");
-          HEX_PRINT(result->cbor, cbor_len)
+          HEX_PRINTF(result->cbor, cbor_len)
         }
         else {
           printf("Record has no CBOR info associated to it.\n");

@@ -50,6 +50,6 @@ char* left_pad_array(char* byte_array, int array_length, int final_length, char 
         printf("Bytes: ");                                      \
         int i;                                                  \
         for (i=0; i < length; i++)                              \
-          printf("%02x ", (unsigned int*) (byte_array)[i]);     \
+          printf("%02x ", (unsigned int) (byte_array[i]));     \
         printf("\n");                                           \
      }

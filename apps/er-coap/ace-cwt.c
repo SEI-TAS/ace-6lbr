@@ -181,7 +181,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 
   printf("Looking for stored key associated with kid.\n");
   token_entry pairing_key_info;
-  if(find_token_entry(key_id, (unsigned char*) key_id_size, &pairing_key_info) == 0) {
+  if(find_token_entry((unsigned char*) key_id, key_id_size, &pairing_key_info) == 0) {
     printf("Could not find key to decrypt COSE wrapper of CWT; aborting parsing token.\n");
     return 0;
   }
@@ -196,7 +196,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   printf("Getting encrypted claims.\n");
   int encrypted_cbor_pos = nonce_pos + NONCE_SIZE + 2;
   int encrypted_cbor_length = token_length - encrypted_cbor_pos;
-  char* encrypted_cbor = (char *) malloc(encrypted_cbor_length);
+  unsigned char* encrypted_cbor = (char *) malloc(encrypted_cbor_length);
   memcpy(encrypted_cbor, &cbor_token[encrypted_cbor_pos], encrypted_cbor_length);
 
   printf("Decrypting claims.\n");
