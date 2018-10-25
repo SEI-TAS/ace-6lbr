@@ -46,12 +46,12 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
 
       // We will ignore the AS id, since our id is what the AS will use as the Key ID for this key.
       printf("Will store key with our id: %s", RS_ID);
-      key_info->kid = RS_ID;
+      key_info->kid = (unsigned char*) RS_ID;
       key_info->kid_len = strlen(RS_ID);
 
       if(store_token(key_info)) {
         // We have to respond with our key and scopes, encoded in CBOR.
-        unsigned char* cbor_bytes;
+        unsigned char* cbor_bytes = 0;
         int cbor_bytes_len = encode_map_to_cbor(CBOR_DEVICE_ID_KEY, 0, RS_ID,
                                                 CBOR_DEVICE_INFO_KEY, 0, SCOPES, cbor_bytes);
 
@@ -77,9 +77,9 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
 }
 
 // Sets the response params for a given CBOR error.
-void set_cbor_error_response(void* response, unsigned int response_code, int error_code, char* error_desc) {
+void set_cbor_error_response(void* response, unsigned int response_code, int error_code, const char* error_desc) {
   REST.set_response_status(response, response_code);
-  unsigned char* cbor_bytes;
+  unsigned char* cbor_bytes = 0;
   int cbor_bytes_len = encode_map_to_cbor(CBOR_ERROR_CODE_KEY, error_code, 0,
                                           CBOR_ERROR_DESC_KEY, 0, error_desc, cbor_bytes);
   REST.set_response_payload(response, cbor_bytes, cbor_bytes_len);

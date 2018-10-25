@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 
 #define CBOR_PREFIX_MAP 0xA0
 #define CBOR_PRFIX_INT 0x00
@@ -12,20 +14,22 @@ int encode_pair_to_cbor(int key, int int_value, char* str_value, unsigned char* 
 int encode_map_to_cbor(int key1, int int_value1, char* str_value1,
                        int key2, int int_value2, char* str_value2, unsigned char* cbor_result) {
   // Map will have 2 pairs.
-  unsigned char cbor_map_header = CBOR_PREFIX_MAP & num_items;
+  unsigned char cbor_map_header = CBOR_PREFIX_MAP & 2;
   unsigned char* pair1_cbor;
   int pair1_len = encode_pair_to_cbor(key1, int_value1, str_value1, pair1_cbor);
   unsigned char* pair2_cbor;
   int pair2_len = encode_pair_to_cbor(key2, int_value2, str_value2, pair2_cbor);
 
   // Move both encoded bytes into a unified buffer.
-  int cbor_bytes_len = 1 + pair1_cbor + pair2_cbor;
+  int cbor_bytes_len = 1 + pair1_len + pair2_len;
   unsigned char* cbor_bytes = (unsigned char*) malloc(cbor_bytes_len);
   cbor_bytes[0] = cbor_map_header;
   memcpy(cbor_bytes + 1, pair1_cbor, pair1_len);
   memcpy(cbor_bytes + 1 + pair1_len, pair2_cbor, pair2_len);
-  free(device_id_cbor);
-  free(scopes_cbor);
+  free(pair1_cbor);
+  free(pair2_cbor);
+
+  return cbor_bytes_len;
 }
 
 // NOTE: We assume all ints, keys or values, will be less than 24, to simplify encoding.
@@ -47,19 +51,19 @@ int encode_pair_to_cbor(int key, int int_value, char* str_value, unsigned char* 
 
   // Encode using the CBOR RFC rules. Using & adds the type prefix.
   int pos = 0;
-  cbor_bytes[pos++] = CBOR_PRFIX_INT & key;
+  cbor_result[pos++] = CBOR_PRFIX_INT & key;
   if(str_value != 0) {
     int str_value_len = strlen(str_value);
     if(str_value_len < CBOR_ONE_BYTE_LIMIT) {
-      cbor_bytes[pos++] = CBOR_PREFIX_TXT & str_value_len;
+      cbor_result[pos++] = CBOR_PREFIX_TXT & str_value_len;
     }
     else {
-      cbor_bytes[pos++] = CBOR_PREFIX_TXT & CBOR_ONE_BYTE_LIMIT;
-      cbor_bytes[pos++] = str_value_len;
+      cbor_result[pos++] = CBOR_PREFIX_TXT & CBOR_ONE_BYTE_LIMIT;
+      cbor_result[pos++] = str_value_len;
     }
   }
   else {
-    cbor_bytes[pos++] = CBOR_PRFIX_INT & int_value;
+    cbor_result[pos++] = CBOR_PRFIX_INT & int_value;
   }
 
   return encoded_len;
