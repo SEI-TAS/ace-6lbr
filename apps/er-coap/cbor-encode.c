@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "cwt.h"
 
 #define CBOR_PREFIX_MAP 0xA0
 #define CBOR_PRFIX_INT 0x00
@@ -33,6 +34,8 @@ int encode_map_to_cbor(int key1, int int_value1, const char* str_value1,
   printf("Finished encoding map, cleaning up.\n");
   free(pair1_cbor);
   free(pair2_cbor);
+  printf("Final encoded bytes: ");
+  HEX_PRINTF(*cbor_result, cbor_bytes_len);
 
   return cbor_bytes_len;
 }
@@ -84,6 +87,9 @@ int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned 
     (*cbor_result)[pos++] = CBOR_PRFIX_INT & int_value;
     printf("Int encoded.\n");
   }
+
+  printf("Encoded bytes: ");
+  HEX_PRINTF(*cbor_result, encoded_len);
 
   return encoded_len;
 }
