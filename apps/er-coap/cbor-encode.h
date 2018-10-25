@@ -5,4 +5,4 @@
 #define CBOR_ERROR_CODE_INVALID_REQUEST 0
 
 int encode_map_to_cbor(int key1, int int_value1, const char* str_value1,
-                       int key2, int int_value2, const char* str_value2, unsigned char* cbor_result);
+                       int key2, int int_value2, const char* str_value2, unsigned char** cbor_result);
