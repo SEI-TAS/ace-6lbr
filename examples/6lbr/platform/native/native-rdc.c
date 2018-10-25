@@ -454,6 +454,7 @@ PROCESS_THREAD(native_rdc_process, ev, data)
       if(network_itf != NULL && network_itf->itf_type == NETWORK_ITF_TYPE_802154) {
         slip_device = get_slip_device(ifindex);
         if((slip_device->features & SLIP_RADIO_FEATURE_REBOOT) != 0) {
+          LOG6LBR_INFO("SLIP RADIO: requesting reboot.\n");
           slip_reboot(slip_device);
         }
         radio_mac_addr_ready = 0;
@@ -464,6 +465,7 @@ PROCESS_THREAD(native_rdc_process, ev, data)
         }
         //Set radio channel and PAN-ID
         if((slip_device->features & SLIP_RADIO_FEATURE_CHANNEL) != 0) {
+          LOG6LBR_INFO("SLIP RADIO: setting RF channel.\n");
           slip_set_rf_channel(nvm_data.channel, buf, &len);
           PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
           if(status != 0) {
@@ -471,6 +473,7 @@ PROCESS_THREAD(native_rdc_process, ev, data)
           }
         }
         if((slip_device->features & SLIP_RADIO_FEATURE_PAN_ID) != 0) {
+          LOG6LBR_INFO("SLIP RADIO: setting PAN-ID.\n");
           frame802154_set_pan_id(nvm_data.pan_id);
           slip_set_pan_id(nvm_data.pan_id, buf, &len);
           PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
