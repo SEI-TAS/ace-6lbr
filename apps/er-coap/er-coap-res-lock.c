@@ -34,7 +34,7 @@ static void res_put_handler(void *request, void *response, uint8_t *buffer, uint
 
   const unsigned char* lock_info = NULL;
   int payload_len = REST.get_request_payload(request, (const uint8_t **)&lock_info);
-  if(len > 0) {
+  if(payload_len > 0) {
     int new_lock_value = lock_info[0];
     printf("Received lock value: %d\n", new_lock_value);
     lock_status = new_lock_value;
