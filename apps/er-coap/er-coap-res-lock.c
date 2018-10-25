@@ -11,6 +11,7 @@
 #include "rest-engine.h"
 #include "cfs/cfs.h"
 #include "cbor-encode.h"
+#include "cwt.h"
 
 static int lock_status = 0;
 
@@ -21,6 +22,7 @@ RESOURCE(res_lock, NULL, res_get_handler, NULL, res_put_handler, NULL);
 
 static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   printf("Requesting Lock resource\n");
+  printf("Lock is currently: %d\n", lock_status);
   unsigned char result[1];
   result[0] = CBOR_PRFIX_INT | lock_status; // Encode as CBOR INT
 
@@ -34,6 +36,9 @@ static void res_put_handler(void *request, void *response, uint8_t *buffer, uint
 
   const unsigned char* lock_info = NULL;
   int payload_len = REST.get_request_payload(request, (const uint8_t **)&lock_info);
+  printf("Payload length: %d\n", payload_len);
+  printf("Payload: ");
+  HEX_PRINTF(lock_info, payload_len)
   if(payload_len > 0) {
     int new_lock_value = lock_info[0];
     printf("Received lock value: %d\n", new_lock_value);
