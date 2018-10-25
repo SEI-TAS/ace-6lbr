@@ -14,7 +14,7 @@
 #include "./cbor-encode.h"
 
 #define RS_ID "RS2"
-#define SCOPES "HelloWorld rw_Lock r_Lock"
+#define SCOPES "HelloWorld;rw_Lock;r_Lock"
 
 #define CBOR_DEVICE_ID_KEY 3
 #define CBOR_DEVICE_INFO_KEY 4
