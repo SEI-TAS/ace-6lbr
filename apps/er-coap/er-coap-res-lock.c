@@ -20,7 +20,7 @@ static void res_get_handler(void *request, void *response, uint8_t *buffer, uint
 RESOURCE(res_lock, NULL, res_get_handler, NULL, res_put_handler, NULL);
 
 static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
-  unsigned char[1] result;
+  unsigned char result[1];
   result[0] = CBOR_PRFIX_INT ! lock_status; // Encode as CBOR INT
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
