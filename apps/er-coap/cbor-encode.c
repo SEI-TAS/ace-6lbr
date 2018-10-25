@@ -8,16 +8,16 @@
 
 #define CBOR_ONE_BYTE_LIMIT 24
 
-int encode_pair_to_cbor(int key, int int_value, char* str_value, unsigned char* cbor_result);
+int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned char* cbor_result);
 
 // Encodes a map of 2 key-value pairs into CBOR. Keys are ints, values can be ints or strs.
-int encode_map_to_cbor(int key1, int int_value1, char* str_value1,
-                       int key2, int int_value2, char* str_value2, unsigned char* cbor_result) {
+int encode_map_to_cbor(int key1, int int_value1, const char* str_value1,
+                       int key2, int int_value2, const char* str_value2, unsigned char* cbor_result) {
   // Map will have 2 pairs.
   unsigned char cbor_map_header = CBOR_PREFIX_MAP & 2;
-  unsigned char* pair1_cbor;
+  unsigned char* pair1_cbor = 0;
   int pair1_len = encode_pair_to_cbor(key1, int_value1, str_value1, pair1_cbor);
-  unsigned char* pair2_cbor;
+  unsigned char* pair2_cbor = 0;
   int pair2_len = encode_pair_to_cbor(key2, int_value2, str_value2, pair2_cbor);
 
   // Move both encoded bytes into a unified buffer.
@@ -33,7 +33,7 @@ int encode_map_to_cbor(int key1, int int_value1, char* str_value1,
 }
 
 // NOTE: We assume all ints, keys or values, will be less than 24, to simplify encoding.
-int encode_pair_to_cbor(int key, int int_value, char* str_value, unsigned char* cbor_result) {
+int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned char* cbor_result) {
   // Calculate the length of the encoded result. An int key less than 24 fits in 1 B.
   // The type for an int (plus its value) or a text string will need at least 1 more.
   int encoded_len = 2;
