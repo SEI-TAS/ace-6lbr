@@ -205,6 +205,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
                                         decrypted_cbor, nonce, pairing_key_info.key, KEY_LENGTH, A_DATA, A_DATA_LEN);
   printf("%d bytes COSE decrypted\n", decrypted_cbor_len);
   //free(encrypted_cbor);
+  //free(nonce);
 
   printf("Decrypted CBOR:");
   HEX_PRINTF(decrypted_cbor, decrypted_cbor_len)

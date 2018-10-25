@@ -11,9 +11,16 @@
 #include "rest-engine.h"
 #include "cfs/cfs.h"
 #include "./cwt.h"
+#include "./cbor-encode.h"
 
+#define RS_ID "RS2"
+#define SCOPES "HelloWorld rw_Lock r_Lock"
+
+#define CBOR_DEVICE_ID_KEY 3
+#define CBOR_DEVICE_INFO_KEY 4
 
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+void set_cbor_error_response(void* response, unsigned int response_code, int error_code, char* error_desc);
 
 RESOURCE(res_pair, NULL, NULL, res_post_handler, NULL, NULL);
 
@@ -31,35 +38,50 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
     cwt* key_info = parse_cbor_claims_into_cwt_struct(pairing_info, len);
 
     if(key_info != 0){
-      printf("Obtained pairing key id and key\n");
-      printf("Key id: ");
+      printf("Obtained pairing AS id and key\n");
+      printf("AS id: ");
       HEX_PRINTF(key_info->kid, key_info->kid_len);
       printf("Key: ");
       HEX_PRINTF(key_info->key, KEY_LENGTH);
 
+      // We will ignore the AS id, since our id is what the AS will use as the Key ID for this key.
+      printf("Will store key with our id: %s", RS_ID);
+      key_info->kid = RS_ID;
+      key_info->kid_len = strlen(RS_ID);
+
       if(store_token(key_info)) {
+        // We have to respond with our key and scopes, encoded in CBOR.
+        unsigned char* cbor_bytes;
+        int cbor_bytes_len = encode_map_to_cbor(CBOR_DEVICE_ID_KEY, 0, RS_ID,
+                                                CBOR_DEVICE_INFO_KEY, 0, SCOPES, cbor_bytes);
+
+        // Set the CBOR data in the response.
         REST.set_response_status(response, REST.status.CREATED);
-        const char* success_message = "AS credentials added";
-        REST.set_response_payload(response, success_message, strlen(success_message));
+        REST.set_response_payload(response, cbor_bytes, cbor_bytes_len);
       }
       else {
-        REST.set_response_status(response, REST.status.INTERNAL_SERVER_ERROR);
         const char* failure_message = "Failed to store AS credentials";
-        REST.set_response_payload(response, failure_message, strlen(failure_message));
+        set_cbor_error_response(response, REST.status.INTERNAL_SERVER_ERROR, CBOR_ERROR_CODE_INVALID_REQUEST, failure_message);
       }
 
     } else {
-      REST.set_response_status(response, REST.status.INTERNAL_SERVER_ERROR);
       const char* failure_message = "Failed to parse AS credentials";
-      REST.set_response_payload(response, failure_message, strlen(failure_message));
+      set_cbor_error_response(response, REST.status.BAD_REQUEST, CBOR_ERROR_CODE_INVALID_REQUEST, failure_message);
     }
   } else {
-    REST.set_response_status(response, REST.status.BAD_REQUEST);
-    const char* no_info_message = "No pairing info was received";
-    REST.set_response_payload(response, no_info_message, strlen(no_info_message));
+    const char* failure_message = "No pairing info was received";
+    set_cbor_error_response(response, REST.status.BAD_REQUEST, CBOR_ERROR_CODE_INVALID_REQUEST, failure_message);
   }
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+}
 
+// Sets the response params for a given CBOR error.
+void set_cbor_error_response(void* response, unsigned int response_code, int error_code, char* error_desc) {
+  REST.set_response_status(response, response_code);
+  unsigned char* cbor_bytes;
+  int cbor_bytes_len = encode_map_to_cbor(CBOR_ERROR_CODE_KEY, error_code, 0,
+                                          CBOR_ERROR_DESC_KEY, 0, error_desc, cbor_bytes);
+  REST.set_response_payload(response, cbor_bytes, cbor_bytes_len);
 }
 
