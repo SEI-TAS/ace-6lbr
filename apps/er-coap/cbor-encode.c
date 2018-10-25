@@ -35,7 +35,7 @@ int encode_map_to_cbor(int key1, int int_value1, const char* str_value1,
   free(pair1_cbor);
   free(pair2_cbor);
   printf("Final encoded bytes: ");
-  HEX_PRINTF(*cbor_result, cbor_bytes_len);
+  HEX_PRINTF((*cbor_result), cbor_bytes_len);
 
   return cbor_bytes_len;
 }
@@ -89,7 +89,7 @@ int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned 
   }
 
   printf("Encoded bytes: ");
-  HEX_PRINTF(*cbor_result, encoded_len);
+  HEX_PRINTF((*cbor_result), encoded_len);
 
   return encoded_len;
 }
