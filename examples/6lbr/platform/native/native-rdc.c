@@ -465,21 +465,21 @@ PROCESS_THREAD(native_rdc_process, ev, data)
         }
         //Set radio channel and PAN-ID
         if((slip_device->features & SLIP_RADIO_FEATURE_CHANNEL) != 0) {
-          LOG6LBR_INFO("SLIP RADIO: setting RF channel.\n");
-          slip_set_rf_channel(nvm_data.channel, buf, &len);
-          PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
-          if(status != 0) {
-            LOG6LBR_ERROR("Set channel failed\n");
-          }
+          LOG6LBR_INFO("SLIP RADIO: NOT setting RF channel.\n");
+          //slip_set_rf_channel(nvm_data.channel, buf, &len);
+          //PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
+          //if(status != 0) {
+          //  LOG6LBR_ERROR("Set channel failed\n");
+          //}
         }
         if((slip_device->features & SLIP_RADIO_FEATURE_PAN_ID) != 0) {
-          LOG6LBR_INFO("SLIP RADIO: setting PAN-ID.\n");
-          frame802154_set_pan_id(nvm_data.pan_id);
-          slip_set_pan_id(nvm_data.pan_id, buf, &len);
-          PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
-          if(status != 0) {
-            LOG6LBR_ERROR("Set PAN-ID failed\n");
-          }
+          LOG6LBR_INFO("SLIP RADIO: NOT setting PAN-ID.\n");
+          //frame802154_set_pan_id(nvm_data.pan_id);
+          //slip_set_pan_id(nvm_data.pan_id, buf, &len);
+          //PT_SPAWN(process_pt, &pt, send_slip_cmd(&pt, ev, slip_device, buf, len, 0, &status));
+          //if(status != 0) {
+          //  LOG6LBR_ERROR("Set PAN-ID failed\n");
+          //}
         }
       }
     }
