@@ -20,9 +20,11 @@ void keystore_init(){
   //unsigned char test_key_id[3] = {'R', 'S', '2'};
   //unsigned char* padded_test_key_id = left_pad_array(test_key_id, 3, KEY_ID_LENGTH, 0);
 
-  int bytes_written = 0;
-  int fd_write = cfs_open(TOKENS_FILE_NAME, CFS_WRITE);
-  if(fd_write != -1){
+  int fd_check_file = cfs_open(TOKENS_FILE_NAME, CFS_READ);
+  if(fd_check_file == -1) {
+    // File does not exist, let's create it with the pairing key.
+    int bytes_written = 0;
+    int fd_write = cfs_open(TOKENS_FILE_NAME, CFS_WRITE);
     bytes_written += cfs_write(fd_write, PAIRING_KEY_ID, KEY_ID_LENGTH);
     bytes_written += cfs_write(fd_write, pairing_key, KEY_LENGTH);
     bytes_written += cfs_write(fd_write, NON_TOKEN_ENTRY_CBOR_LENGTH, CBOR_SIZE_LENGTH);
@@ -36,8 +38,7 @@ void keystore_init(){
     cfs_close(fd_write);
   }
   else {
-    dtls_debug("Could not open tokens file to initialize it with default pairing key.\n");
+    cfs_close(fd_check_file);
   }
-
 }
 
