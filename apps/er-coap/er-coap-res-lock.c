@@ -31,7 +31,7 @@ static void res_put_handler(void *request, void *response, uint8_t *buffer, uint
   // Switch lock status for now.
   lock_status = !lock_status;
   unsigned char result[1];
-  result[0] = CBOR_PRFIX_INT ! lock_status; // Encode as CBOR INT
+  result[0] = CBOR_PRFIX_INT | lock_status; // Encode as CBOR INT
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
   REST.set_response_payload(response, result, 1);
