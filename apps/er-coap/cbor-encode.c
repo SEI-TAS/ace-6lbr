@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define CBOR_PREFIX_MAP 0xA0
 #define CBOR_PRFIX_INT 0x00
