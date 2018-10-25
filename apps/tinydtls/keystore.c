@@ -38,6 +38,7 @@ void keystore_init(){
     cfs_close(fd_write);
   }
   else {
+    dtls_debug("Won't create keystore, already exists.\n");
     cfs_close(fd_check_file);
   }
 }

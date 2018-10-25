@@ -3,13 +3,6 @@
 #include <stdio.h>
 #include "cwt.h"
 
-#define CBOR_PREFIX_MAP 0xA0
-#define CBOR_PRFIX_INT 0x00
-#define CBOR_PREFIX_TXT 0x60
-#define CBOR_PREFIX_EXTRA_INT8 0x18
-
-#define CBOR_ONE_BYTE_LIMIT 24
-
 int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned char** cbor_result);
 
 // Encodes a map of 2 key-value pairs into CBOR. Keys are ints, values can be ints or strs.
