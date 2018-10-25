@@ -45,17 +45,19 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
       HEX_PRINTF(key_info->key, KEY_LENGTH);
 
       // We will ignore the AS id, since our id is what the AS will use as the Key ID for this key.
-      printf("Will store key with our id: %s", RS_ID);
+      printf("Will store key with our id: %s\n", RS_ID);
       key_info->kid = (unsigned char*) RS_ID;
       key_info->kid_len = strlen(RS_ID);
 
       if(store_token(key_info)) {
         // We have to respond with our key and scopes, encoded in CBOR.
+        printf("Encoding response with device id and scopes.\n");
         unsigned char* cbor_bytes = 0;
         int cbor_bytes_len = encode_map_to_cbor(CBOR_DEVICE_ID_KEY, 0, RS_ID,
                                                 CBOR_DEVICE_INFO_KEY, 0, SCOPES, cbor_bytes);
 
         // Set the CBOR data in the response.
+        printf("Sending reply.\n");
         REST.set_response_status(response, REST.status.CREATED);
         REST.set_response_payload(response, cbor_bytes, cbor_bytes_len);
       }
