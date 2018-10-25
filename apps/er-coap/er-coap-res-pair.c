@@ -20,7 +20,7 @@
 #define CBOR_DEVICE_INFO_KEY 4
 
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-void set_cbor_error_response(void* response, unsigned int response_code, int error_code, char* error_desc);
+void set_cbor_error_response(void* response, unsigned int response_code, int error_code, const char* error_desc);
 
 RESOURCE(res_pair, NULL, NULL, res_post_handler, NULL, NULL);
 
