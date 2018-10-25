@@ -16,7 +16,7 @@ int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned 
 int encode_map_to_cbor(int key1, int int_value1, const char* str_value1,
                        int key2, int int_value2, const char* str_value2, unsigned char** cbor_result) {
   // Map will have 2 pairs.
-  unsigned char cbor_map_header = CBOR_PREFIX_MAP & 2;
+  unsigned char cbor_map_header = CBOR_PREFIX_MAP | 2;
   unsigned char* pair1_cbor = 0;
   int pair1_len = encode_pair_to_cbor(key1, int_value1, str_value1, &pair1_cbor);
   unsigned char* pair2_cbor = 0;
@@ -61,21 +61,21 @@ int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned 
   printf("Encoded pair will use %d bytes.\n", encoded_len);
   *cbor_result = (unsigned char*) malloc(encoded_len);
 
-  // Encode using the CBOR RFC rules. Using & adds the type prefix.
+  // Encode using the CBOR RFC rules. Using| adds the type prefix.
   int pos = 0;
   printf("Encoding key %d.\n", key);
-  (*cbor_result)[pos++] = CBOR_PRFIX_INT & key;
+  (*cbor_result)[pos++] = CBOR_PRFIX_INT | key;
 
   if(str_value != 0) {
     int str_value_len = strlen(str_value);
     printf("Encoding string %s of length %d.\n", str_value, str_value_len);
     if(str_value_len < CBOR_ONE_BYTE_LIMIT) {
       printf("Adding 1 byte txt header.\n");
-      (*cbor_result)[pos++] = CBOR_PREFIX_TXT & str_value_len;
+      (*cbor_result)[pos++] = CBOR_PREFIX_TXT | str_value_len;
     }
     else {
       printf("Adding 2 byte txt header.\n");
-      (*cbor_result)[pos++] = CBOR_PREFIX_TXT & CBOR_ONE_BYTE_LIMIT;
+      (*cbor_result)[pos++] = CBOR_PREFIX_TXT | CBOR_ONE_BYTE_LIMIT;
       (*cbor_result)[pos++] = str_value_len;
     }
 
@@ -84,7 +84,7 @@ int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned 
     printf("String encoded.\n");
   }
   else {
-    (*cbor_result)[pos++] = CBOR_PRFIX_INT & int_value;
+    (*cbor_result)[pos++] = CBOR_PRFIX_INT | int_value;
     printf("Int encoded.\n");
   }
 
