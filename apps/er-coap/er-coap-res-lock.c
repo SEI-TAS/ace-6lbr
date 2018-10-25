@@ -10,7 +10,7 @@
 #include <string.h>
 #include "rest-engine.h"
 #include "cfs/cfs.h"
-#include "cn-encode.h"
+#include "cbor-encode.h"
 
 static int lock_status = 0;
 
