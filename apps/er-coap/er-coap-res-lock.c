@@ -40,7 +40,7 @@ static void res_put_handler(void *request, void *response, uint8_t *buffer, uint
   printf("Payload: ");
   HEX_PRINTF(lock_info, payload_len)
   if(payload_len > 0) {
-    int new_lock_value = lock_info[0];
+    int new_lock_value = lock_info[1] - '0';
     printf("Received lock value: %d\n", new_lock_value);
     lock_status = new_lock_value;
     printf("Lock is now: %d\n", lock_status);
