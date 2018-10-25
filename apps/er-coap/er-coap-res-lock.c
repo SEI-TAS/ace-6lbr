@@ -30,10 +30,15 @@ static void res_get_handler(void *request, void *response, uint8_t *buffer, uint
 
 static void res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   printf("Putting Lock resource\n");
+
   // Switch lock status for now.
+  printf("Lock is currently: %d\n", lock_status);
   lock_status = !lock_status;
+  printf("Lock is now: %d\n", lock_status);
+
   unsigned char result[1];
   result[0] = CBOR_PRFIX_INT | lock_status; // Encode as CBOR INT
+  printf("Sending back: %d\n", (int) result[0]);
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
   REST.set_response_payload(response, result, 1);
