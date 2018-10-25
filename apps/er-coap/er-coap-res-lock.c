@@ -20,6 +20,7 @@ static void res_get_handler(void *request, void *response, uint8_t *buffer, uint
 RESOURCE(res_lock, NULL, res_get_handler, NULL, res_put_handler, NULL);
 
 static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
+  printf("Requesting Lock resource\n");
   unsigned char result[1];
   result[0] = CBOR_PRFIX_INT | lock_status; // Encode as CBOR INT
 
@@ -28,6 +29,7 @@ static void res_get_handler(void *request, void *response, uint8_t *buffer, uint
 }
 
 static void res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
+  printf("Putting Lock resource\n");
   // Switch lock status for now.
   lock_status = !lock_status;
   unsigned char result[1];

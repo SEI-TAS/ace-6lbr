@@ -18,6 +18,7 @@ static void res_get_handler(void *request, void *response, uint8_t *buffer, uint
 RESOURCE(res_hello, NULL, res_get_handler, NULL, NULL, NULL);
 
 static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
+  printf("Requesting Hello resource\n");
   const char* success_message = "HelloWorld!";
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
   REST.set_response_payload(response, success_message, strlen(success_message));
