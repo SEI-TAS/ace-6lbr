@@ -249,7 +249,7 @@ cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len) {
 #define NO_SCOPE_ERROR "Token has no scope"
 #define UNKNOWN_SCOPE_ERROR "Unknown scope: %s"
 
-int validate_claims(const* cwt token, char** error) {
+int validate_claims(const cwt* token, char** error) {
   printf("Validating tokens.\n");
   // 1. Check if the token has expired.
   if(time(NULL) > token->exp) {
