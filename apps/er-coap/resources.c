@@ -76,7 +76,7 @@ int can_access_resource(const char* resource, rest_resource_flags_t method, unsi
 
   char* valid_scopes = scope_map[pos];
   if(valid_scopes == 0) {
-    printf("Token scopes (%s) do not give access to this resource (%s) using this method (%s).", cwt->sco, resource, method);
+    printf("Token scopes (%s) do not give access to this resource (%s) using this method (%s).", claims->sco, resource, method);
     return 0;
   }
 
@@ -86,9 +86,9 @@ int can_access_resource(const char* resource, rest_resource_flags_t method, unsi
   char* curr_scope = strtok(scope_list, ";");
   while(curr_scope) {
     // Check if this valid scope is the list of scopes in the token.
-    if(strstr(token->sco, curr_scope) != 0) {
+    if(strstr(claims->sco, curr_scope) != 0) {
       scope_found = 1;
-      break
+      break;
     }
 
     // Move to next scope.
@@ -96,7 +96,7 @@ int can_access_resource(const char* resource, rest_resource_flags_t method, unsi
   }
 
   if(scope_found == 0) {
-    printf("Token scopes (%s) do not give access to this resource (%s) using this method (%s).", cwt->sco, resource, method);
+    printf("Token scopes (%s) do not give access to this resource (%s) using this method (%s).", claims->sco, resource, method);
     return 0;
   }
 
