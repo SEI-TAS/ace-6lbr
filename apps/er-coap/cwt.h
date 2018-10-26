@@ -1,3 +1,7 @@
+
+#ifndef CWT_H
+#define CWT_H
+
 #define ISS 1
 #define SUB 2
 #define AUD 3
@@ -42,3 +46,5 @@ cwt* parse_cbor_claims_into_cwt_struct(const unsigned char* cbor_bytes, int cbor
 #define KEY_ID_LENGTH 16
 #define KEY_LENGTH 16
 #define CBOR_SIZE_LENGTH 4
+
+#endif // CWT_H
