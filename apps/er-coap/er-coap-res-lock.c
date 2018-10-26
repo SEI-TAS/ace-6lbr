@@ -16,24 +16,22 @@
 
 static int lock_status = 0;
 
+void return_lock_value();
+
 static void res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 RESOURCE(res_lock, NULL, res_get_handler, NULL, res_put_handler, NULL);
 
 static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
-  printf("Requesting Lock resource\n");
-  printf("Lock is currently: %d\n", lock_status);
-  unsigned char result[1];
-  result[0] = CBOR_PRFIX_INT | lock_status; // Encode as CBOR INT
-
-  REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-  REST.set_response_payload(response, result, 1);
+  printf("Getting Lock resource\n");
+  printf("Lock is: %d\n", lock_status);
+  return_lock_value();
 }
 
 static void res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   printf("Putting Lock resource\n");
-  printf("Lock is currently: %d\n", lock_status);
+  printf("Lock is initially: %d\n", lock_status);
 
   const unsigned char* lock_info = NULL;
   int payload_len = REST.get_request_payload(request, (const uint8_t **)&lock_info);
@@ -48,11 +46,16 @@ static void res_put_handler(void *request, void *response, uint8_t *buffer, uint
     printf("Lock is now: %d\n", lock_status);
   }
 
-  unsigned char result[1];
-  result[0] = CBOR_PRFIX_INT | lock_status; // Encode as CBOR INT
-  printf("Sending back: %d\n", (int) result[0]);
+  return_lock_value();
+}
+
+void return_lock_value() {
+  char lock_as_string[2];
+  snprintf(lock_as_string, 2, "%d", lock_status);
+  unsigned char* encoded_result;
+  int encoded_len = encode_string_to_cbor(lock_as_string, &encoded_result);
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-  REST.set_response_payload(response, result, 1);
+  REST.set_response_payload(response, encoded_result, encoded_len);
 }
 
