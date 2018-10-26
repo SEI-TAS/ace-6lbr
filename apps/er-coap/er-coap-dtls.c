@@ -5,6 +5,7 @@
 #include "er-coap-dtls.h"
 
 #include "utils.h"
+#include "cwt.h"
 #include "dtls.h"
 
 extern int lookup_dtls_key(const unsigned char * const id, size_t id_len,
