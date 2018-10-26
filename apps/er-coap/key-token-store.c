@@ -3,6 +3,8 @@
 #include <string.h>
 #include "cfs/cfs.h"
 
+#include "cwt.h"
+#include "key-token-store.h"
 #include "utils.h"
 
 #define TOKENS_FILE_NAME "tokens"
