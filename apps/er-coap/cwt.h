@@ -42,7 +42,7 @@ typedef struct token_entry {
 
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
 cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len);
-int validate_claims(const* cwt token, char** error);
+int validate_claims(const cwt* token, char** error);
 
 #define KEY_ID_LENGTH 16
 #define KEY_LENGTH 16
