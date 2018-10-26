@@ -254,7 +254,7 @@ int validate_claims(const cwt* token, char** error) {
   // 1. Check if the token has expired.
   if(time(NULL) > token->exp) {
     int error_len = strlen(TOKEN_EXPIRED_ERROR) + 1;
-    *error = (char*) malloc(strlen(error_len));
+    *error = (char*) malloc(error_len);
     snprintf(error, error_len, TOKEN_EXPIRED_ERROR);
     printf(error);
     printf("\n");
@@ -264,7 +264,7 @@ int validate_claims(const cwt* token, char** error) {
   // 2. Check if we are the audience.
   if(strncmp(RS_ID, token->aud, strlen(RS_ID)) != 0) {
     int error_len = strlen(INVALID_AUDIENCE_ERROR) - 2 + strlen(token->aud) + 1;
-    *error = (char*) malloc(strlen(error_len));
+    *error = (char*) malloc(error_len);
     snprintf(error, error_len, INVALID_AUDIENCE_ERROR, token->aud);
     printf(error);
     printf("\n");
@@ -274,7 +274,7 @@ int validate_claims(const cwt* token, char** error) {
   // 3. Check if the token has a scope.
   if(strlen(token->sco) == 0) {
     int error_len = strlen(NO_SCOPE_ERROR) + 1;
-    *error = (char*) malloc(strlen(error_len));
+    *error = (char*) malloc(error_len);
     snprintf(error, error_len, NO_SCOPE_ERROR);
     printf(error);
     printf("\n");
@@ -284,7 +284,7 @@ int validate_claims(const cwt* token, char** error) {
   // 4. Check if the token has a known scope.
   if(strstr(SCOPES, token->sco) == 0) {
     int error_len = strlen(UNKNOWN_SCOPE_ERROR) - 2 + strlen(token->sco) + 1;
-    *error = (char*) malloc(strlen(error_len));
+    *error = (char*) malloc(error_len);
     snprintf(error, error_len, UNKNOWN_SCOPE_ERROR, token->sco);
     printf(error);
     printf("\n");
