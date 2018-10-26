@@ -8,7 +8,7 @@
 #include "cfs/cfs.h"
 #include "dtls.h"
 
-#include "cn-cbor/cn-cbor.h"
+#include "cn-cbor/cn-cbor/cn-cbor.h"
 #include "cwt.h"
 #include "key-token-store.h"
 #include "utils.h"
