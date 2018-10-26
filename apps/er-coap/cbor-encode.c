@@ -38,7 +38,6 @@ int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned 
   printf("Encoding pair to CBOR, with key %d, int value %d.\n", key, int_value);
 
   // Encode using the CBOR RFC rules. First key.
-  int pos = 0;
   printf("Encoding key %d.\n", key);
   unsigned char* encoded_key;
   int encoded_key_len = encode_int_to_cbor(key, &encoded_key);

@@ -352,8 +352,8 @@ PROCESS_THREAD(coap_engine, ev, data)
 
 #if WITH_DTLS_COAP
   rest_activate_resource(&res_pair, "pair");
-  rest_activate_resource(&res_hello, "hello");
-  rest_activate_resource(&res_lock, "lock");
+  rest_activate_resource(&res_hello, "ace/helloWorld");
+  rest_activate_resource(&res_lock, "ace/lock");
 #else
   rest_activate_resource(&res_authz_info, "authz-info");
 #endif
