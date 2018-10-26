@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "cfs/cfs.h"
-#include "./cwt.h"
+
+#include "cwt.h"
+#include "key-token-store.h"
 
 int lookup_dtls_key(const unsigned char * const id, size_t id_len,
          unsigned char * const result, size_t result_length){

@@ -12,6 +12,7 @@
 #include "cfs/cfs.h"
 
 #include "cwt.h"
+#include "key-token-store.h"
 #include "cbor-encode.h"
 #include "utils.h"
 

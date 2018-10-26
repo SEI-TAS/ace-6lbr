@@ -5,10 +5,12 @@
 #include <fcntl.h>
 #include <string.h>
 
-#include "cn-cbor/cn-cbor.h"
-#include "cwt.h"
 #include "cfs/cfs.h"
 #include "dtls.h"
+
+#include "cn-cbor/cn-cbor.h"
+#include "cwt.h"
+#include "key-token-store.h"
 #include "utils.h"
 
 #ifdef USE_CBOR_CONTEXT
@@ -238,41 +240,4 @@ cwt* parse_cbor_claims_into_cwt_struct(const unsigned char* cbor_bytes, int cbor
   printf("Finished parsing claims into cwt object.\n");
 
   return token_info;
-}
-
-// Stores the given token into the tokens file.
-int store_token(cwt* token) {
-  printf("Storing pop key and token in token file.\n");
-  int bytes_written = 0;
-  int fd_tokens_file = cfs_open(TOKENS_FILE_NAME, CFS_WRITE | CFS_APPEND);
-  if(fd_tokens_file != -1){
-    // First write key id and key.
-    printf("Storing key id and key.\n");
-    unsigned char* padded_id = left_pad_array(token->kid, token->kid_len, KEY_ID_LENGTH, 0);
-    printf("Padded KID: \n");
-    HEX_PRINTF(padded_id, KEY_ID_LENGTH);
-    bytes_written += cfs_write(fd_tokens_file, padded_id, KEY_ID_LENGTH);
-    //free(padded_id);
-    printf("KEY: \n");
-    HEX_PRINTF(token->key, KEY_LENGTH);
-    bytes_written += cfs_write(fd_tokens_file, token->key, KEY_LENGTH);
-
-    // Now write CBOR claims length, and the CBOR claims.
-    printf("Storing CBOR claims length.\n");
-    char length_as_string[CBOR_SIZE_LENGTH + 1] = { 0 };
-    snprintf(length_as_string, CBOR_SIZE_LENGTH + 1, "%0*d", CBOR_SIZE_LENGTH, token->cbor_claims_len);
-    printf("Padded CBOR length: %s\n", length_as_string);
-    bytes_written += cfs_write(fd_tokens_file, length_as_string, strlen(length_as_string));
-    if(token->cbor_claims_len > 0) {
-      printf("Storing CBOR claims.\n");
-      bytes_written += cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_len);
-    }
-
-    cfs_close(fd_tokens_file);
-    printf("Finished storing pop key and token in token file. Wrote %d bytes.\n", bytes_written);
-    return 1;
-  }
-  else {
-    return 0;
-  }
 }
