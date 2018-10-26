@@ -26,7 +26,7 @@ RESOURCE(res_lock, NULL, res_get_handler, NULL, res_put_handler, NULL);
 static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   printf("Getting Lock resource\n");
   printf("Lock is: %d\n", lock_status);
-  return_lock_value();
+  return_lock_value(response);
 }
 
 static void res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
@@ -46,10 +46,10 @@ static void res_put_handler(void *request, void *response, uint8_t *buffer, uint
     printf("Lock is now: %d\n", lock_status);
   }
 
-  return_lock_value();
+  return_lock_value(response);
 }
 
-void return_lock_value() {
+void return_lock_value(void* response) {
   char lock_as_string[2];
   snprintf(lock_as_string, 2, "%d", lock_status);
   unsigned char* encoded_result;
