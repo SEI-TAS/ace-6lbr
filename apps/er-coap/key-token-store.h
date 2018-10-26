@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include "cwt.h"
 
 void initialize_key_token_store();
 int store_token(cwt* token);
