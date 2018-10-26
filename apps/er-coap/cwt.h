@@ -2,6 +2,8 @@
 #ifndef CWT_H
 #define CWT_H
 
+#include <time.h>
+
 #define ISS 1
 #define SUB 2
 #define AUD 3
