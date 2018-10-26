@@ -70,18 +70,18 @@ int can_access_resource(const char* resource, rest_resource_flags_t method, unsi
       pos = 3;
       break;
     default:
-      print("Unknown method!");
+      printf("Unknown method!");
       return 0;
   }
 
-  char* valid_scopes = scope_map[pos];
+  const char* valid_scopes = scope_map[pos];
   if(valid_scopes == 0) {
-    printf("Token scopes (%s) do not give access to this resource (%s) using this method (%s).", claims->sco, resource, method);
+    printf("Token scopes (%s) do not give access to this resource (%s) using this method (%d).", claims->sco, resource, method);
     return 0;
   }
 
   int scope_found = 0;
-  char* scope_list;
+  char* scope_list = 0;
   strncpy(scope_list, valid_scopes, strlen(valid_scopes));
   char* curr_scope = strtok(scope_list, ";");
   while(curr_scope) {
@@ -96,12 +96,12 @@ int can_access_resource(const char* resource, rest_resource_flags_t method, unsi
   }
 
   if(scope_found == 0) {
-    printf("Token scopes (%s) do not give access to this resource (%s) using this method (%s).", claims->sco, resource, method);
+    printf("Token scopes (%s) do not give access to this resource (%s) using this method (%d).", claims->sco, resource, method);
     return 0;
   }
 
   // TODO: free everything in the entry and the cwt when it is no longer needed.
 
-  print("Can access resource!");
+  printf("Can access resource!");
   return 1;
 }
