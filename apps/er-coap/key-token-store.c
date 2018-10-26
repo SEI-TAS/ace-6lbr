@@ -124,16 +124,17 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
         printf("Readed into struct key: ");
         HEX_PRINTF(result->key, KEY_LENGTH)
 
-        int cbor_len = atoi(cbor_len_buffer);
-        printf("Cbor len: %d\n", cbor_len);
+        result->cbor_len = atoi(cbor_len_buffer);
+        printf("Cbor len: %d\n", result->cbor_len);
 
-        if(cbor_len > 0) {
-          result->cbor = (unsigned char *) malloc(cbor_len);
-          bytes_read += cfs_read(fd_read, result->cbor, cbor_len);
+        if(result->cbor_len > 0) {
+          result->cbor = (unsigned char *) malloc(result->cbor_len);
+          bytes_read += cfs_read(fd_read, result->cbor, result->cbor_len);
           printf("Readed cbor into struct: \n");
-          HEX_PRINTF(result->cbor, cbor_len)
+          HEX_PRINTF(result->cbor, result->cbor_len)
         }
         else {
+          result->cbor = 0;
           printf("Record has no CBOR info associated to it.\n");
         }
     }

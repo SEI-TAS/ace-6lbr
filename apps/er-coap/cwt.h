@@ -38,6 +38,7 @@ typedef struct token_entry {
   unsigned char* kid;
   unsigned char* key;
   unsigned char* cbor;
+  int cbor_len;
 } token_entry;
 
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);

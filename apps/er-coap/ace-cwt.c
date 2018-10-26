@@ -287,6 +287,6 @@ int validate_claims(const cwt* token, char** error) {
     return 0;
   }
 
-  printf("All claims are valid.");
+  printf("All claims are valid.\n");
   return 1;
 }
