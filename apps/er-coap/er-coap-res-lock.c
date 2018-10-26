@@ -10,8 +10,9 @@
 #include <string.h>
 #include "rest-engine.h"
 #include "cfs/cfs.h"
+
 #include "cbor-encode.h"
-#include "cwt.h"
+#include "utils.h"
 
 static int lock_status = 0;
 
@@ -40,6 +41,7 @@ static void res_put_handler(void *request, void *response, uint8_t *buffer, uint
   printf("Payload: ");
   HEX_PRINTF(lock_info, payload_len)
   if(payload_len > 0) {
+    // Payload is 0 or 1 but comes as text. First byte is text header, second is digit as ASCII. -'0' turns to int.
     int new_lock_value = lock_info[1] - '0';
     printf("Received lock value: %d\n", new_lock_value);
     lock_status = new_lock_value;

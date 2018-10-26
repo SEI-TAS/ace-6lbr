@@ -10,7 +10,8 @@
 #include <string.h>
 #include "rest-engine.h"
 #include "cfs/cfs.h"
-#include "./cwt.h"
+#include "cwt.h"
+#include "utils.h"
 
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 

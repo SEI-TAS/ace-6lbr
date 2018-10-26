@@ -10,8 +10,10 @@
 #include <string.h>
 #include "rest-engine.h"
 #include "cfs/cfs.h"
-#include "./cwt.h"
-#include "./cbor-encode.h"
+
+#include "cwt.h"
+#include "cbor-encode.h"
+#include "utils.h"
 
 #define RS_ID "RS2"
 #define SCOPES "HelloWorld;rw_Lock;r_Lock"

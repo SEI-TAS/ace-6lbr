@@ -3,8 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "cfs/cfs.h"
-#include "./cwt.h"
 
+#include "cwt.h"
+#include "utils.h"
 
 int find_token_entry(const unsigned char* const index, size_t idx_len, token_entry *result){
   int key_found = 0;

@@ -3,8 +3,8 @@
 #include "er-coap.h"
 #include "er-coap-engine.h"
 #include "er-coap-dtls.h"
-#include "cwt.h"
 
+#include "utils.h"
 #include "dtls.h"
 
 extern int lookup_dtls_key(const unsigned char * const id, size_t id_len,

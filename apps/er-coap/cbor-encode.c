@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "cwt.h"
+#include "utils.h"
 #include "cbor-encode.h"
 
 int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned char** cbor_result);

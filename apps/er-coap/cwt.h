@@ -40,17 +40,8 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
 cwt* parse_cbor_claims_into_cwt_struct(const unsigned char* cbor_bytes, int cbor_bytes_len);
 int store_token(cwt* token);
 int find_token_entry(const unsigned char* const index, size_t idx_len, token_entry *result);
-unsigned char* left_pad_array(const unsigned char* const byte_array, int array_length, int final_length, char padding);
 
 #define KEY_ID_LENGTH 16
 #define KEY_LENGTH 16
 #define CBOR_SIZE_LENGTH 4
 #define TOKENS_FILE_NAME "tokens"
-
-#define HEX_PRINTF(byte_array, length) {                        \
-        printf("Bytes: ");                                      \
-        int i;                                                  \
-        for (i=0; i < length; i++)                              \
-          printf("%02x ", (unsigned int) (byte_array[i]));     \
-        printf("\n");                                           \
-     }
