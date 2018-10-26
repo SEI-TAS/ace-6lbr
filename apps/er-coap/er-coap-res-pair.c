@@ -16,8 +16,7 @@
 #include "cbor-encode.h"
 #include "utils.h"
 
-#define RS_ID "RS2"
-#define SCOPES "HelloWorld;rw_Lock;r_Lock"
+#include "resources.h"
 
 #define CBOR_DEVICE_ID_KEY 3
 #define CBOR_DEVICE_INFO_KEY 4
@@ -38,7 +37,7 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
 
     // We are reusing code to get token claims for pairing info. Pairing info will only
     // contain a kid and a key, as it comes in the CNF claim of a regular CWT token.
-    cwt* key_info = parse_cbor_claims_into_cwt_struct(pairing_info, len);
+    cwt* key_info = parse_cbor_claims(pairing_info, len);
 
     if(key_info != 0){
       printf("Obtained pairing AS id and key\n");

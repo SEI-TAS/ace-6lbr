@@ -15,7 +15,7 @@
 typedef struct cwt {
   char* iss;
   char* sub;
-  char* aud;
+  char* aud;    // Only string auds supported; no support for array of auds.
   time_t exp;
   time_t nbf;
   time_t iat;
@@ -41,7 +41,8 @@ typedef struct token_entry {
 } token_entry;
 
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
-cwt* parse_cbor_claims_into_cwt_struct(const unsigned char* cbor_bytes, int cbor_bytes_len);
+cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len);
+int validate_claims(const* cwt token, char** error);
 
 #define KEY_ID_LENGTH 16
 #define KEY_LENGTH 16

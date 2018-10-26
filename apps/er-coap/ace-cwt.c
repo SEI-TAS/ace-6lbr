@@ -1,9 +1,7 @@
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <string.h>
+#include <time.h>
 
 #include "cfs/cfs.h"
 #include "dtls.h"
@@ -12,6 +10,7 @@
 #include "cwt.h"
 #include "key-token-store.h"
 #include "utils.h"
+#include "resources.h"
 
 #ifdef USE_CBOR_CONTEXT
 #define CBOR_CONTEXT_PARAM , NULL
@@ -215,7 +214,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   printf("Decrypted CBOR length: %d\n", decrypted_cbor_len);
 
   // Parse bytes into a cwt object.
-  cwt* token_info = parse_cbor_claims_into_cwt_struct(decrypted_cbor, decrypted_cbor_len);
+  cwt* token_info = parse_cbor_claims(decrypted_cbor, decrypted_cbor_len);
 
   // Add original CBOR bytes so we can serialize it faster if needed.
   token_info->cbor_claims = decrypted_cbor;
@@ -224,7 +223,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 }
 
 // Gets CBOR bytes with claims and loads into into cwt struct.
-cwt* parse_cbor_claims_into_cwt_struct(const unsigned char* cbor_bytes, int cbor_bytes_len) {
+cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len) {
   printf("Decoding claims from CBOR bytes into CBOR object.\n");
   cn_cbor* cbor_claims = cn_cbor_decode(cbor_bytes, cbor_bytes_len CBOR_CONTEXT_PARAM, 0);
   if (!cbor_claims) {
@@ -234,10 +233,64 @@ cwt* parse_cbor_claims_into_cwt_struct(const unsigned char* cbor_bytes, int cbor
 
   printf("Parsing claims into cwt object.\n");
   cwt* token_info = (cwt*) malloc(sizeof(cwt));
+  token_info->sco = 0;
+  token_info->aud = 0;
+  token_info->exp = 0;
   long curr_claim = 0;
   parse_claims(&curr_claim, token_info, cbor_claims);
   token_info->cbor_claims_len = 0;
   printf("Finished parsing claims into cwt object.\n");
 
   return token_info;
+}
+
+#define INVALID_AUDIENCE_ERROR "Invalid audience: %s"
+#define TOKEN_EXPIRED_ERROR "Token has expired"
+#define NO_SCOPE_ERROR "Token has no scope"
+#define UNKNOWN_SCOPE_ERROR "Unknown scope: %s"
+
+int validate_claims(const* cwt token, char** error) {
+  printf("Validating tokens.\n");
+  // 1. Check if the token has expired.
+  if(time(NULL) > token->exp) {
+    int error_len = strlen(TOKEN_EXPIRED_ERROR) + 1;
+    *error = (char*) malloc(strlen(error_len));
+    snprintf(error, error_len, TOKEN_EXPIRED_ERROR);
+    printf(error);
+    printf("\n");
+    return 0;
+  }
+
+  // 2. Check if we are the audience.
+  if(strncmp(RS_ID, token->aud, strlen(RS_ID)) != 0) {
+    int error_len = strlen(INVALID_AUDIENCE_ERROR) - 2 + strlen(token->aud) + 1;
+    *error = (char*) malloc(strlen(error_len));
+    snprintf(error, error_len, INVALID_AUDIENCE_ERROR, token->aud);
+    printf(error);
+    printf("\n");
+    return 0;
+  }
+
+  // 3. Check if the token has a scope.
+  if(strlen(token->sco) == 0) {
+    int error_len = strlen(NO_SCOPE_ERROR) + 1;
+    *error = (char*) malloc(strlen(error_len));
+    snprintf(error, error_len, NO_SCOPE_ERROR);
+    printf(error);
+    printf("\n");
+    return 0;
+  }
+
+  // 4. Check if the token has a known scope.
+  if(strstr(SCOPES, token->sco) == 0) {
+    int error_len = strlen(UNKNOWN_SCOPE_ERROR) - 2 + strlen(token->sco) + 1;
+    *error = (char*) malloc(strlen(error_len));
+    snprintf(error, error_len, UNKNOWN_SCOPE_ERROR, token->sco);
+    printf(error);
+    printf("\n");
+    return 0;
+  }
+
+  printf("All claims are valid.");
+  return 1;
 }
