@@ -1,4 +1,5 @@
-mkdir -p $(OBJECTDIR)/cn-cbor
+$(OBJECTDIR):
+    mkdir -p $(OBJECTDIR)/cn-cbor
 
 er-coap_src = er-coap.c er-coap-engine.c er-coap-transactions.c      \
   er-coap-observe.c er-coap-separate.c er-coap-res-well-known-core.c \
