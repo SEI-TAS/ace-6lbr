@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "rest-constants.h"
+
 #include "resources.h"
 #include "cwt.h"
 #include "utils.h"
@@ -13,7 +15,7 @@
 static const char* res_hw_scopes[] = {"HelloWorld", 0, 0, 0};
 static const char* res_lock_scopes[] = {"r_Lock;rw_Lock", 0, "rw_Lock", 0};
 
-int can_access_resource(const char* resource, const char* method, unsigned char* key_id, int key_id_len) {
+int can_access_resource(const char* resource, rest_resource_flags_t method, unsigned char* key_id, int key_id_len) {
   unsigned char* padded_id = left_pad_array(key_id, key_id_len, KEY_ID_LENGTH, 0);
 
   token_entry entry;
@@ -22,12 +24,12 @@ int can_access_resource(const char* resource, const char* method, unsigned char*
     return 0;
   }
 
-  if(entry->cbor_len == 0) {
+  if(entry.cbor_len == 0) {
     printf("Entry has no token!");
     return 0;
   }
 
-  cwt* claims = parse_cbor_claims(entry->cbor, entry->cbor_len);
+  cwt* claims = parse_cbor_claims(entry.cbor, entry.cbor_len);
   if(claims == 0) {
     printf("Could not parse claims.");
     return 0;
@@ -55,16 +57,16 @@ int can_access_resource(const char* resource, const char* method, unsigned char*
 
   int pos = -1;
   switch(method){
-    case "GET":
+    case METHOD_GET:
       pos = 0;
       break;
-    case "POST":
+    case METHOD_POST:
       pos = 1;
       break;
-    case "PUT":
+    case METHOD_PUT:
       pos = 2;
       break;
-    case "DELETE":
+    case METHOD_DELETE:
       pos = 3;
       break;
     default:
