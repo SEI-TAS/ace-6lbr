@@ -42,7 +42,7 @@ void find_dtls_context_key_id(context_t* ctx) {
       printf("Checking peer info: Peer role: %d\n", ctx->peers->role);
       dtls_handshake_parameters_t* params = ctx->peers->handshake_params;
       if(params == 0) {
-        printf("No handshake params found!\n");
+        printf("No handshake params found! Trying next peer.\n");
         curr_peer = curr_peer->next;
         continue;
       }
