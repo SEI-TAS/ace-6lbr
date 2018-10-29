@@ -208,7 +208,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   printf("%d bytes COSE decrypted\n", decrypted_cbor_len);
 
   printf("Freeing temporary allocated memory for decryption.\n");
-  free_token_entry(pairing_key_info);
+  free_token_entry(&pairing_key_info);
   free(key_id);
   free(padded_key_id);
   free(nonce);
