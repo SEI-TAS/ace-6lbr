@@ -1,4 +1,9 @@
 
+#ifndef RESOURCES_H
+#define RESOURCES_H
+
+#include "rest-constants.h"
+
 #define RS_ID "RS2"
 
 // TODO: fix this, this is NOT extensible to add more resources.
@@ -6,3 +11,5 @@
 
 void find_dtls_context_key_id();
 int can_access_resource(const char* resource, rest_resource_flags_t method, unsigned char* key_id, int key_id_len);
+
+#endif // RESOURCES_H
