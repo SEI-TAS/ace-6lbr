@@ -33,7 +33,7 @@ void find_dtls_context_key_id(context_t* ctx) {
     // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
 
     if(ctx->peers) {
-      printf("YAHOOO: Peer role: %d\n", dtls_ctx->peers->role);
+      printf("YAHOOO: Peer role: %d\n", ctx->peers->role);
     }
 }
 
