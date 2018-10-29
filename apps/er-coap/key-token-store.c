@@ -148,3 +148,16 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
   }
   return key_found;
 }
+
+// Frees a generated token entry.
+void free_token_entry(token_entry* entry) {
+  if(entry->kid) {
+    free(entry->kid;
+  }
+  if(entry->key) {
+    free(entry->kid;
+  }
+  if(entry->cbor_len > 0) {
+    free(entry->cbor;
+  }
+}

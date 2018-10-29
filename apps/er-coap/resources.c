@@ -26,19 +26,25 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   token_entry entry;
   if(find_token_entry(padded_id, KEY_ID_LENGTH, &entry) == 0) {
     printf("Entry not found!\n");
+    free_token_entry(entry);
+    free(padded_id);
     return 0;
   }
+  free(padded_id);
 
   if(entry.cbor_len == 0) {
     printf("Entry has no token!\n");
+    free_token_entry(entry);
     return 0;
   }
 
   cwt* claims = parse_cbor_claims(entry.cbor, entry.cbor_len);
   if(claims == 0) {
     printf("Could not parse claims.\n");
+    free_token_entry(entry);
     return 0;
   }
+  free_token_entry(entry);
 
   char* error;
   if(validate_claims(claims, &error) == 0) {
@@ -85,13 +91,13 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   printf("Getting scope for method in pos %d.\n", pos);
   const char* valid_scopes = scope_map[pos];
   if(valid_scopes == 0) {
-    printf("For resource (%*s), token scopes (%s) do not give access using this method (%d) - no scopes found.\n", res_length, resource, claims->sco, method);
+    printf("For resource (%.*s), token scopes (%s) do not give access using this method (%d) - no scopes found.\n", res_length, resource, claims->sco, method);
     return 0;
   }
 
   printf("Looking for scopes in list: %s\n", valid_scopes);
   int scope_found = 0;
-  char* scope_list = (char*) malloc(strlen(valid_scopes));
+  char* scope_list = (char*) malloc(strlen(valid_scopes + 1));
   strncpy(scope_list, valid_scopes, strlen(valid_scopes));
   char* curr_scope = strtok(scope_list, ";");
   while(curr_scope) {
@@ -108,12 +114,12 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   free(scope_list);
 
   if(scope_found == 0) {
-    printf("For resource (%*s), token scopes (%s) do not give access using this method (%d).\n", res_length, resource, claims->sco, method);
+    printf("For resource (%.*s), token scopes (%s) do not give access using this method (%d).\n", res_length, resource, claims->sco, method);
     return 0;
   }
 
-  // TODO: free everything in the entry and the cwt when it is no longer needed.
+  // TODO: free everything in the cwt when it is no longer needed.
 
-  printf("Can access resource!\n");
+  printf("Can access resource according to check.\n");
   return 1;
 }

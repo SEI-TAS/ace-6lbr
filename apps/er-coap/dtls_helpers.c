@@ -27,6 +27,7 @@ int lookup_dtls_key(const unsigned char * const id, size_t id_len,
     }
     else {
       memcpy(result, tok.key, KEY_LENGTH);
+      free_token_entry(&tok);
       key_length = KEY_LENGTH;
 
       if(current_key_id) {

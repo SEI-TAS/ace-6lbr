@@ -206,8 +206,13 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   int decrypted_cbor_len = dtls_decrypt(encrypted_cbor, encrypted_cbor_length,
                                         decrypted_cbor, nonce, pairing_key_info.key, KEY_LENGTH, A_DATA, A_DATA_LEN);
   printf("%d bytes COSE decrypted\n", decrypted_cbor_len);
-  //free(encrypted_cbor);
-  //free(nonce);
+
+  printf("Freeing temporary allocated memory for decryption.\n");
+  free_token_entry(pairing_key_info);
+  free(key_id);
+  free(padded_key_id);
+  free(nonce);
+  free(encrypted_cbor);
 
   printf("Decrypted CBOR:");
   HEX_PRINTF(decrypted_cbor, decrypted_cbor_len)
