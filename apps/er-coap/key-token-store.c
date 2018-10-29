@@ -155,7 +155,7 @@ void free_token_entry(token_entry* entry) {
     free(entry->kid);
   }
   if(entry->key) {
-    free(entry->kid);
+    free(entry->key);
   }
   if(entry->cbor_len > 0) {
     free(entry->cbor);
