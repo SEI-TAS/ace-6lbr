@@ -141,7 +141,7 @@ coap_receive(context_t * ctx)
             // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
             // Current URL and method can be obtained from coap_get_header_uri_path() and coap_get_rest_method()
             #ifdef WITH_DTLS_COAP
-              find_dtls_key_id(ctx);
+              find_dtls_context_key_id(ctx);
             #endif
 
             /* call REST framework and check if found and allowed */
