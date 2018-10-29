@@ -50,7 +50,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   // TODO: fix extensibility here too.
   // Now validate that the scope makes sense for the current resource.
   printf("Finding scopes for resource.\n");
-  const char** scope_map;
+  const char* scope_map[];
   if(memcmp(resource, "ace/helloWorld", res_length)) {
     scope_map = res_hw_scopes;
   }
@@ -89,6 +89,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     return 0;
   }
 
+  printf("Looking for scopes in list: %s\n", valid_scopes);
   int scope_found = 0;
   char* scope_list = 0;
   strncpy(scope_list, valid_scopes, strlen(valid_scopes));
