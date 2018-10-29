@@ -26,7 +26,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   token_entry entry = {0};
   if(find_token_entry(padded_id, KEY_ID_LENGTH, &entry) == 0) {
     printf("Entry not found!\n");
-    free_token_entry(entry);
+    free_token_entry(&entry);
     free(padded_id);
     return 0;
   }
@@ -34,17 +34,17 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   if(entry.cbor_len == 0) {
     printf("Entry has no token!\n");
-    free_token_entry(entry);
+    free_token_entry(&entry);
     return 0;
   }
 
   cwt* claims = parse_cbor_claims(entry.cbor, entry.cbor_len);
   if(claims == 0) {
     printf("Could not parse claims.\n");
-    free_token_entry(entry);
+    free_token_entry(&entry);
     return 0;
   }
-  free_token_entry(entry);
+  free_token_entry(&entry);
 
   char* error;
   if(validate_claims(claims, &error) == 0) {
