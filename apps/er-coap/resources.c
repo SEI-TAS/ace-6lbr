@@ -21,6 +21,11 @@ static const char* res_lock_scopes[] = {"r_Lock;rw_Lock", 0, "rw_Lock", 0};
 int can_access_resource(const char* resource, int res_length, rest_resource_flags_t method, unsigned char* key_id, int key_id_len) {
   printf("Checking access to resource (%.*s), method (%d).\n", res_length, resource, method);
 
+  if(memcmp(resource, "pair", res_length) == 0) {
+    printf("Pairing resource is always accessible.\n");
+    return 1;
+  }
+
   unsigned char* padded_id = left_pad_array(key_id, key_id_len, KEY_ID_LENGTH, 0);
 
   token_entry entry = {0};

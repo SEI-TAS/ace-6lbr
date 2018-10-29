@@ -256,8 +256,11 @@ cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len) {
 
 int validate_claims(const cwt* token, char** error) {
   printf("Validating tokens.\n");
+
   // 1. Check if the token has expired.
-  if(time(NULL) > token->exp) {
+  time_t curr_time = time(NULL);
+  printf("Checking if current time %ld is greater than expiration time %ld\n", curr_time, token->exp);
+  if(curr_time > token->exp) {
     int error_len = strlen(TOKEN_EXPIRED_ERROR) + 1;
     *error = (char*) malloc(error_len);
     snprintf(*error, error_len, TOKEN_EXPIRED_ERROR);

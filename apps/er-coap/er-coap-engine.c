@@ -152,7 +152,7 @@ coap_receive(context_t * ctx)
               unsigned char* key_id = 0;
               int key_id_len = find_dtls_context_key_id(ctx, &key_id);
               if(key_id_len == 0) {
-                printf("Can't find token claims!.\n");
+                printf("Can't find DTLS handshake key id!.\n");
                 erbium_status_code = UNAUTHORIZED_4_01;
                 coap_error_message = "NoTokenFound";
               }
