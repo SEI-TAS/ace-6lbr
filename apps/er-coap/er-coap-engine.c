@@ -42,6 +42,8 @@
 #include <string.h>
 #include "er-coap-engine.h"
 
+#include "resources.h"
+
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -139,10 +141,7 @@ coap_receive(context_t * ctx)
             // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
             // Current URL and method can be obtained from coap_get_header_uri_path() and coap_get_rest_method()
             #ifdef WITH_DTLS_COAP
-              struct dtls_context_t* dtls_ctx = (struct dtls_context_t*) ctx;
-              if(dtls_ctx->peer) {
-                printf("YAHOOO: Peer role: %d\n", dtls_ctx->peer.role);
-              }
+              find_dtls_key_id(context_t* ctx);
             #endif
 
             /* call REST framework and check if found and allowed */
