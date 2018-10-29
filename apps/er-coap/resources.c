@@ -24,7 +24,7 @@ void find_dtls_context_key_id(context_t* ctx) {
     #ifdef WITH_DTLS_COAP
       struct dtls_context_t* dtls_ctx = (struct dtls_context_t*) ctx;
       if(dtls_ctx->peers) {
-        printf("YAHOOO: Peer role: %d\n", dtls_ctx->peers.role);
+        printf("YAHOOO: Peer role: %d\n", dtls_ctx->peers->role);
       }
     #endif
 }
