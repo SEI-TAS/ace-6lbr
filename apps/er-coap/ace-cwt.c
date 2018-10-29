@@ -258,9 +258,9 @@ int validate_claims(const cwt* token, char** error) {
   printf("Validating tokens.\n");
 
   // 1. Check if the token has expired.
-  time_t curr_time = time(NULL);
-  printf("Checking if current time %ld is greater than expiration time %ld\n", curr_time, token->exp);
-  if(curr_time > token->exp) {
+  time_t curr_time_ms = time(NULL) * 1000;
+  printf("Checking if current time %ld is greater than expiration time %ld\n", curr_time_ms, token->exp);
+  if(curr_time_ms > token->exp) {
     int error_len = strlen(TOKEN_EXPIRED_ERROR) + 1;
     *error = (char*) malloc(error_len);
     snprintf(*error, error_len, TOKEN_EXPIRED_ERROR);
