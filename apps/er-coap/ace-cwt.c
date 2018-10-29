@@ -181,7 +181,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   printf("Key id is %s.\n", key_id);
 
   printf("Looking for stored key associated with kid.\n");
-  token_entry pairing_key_info;
+  token_entry pairing_key_info = {0};
   unsigned char* padded_key_id = left_pad_array((unsigned char*) key_id, key_id_size, KEY_ID_LENGTH, 0);
   if(find_token_entry(padded_key_id, KEY_ID_LENGTH, &pairing_key_info) == 0) {
     printf("Could not find key to decrypt COSE wrapper of CWT; aborting parsing token.\n");

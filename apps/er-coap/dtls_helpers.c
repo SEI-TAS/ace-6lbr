@@ -18,7 +18,7 @@ static int current_key_id_length;
 int lookup_dtls_key(const unsigned char * const id, size_t id_len,
          unsigned char * const result, size_t result_length){
 
-  token_entry tok;
+  token_entry tok = {0};
   int key_length = 0;
   if (find_token_entry(id, id_len, &tok) > 0){
     printf("Key found!\n");
