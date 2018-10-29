@@ -159,7 +159,7 @@ coap_receive(context_t * ctx)
               else {
                 const char* resource = 0;
                 int res_length = coap_get_header_uri_path((void*) message, &resource);
-                printf("Got resource (%s) with length: %d", resource, res_length);
+                printf("Got resource (%.*s) with length: %d", res_length, resource, res_length);
                 rest_resource_flags_t method = coap_get_rest_method((void*) message);
 
                 int can_access = can_access_resource(resource, res_length, method, key_id, key_id_len);

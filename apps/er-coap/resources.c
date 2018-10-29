@@ -19,7 +19,7 @@ static const char* res_lock_scopes[] = {"r_Lock;rw_Lock", 0, "rw_Lock", 0};
 
 // Checks if the token associated with the given key has access to the resource in the method being used.
 int can_access_resource(const char* resource, int res_length, rest_resource_flags_t method, unsigned char* key_id, int key_id_len) {
-  printf("Checking access to resource (%*s), method (%d).\n", res_length, resource, method);
+  printf("Checking access to resource (%.*s), method (%d).\n", res_length, resource, method);
 
   unsigned char* padded_id = left_pad_array(key_id, key_id_len, KEY_ID_LENGTH, 0);
 
@@ -49,6 +49,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   // TODO: fix extensibility here too.
   // Now validate that the scope makes sense for the current resource.
+  printf("Finding scopes for resource.\n");
   const char** scope_map;
   if(memcmp(resource, "ace/helloWorld", res_length)) {
     scope_map = res_hw_scopes;
@@ -57,10 +58,11 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     scope_map = res_lock_scopes;
   }
   else {
-    printf("Unknown resource!");
+    printf("Unknown resource!\n");
     return 0;
   }
 
+  printf("Resource found, checking method.\n");
   int pos = -1;
   switch(method){
     case METHOD_GET:
@@ -80,6 +82,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
       return 0;
   }
 
+  printf("Getting scope for method in pos %d.\n", pos);
   const char* valid_scopes = scope_map[pos];
   if(valid_scopes == 0) {
     printf("For resource (%*s), token scopes (%s) do not give access using this method (%d) - no scopes found.\n", res_length, resource, claims->sco, method);
