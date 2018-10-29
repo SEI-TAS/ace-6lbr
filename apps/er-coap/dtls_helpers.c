@@ -7,6 +7,7 @@
 #include "cwt.h"
 #include "dtls_helpers.h"
 #include "key-token-store.h"
+#include "utils.h"
 
 int lookup_dtls_key(const unsigned char * const id, size_t id_len,
          unsigned char * const result, size_t result_length){
@@ -32,10 +33,12 @@ int lookup_dtls_key(const unsigned char * const id, size_t id_len,
 
 //
 void find_dtls_context_key_id(context_t* ctx) {
-    // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
+    // Identity is in ctx->peers[0?]->handshake_parameters->keyx.psk.identity
 
     if(ctx->peers) {
-      printf("YAHOOO: Peer role: %d\n", ctx->peers->role);
+      printf("Checking peer info: Peer role: %d\n", ctx->peers->role);
+      printf("Identity: ");
+      HEX_PRINTF(ctx->peers->handshake_params->keyx.psk.identity, ctx->peers->handshake_params->keyx.psk.id_length);
     }
 }
 
