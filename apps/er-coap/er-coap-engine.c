@@ -46,6 +46,8 @@
 #include "dtls_helpers.h"
 #endif
 
+#include "resources.h"
+
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -139,15 +141,26 @@ coap_receive(context_t * ctx)
           /* invoke resource handler */
           if(service_cbk) {
 
-            // TODO: Call function to verify if client can access resource.
+            erbium_status_code == NO_ERROR;
+            // Call function to verify if client can access resource.
             // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
             // Current URL and method can be obtained from coap_get_header_uri_path() and coap_get_rest_method()
             #if WITH_DTLS_COAP
-              find_dtls_context_key_id(ctx);
+              unsigned char* key_id = 0;
+              int key_id_len = find_dtls_context_key_id(ctx, &key_id);
+              const char* resource = 0;
+              int res_length = coap_get_header_uri_path(message, &resource);
+              rest_resource_flags_t method = coap_get_rest_method(message);
+
+              int can_access = can_access_resource(resource, res_length, rest_resource_flags_t method, key_id, key_id_len);
+              if(!can_access) {
+                erbium_status_code = UNAUTHORIZED_4_01;
+                coap_error_message = "NoTokenScopeRes";
+              }
             #endif
 
             /* call REST framework and check if found and allowed */
-            if(service_cbk
+            if(erbium_status_code == NO_ERROR && service_cbk
                  (message, response, transaction->packet + COAP_MAX_HEADER_SIZE,
                  block_size, &new_offset)) {
 

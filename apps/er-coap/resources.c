@@ -18,7 +18,7 @@ static const char* res_hw_scopes[] = {"HelloWorld", 0, 0, 0};
 static const char* res_lock_scopes[] = {"r_Lock;rw_Lock", 0, "rw_Lock", 0};
 
 // Checks if the token associated with the given key has access to the resource in the method being used.
-int can_access_resource(const char* resource, rest_resource_flags_t method, unsigned char* key_id, int key_id_len) {
+int can_access_resource(const char* resource, int res_length, rest_resource_flags_t method, unsigned char* key_id, int key_id_len) {
   unsigned char* padded_id = left_pad_array(key_id, key_id_len, KEY_ID_LENGTH, 0);
 
   token_entry entry;
@@ -45,12 +45,13 @@ int can_access_resource(const char* resource, rest_resource_flags_t method, unsi
     return 0;
   }
 
+  // TODO: fix extensibility here too.
   // Now validate that the scope makes sense for the current resource.
   const char** scope_map;
-  if(strcmp(resource, "ace/helloWorld")) {
+  if(memcmp(resource, "ace/helloWorld", res_length)) {
     scope_map = res_hw_scopes;
   }
-  else if(strcmp(resource, "ace/lock")) {
+  else if(memcmp(resource, "ace/lock", res_length)) {
     scope_map = res_lock_scopes;
   }
   else {
@@ -79,7 +80,7 @@ int can_access_resource(const char* resource, rest_resource_flags_t method, unsi
 
   const char* valid_scopes = scope_map[pos];
   if(valid_scopes == 0) {
-    printf("Token scopes (%s) do not give access to this resource (%s) using this method (%d).", claims->sco, resource, method);
+    printf("For resource (%*s), token scopes (%s) do not give access using this method (%d) - no scopes found.", res_length, resource, claims->sco, method);
     return 0;
   }
 
@@ -99,7 +100,7 @@ int can_access_resource(const char* resource, rest_resource_flags_t method, unsi
   }
 
   if(scope_found == 0) {
-    printf("Token scopes (%s) do not give access to this resource (%s) using this method (%d).", claims->sco, resource, method);
+    printf("For resource (%*s), token scopes (%s) do not give access using this method (%d).", res_length, resource, claims->sco, method);
     return 0;
   }
 
