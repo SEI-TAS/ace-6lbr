@@ -44,7 +44,7 @@ void find_dtls_context_key_id(context_t* ctx) {
         return;
       }
       printf("Identity length: %d\n", params->keyx.psk.id_length);
-      if(params->keyx.psk_id_length > 0) {
+      if(params->keyx.psk.id_length > 0) {
         printf("Identity: \n");
         HEX_PRINTF(ctx->peers->handshake_params->keyx.psk.identity, ctx->peers->handshake_params->keyx.psk.id_length);
       }
