@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "dtls.h"
+
 #include "cwt.h"
 #include "dtls_helpers.h"
 #include "key-token-store.h"
