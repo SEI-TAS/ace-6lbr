@@ -42,7 +42,7 @@
 #include <string.h>
 #include "er-coap-engine.h"
 
-#ifdef WITH_DTLS_COAP
+#if WITH_DTLS_COAP
 #include "dtls_helpers.h"
 #endif
 
@@ -142,7 +142,7 @@ coap_receive(context_t * ctx)
             // TODO: Call function to verify if client can access resource.
             // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
             // Current URL and method can be obtained from coap_get_header_uri_path() and coap_get_rest_method()
-            #ifdef WITH_DTLS_COAP
+            #if WITH_DTLS_COAP
               find_dtls_context_key_id(ctx);
             #endif
 
