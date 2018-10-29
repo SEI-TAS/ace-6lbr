@@ -47,8 +47,8 @@ int lookup_dtls_key(const unsigned char * const id, size_t id_len,
 // Gets the identity of the current connection. Tries context, gets last global variable otherwise.
 int find_dtls_context_key_id(context_t* ctx, unsigned char** identity) {
     // Identity is in ctx->peers[0?]->handshake_parameters->keyx.psk.identity
-    identity = 0;
-    id_length = 0;
+    (*identity) = 0;
+    int id_length = 0;
     dtls_peer_t* curr_peer = ctx->peers;
     while(curr_peer) {
       printf("Checking peer info: Peer role: %d; connection state: %d\n", ctx->peers->role, ctx->peers->state);
@@ -62,7 +62,7 @@ int find_dtls_context_key_id(context_t* ctx, unsigned char** identity) {
       if(params->keyx.psk.id_length > 0) {
         printf("Identity: \n");
         HEX_PRINTF(params->keyx.psk.identity, params->keyx.psk.id_length);
-        identity = params->keyx.psk.identity;
+        (*identity) = params->keyx.psk.identity;
         id_length = params->keyx.psk.id_length;
       }
 
@@ -73,12 +73,9 @@ int find_dtls_context_key_id(context_t* ctx, unsigned char** identity) {
       printf("Context info not found. Using global variable.\n");
       printf("Last stored key id: ");
       HEX_PRINTF(current_key_id, current_key_id_length);
-      identity = current_key_id;
+      (*identity) = current_key_id;
       id_length = current_key_id_length;
     }
 
     return id_length;
 }
-
-
-
