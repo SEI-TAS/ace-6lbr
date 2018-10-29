@@ -17,18 +17,6 @@
 static const char* res_hw_scopes[] = {"HelloWorld", 0, 0, 0};
 static const char* res_lock_scopes[] = {"r_Lock;rw_Lock", 0, "rw_Lock", 0};
 
-//
-void find_dtls_context_key_id(context_t* ctx) {
-    // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
-
-    #ifdef WITH_DTLS_COAP
-      struct dtls_context_t* dtls_ctx = (struct dtls_context_t*) ctx;
-      if(dtls_ctx->peers) {
-        printf("YAHOOO: Peer role: %d\n", dtls_ctx->peers->role);
-      }
-    #endif
-}
-
 // Checks if the token associated with the given key has access to the resource in the method being used.
 int can_access_resource(const char* resource, rest_resource_flags_t method, unsigned char* key_id, int key_id_len) {
   unsigned char* padded_id = left_pad_array(key_id, key_id_len, KEY_ID_LENGTH, 0);

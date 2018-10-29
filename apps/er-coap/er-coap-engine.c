@@ -42,7 +42,9 @@
 #include <string.h>
 #include "er-coap-engine.h"
 
-#include "resources.h"
+#ifdef WITH_DTLS_COAP
+#include "dtls_helpers.h"
+#endif
 
 #define DEBUG 0
 #if DEBUG

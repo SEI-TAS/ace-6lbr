@@ -1,11 +1,9 @@
-#include "contiki.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "cfs/cfs.h"
 
 #include "cwt.h"
-#include "key-token-store.h"
+#include "dtls_helpers.h"
 
 int lookup_dtls_key(const unsigned char * const id, size_t id_len,
          unsigned char * const result, size_t result_length){
@@ -28,5 +26,16 @@ int lookup_dtls_key(const unsigned char * const id, size_t id_len,
 
   return key_length;
 }
+
+//
+void find_dtls_context_key_id(context_t* ctx) {
+    // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
+
+    struct dtls_context_t* dtls_ctx = (struct dtls_context_t*) ctx;
+    if(dtls_ctx->peers) {
+      printf("YAHOOO: Peer role: %d\n", dtls_ctx->peers->role);
+    }
+}
+
 
 
