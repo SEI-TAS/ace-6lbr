@@ -49,12 +49,12 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   // TODO: fix extensibility here too.
   // Now validate that the scope makes sense for the current resource.
-  printf("Finding scopes for resource.\n");
+  printf("Finding scopes for resource. Scopes in token: %s\n", claims->sco);
   const char** scope_map;
-  if(memcmp(resource, "ace/helloWorld", res_length)) {
+  if(memcmp(resource, "ace/helloWorld", res_length) == 0) {
     scope_map = res_hw_scopes;
   }
-  else if(memcmp(resource, "ace/lock", res_length)) {
+  else if(memcmp(resource, "ace/lock", res_length) == 0) {
     scope_map = res_lock_scopes;
   }
   else {
@@ -96,6 +96,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   char* curr_scope = strtok(scope_list, ";");
   while(curr_scope) {
     // Check if this valid scope is the list of scopes in the token.
+    printf("Checking next scope: %s\n", curr_scope);
     if(strstr(claims->sco, curr_scope) != 0) {
       scope_found = 1;
       break;
