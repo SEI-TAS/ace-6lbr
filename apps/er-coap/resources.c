@@ -91,7 +91,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   printf("Looking for scopes in list: %s\n", valid_scopes);
   int scope_found = 0;
-  char* scope_list = 0;
+  char* scope_list = (char*) malloc(strlen(valid_scopes));
   strncpy(scope_list, valid_scopes, strlen(valid_scopes));
   char* curr_scope = strtok(scope_list, ";");
   while(curr_scope) {
@@ -105,6 +105,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     // Move to next scope.
     curr_scope = strtok(NULL, ";");
   }
+  free(scope_list);
 
   if(scope_found == 0) {
     printf("For resource (%*s), token scopes (%s) do not give access using this method (%d).\n", res_length, resource, claims->sco, method);
