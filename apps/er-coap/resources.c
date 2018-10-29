@@ -53,7 +53,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   char* error;
   if(validate_claims(claims, &error) == 0) {
-    printf("Problem validating claims: %s", error);
+    printf("Problem validating claims: %s\n", error);
     free(error);
     return 0;
   }
