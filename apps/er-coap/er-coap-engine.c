@@ -135,9 +135,15 @@ coap_receive(context_t * ctx)
           /* invoke resource handler */
           if(service_cbk) {
 
-          // TODO: Call function to verify if client can access resource.
-          // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
-          // Current URL and method can be obtained from coap_get_header_uri_path() and coap_get_rest_method()
+            // TODO: Call function to verify if client can access resource.
+            // Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
+            // Current URL and method can be obtained from coap_get_header_uri_path() and coap_get_rest_method()
+            #ifdef WITH_DTLS_COAP
+              struct dtls_context_t* dtls_ctx = (struct dtls_context_t*) ctx;
+              if(dtls_ctx->peer) {
+                printf("YAHOOO: Peer role: %d\n", dtls_ctx->peer.role);
+              }
+            #endif
 
             /* call REST framework and check if found and allowed */
             if(service_cbk
