@@ -151,14 +151,25 @@ coap_receive(context_t * ctx)
             #if WITH_DTLS_COAP
               unsigned char* key_id = 0;
               int key_id_len = find_dtls_context_key_id(ctx, &key_id);
-              const char* resource = 0;
-              int res_length = coap_get_header_uri_path((void*) message, &resource);
-              rest_resource_flags_t method = coap_get_rest_method((void*) message);
-
-              int can_access = can_access_resource(resource, res_length, method, key_id, key_id_len);
-              if(!can_access) {
+              if(key_id_len == 0) {
+                printf("Can't find token claims!.\n");
                 erbium_status_code = UNAUTHORIZED_4_01;
-                coap_error_message = "NoTokenScopeRes";
+                coap_error_message = "NoTokenFound";
+              }
+              else {
+                const char* resource = 0;
+                int res_length = coap_get_header_uri_path((void*) message, &resource);
+                rest_resource_flags_t method = coap_get_rest_method((void*) message);
+
+                int can_access = can_access_resource(resource, res_length, method, key_id, key_id_len);
+                if(!can_access) {
+                  printf("Can't access resource.\n");
+                  erbium_status_code = UNAUTHORIZED_4_01;
+                  coap_error_message = "NoTokenScopeRes";
+                }
+                else {
+                  printf("Can access resource!\n");
+                }
               }
             #endif
 

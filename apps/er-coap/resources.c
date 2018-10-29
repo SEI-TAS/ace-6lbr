@@ -19,22 +19,24 @@ static const char* res_lock_scopes[] = {"r_Lock;rw_Lock", 0, "rw_Lock", 0};
 
 // Checks if the token associated with the given key has access to the resource in the method being used.
 int can_access_resource(const char* resource, int res_length, rest_resource_flags_t method, unsigned char* key_id, int key_id_len) {
+  printf("Checking access to resource (%*s), method (%d).\n", res_length, resource, method);
+
   unsigned char* padded_id = left_pad_array(key_id, key_id_len, KEY_ID_LENGTH, 0);
 
   token_entry entry;
   if(find_token_entry(padded_id, KEY_ID_LENGTH, &entry) == 0) {
-    printf("Entry not found!");
+    printf("Entry not found!\n");
     return 0;
   }
 
   if(entry.cbor_len == 0) {
-    printf("Entry has no token!");
+    printf("Entry has no token!\n");
     return 0;
   }
 
   cwt* claims = parse_cbor_claims(entry.cbor, entry.cbor_len);
   if(claims == 0) {
-    printf("Could not parse claims.");
+    printf("Could not parse claims.\n");
     return 0;
   }
 
@@ -74,13 +76,13 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
       pos = 3;
       break;
     default:
-      printf("Unknown method!");
+      printf("Unknown method!\n");
       return 0;
   }
 
   const char* valid_scopes = scope_map[pos];
   if(valid_scopes == 0) {
-    printf("For resource (%*s), token scopes (%s) do not give access using this method (%d) - no scopes found.", res_length, resource, claims->sco, method);
+    printf("For resource (%*s), token scopes (%s) do not give access using this method (%d) - no scopes found.\n", res_length, resource, claims->sco, method);
     return 0;
   }
 
@@ -100,12 +102,12 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   }
 
   if(scope_found == 0) {
-    printf("For resource (%*s), token scopes (%s) do not give access using this method (%d).", res_length, resource, claims->sco, method);
+    printf("For resource (%*s), token scopes (%s) do not give access using this method (%d).\n", res_length, resource, claims->sco, method);
     return 0;
   }
 
   // TODO: free everything in the entry and the cwt when it is no longer needed.
 
-  printf("Can access resource!");
+  printf("Can access resource!\n");
   return 1;
 }

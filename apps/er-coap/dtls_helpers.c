@@ -69,7 +69,7 @@ int find_dtls_context_key_id(context_t* ctx, unsigned char** identity) {
       curr_peer = curr_peer->next;
     }
 
-    if(identity == 0) {
+    if(id_length == 0) {
       printf("Context info not found. Using global variable.\n");
       printf("Last stored key id: ");
       HEX_PRINTF(current_key_id, current_key_id_length);
