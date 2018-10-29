@@ -2,6 +2,7 @@
 #ifndef RESOURCES_H
 #define RESOURCES_H
 
+#include "er-coap-dtls.h"
 #include "rest-constants.h"
 
 #define RS_ID "RS2"
