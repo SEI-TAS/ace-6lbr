@@ -22,6 +22,7 @@ RESOURCE(res_authz_info, NULL, NULL, res_post_handler, NULL, NULL);
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
   const uint8_t *cbor_token = NULL;
 
+  printf("Received new token to be stored.\n");
   size_t token_len = REST.get_request_payload(request, (const uint8_t **)&cbor_token);
   printf("token_len is %ld\n", token_len);
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);

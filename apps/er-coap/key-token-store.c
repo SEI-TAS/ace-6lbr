@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "cfs/cfs.h"
@@ -11,9 +12,8 @@
 #define PAIRING_KEY_ID "Authentication01"
 #define NON_TOKEN_ENTRY_CBOR_LENGTH "0000"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
-#include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
@@ -21,7 +21,7 @@
 
 
 void initialize_key_token_store() {
-  PRINTF("Creating keystore...\n");
+  printf("Creating keystore...\n");
   //char pairing_key[32] = {0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x52, 0x53, 0x31, 0xa1, 0xa2, 0xa3, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10};
   unsigned char pairing_key[KEY_LENGTH] = {'a', 'b', 'c', 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
 
@@ -37,7 +37,7 @@ void initialize_key_token_store() {
     bytes_written += cfs_write(fd_write, PAIRING_KEY_ID, KEY_ID_LENGTH);
     bytes_written += cfs_write(fd_write, pairing_key, KEY_LENGTH);
     bytes_written += cfs_write(fd_write, NON_TOKEN_ENTRY_CBOR_LENGTH, CBOR_SIZE_LENGTH);
-    PRINTF("Stored default pairing key in tokens file.\n");
+    printf("Stored default pairing key in tokens file.\n");
 
     //bytes_written += cfs_write(fd_write, padded_test_key_id, KEY_ID_LENGTH);
     //bytes_written += cfs_write(fd_write, test_key, KEY_LENGTH);
@@ -47,14 +47,14 @@ void initialize_key_token_store() {
     cfs_close(fd_write);
   }
   else {
-    PRINTF("Won't create keystore, already exists.\n");
+    printf("Won't create keystore, already exists.\n");
     cfs_close(fd_check_file);
   }
 }
 
 // Stores the given token into the tokens file.
 int store_token(cwt* token) {
-  PRINTF("Storing pop key and token in token file.\n");
+  printf("Storing pop key and token in token file.\n");
   int bytes_written = 0;
   int fd_tokens_file = cfs_open(TOKENS_FILE_NAME, CFS_WRITE | CFS_APPEND);
   if(fd_tokens_file != -1){
@@ -81,7 +81,7 @@ int store_token(cwt* token) {
     }
 
     cfs_close(fd_tokens_file);
-    PRINTF("Finished storing pop key and token in token file. Wrote %d bytes.\n", bytes_written);
+    printf("Finished storing pop key and token in token file. Wrote %d bytes.\n", bytes_written);
     return 1;
   }
   else {
@@ -152,7 +152,7 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
   cfs_close(fd_read);
   if (key_found == 0)
   {
-        PRINTF("No matching entry\n");
+    PRINTF("No matching entry\n");
   }
   return key_found;
 }
