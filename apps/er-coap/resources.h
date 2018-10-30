@@ -9,6 +9,6 @@
 // TODO: fix this, this is NOT extensible to add more resources.
 #define SCOPES "HelloWorld;rw_Lock;r_Lock"
 
-int can_access_resource(const char* resource, int res_length, rest_resource_flags_t method, unsigned char* key_id, int key_id_len);
+int check_access_error(context_t* ctx, void* request, void* response);
 
 #endif // RESOURCES_H

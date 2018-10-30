@@ -166,5 +166,5 @@ int check_access_error(context_t* ctx, void* request, void* response) {
   }
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-  return access_error;
+  return access_error_found;
 }
