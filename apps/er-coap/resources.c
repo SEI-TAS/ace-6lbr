@@ -18,6 +18,8 @@
 static const char* res_hw_scopes[] = {"HelloWorld", 0, 0, 0};
 static const char* res_lock_scopes[] = {"r_Lock;rw_Lock", 0, "rw_Lock", 0};
 
+static char* last_error = 0;
+
 // Checks if the token associated with the given key has access to the resource in the method being used.
 int can_access_resource(const char* resource, int res_length, rest_resource_flags_t method, unsigned char* key_id, int key_id_len) {
   printf("Checking access to resource (%.*s), method (%d).\n", res_length, resource, method);
@@ -33,7 +35,8 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   HEX_PRINTF(key_id, key_id_len);
   token_entry entry = {0};
   if(find_token_entry(padded_id, KEY_ID_LENGTH, &entry) == 0) {
-    printf("Entry not found!\n");
+    last_error = "Entry not found!";
+    printf("%s\n", last_error);
     free_token_entry(&entry);
     free(padded_id);
     return 0;
@@ -41,14 +44,16 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   free(padded_id);
 
   if(entry.cbor_len == 0) {
-    printf("Entry has no token!\n");
+    last_error = "Entry has no token!";
+    printf("%s\n", last_error);
     free_token_entry(&entry);
     return 0;
   }
 
   cwt* claims = parse_cbor_claims(entry.cbor, entry.cbor_len);
   if(claims == 0) {
-    printf("Could not parse claims.\n");
+    last_error = "Could not parse claims.";
+    printf("%s\n", last_error);
     free_token_entry(&entry);
     return 0;
   }
@@ -56,8 +61,9 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   char* error;
   if(validate_claims(claims, &error) == 0) {
+    last_error = error;
+    // TODO: note: since this will never be freed, any errors of this type will be memory leaks.
     printf("Problem validating claims: %s\n", error);
-    free(error);
     return 0;
   }
 
@@ -72,7 +78,8 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     scope_map = res_lock_scopes;
   }
   else {
-    printf("Unknown resource!\n");
+    last_error = "Unknown resource!";
+    printf("%s\n", last_error);
     return 0;
   }
 
@@ -92,13 +99,15 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
       pos = 3;
       break;
     default:
-      printf("Unknown method!\n");
+      last_error = "Unknown method!";
+      printf("%s\n", last_error);
       return 0;
   }
 
   printf("Getting scope for method in pos %d.\n", pos);
   const char* valid_scopes = scope_map[pos];
   if(valid_scopes == 0) {
+    last_error = "Token scopes do not give access to resource.";
     printf("For resource (%.*s), token scopes (%s) do not give access using this method (%d) - no scopes found.\n", res_length, resource, claims->sco, method);
     return 0;
   }
@@ -122,6 +131,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   free(scope_list);
 
   if(scope_found == 0) {
+    last_error = "Token scopes do not give access to resource.";
     printf("For resource (%.*s), token scopes (%s) do not give access using this method (%d).\n", res_length, resource, claims->sco, method);
     return 0;
   }
@@ -153,10 +163,9 @@ int check_access_error(context_t* ctx, void* request, void* response) {
 
     int can_access = can_access_resource(resource, res_length, method, key_id, key_id_len);
     if(!can_access) {
-      char* error_msg = "Can't access resource";
-      printf("%s\n", error_msg);
+      printf("Can't access resource: %s\n", last_error);
       REST.set_response_status(response, REST.status.UNAUTHORIZED);
-      REST.set_response_payload(response, error_msg, strlen(error_msg));
+      REST.set_response_payload(response, last_error, strlen(last_error));
       access_error_found = 1;
     }
     else {
