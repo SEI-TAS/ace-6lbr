@@ -109,15 +109,18 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
   unsigned char key[KEY_LENGTH] = { 0 };
   char cbor_len_buffer[CBOR_SIZE_LENGTH + 1] = { 0 };
   int bytes_read = 0;
+  int curr_size = 0;
   while(bytes_read < file_size) {
     bytes_read += cfs_read(fd_read, kid, KEY_ID_LENGTH);
     bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
     bytes_read += cfs_read(fd_read, cbor_len_buffer, CBOR_SIZE_LENGTH);
+    curr_size = atoi(cbor_len_buffer);
 
     PRINTF("Current key id: ");
-    HEX_PRINTF(kid, KEY_ID_LENGTH)
+    HEX_PRINTF(kid, KEY_ID_LENGTH);
     PRINTF("Current key: ");
-    HEX_PRINTF(key, KEY_LENGTH)
+    HEX_PRINTF(key, KEY_LENGTH);
+    PRINTF("Current cbor len: %d\n", curr_size);
 
     if (memcmp(index, kid, KEY_ID_LENGTH) == 0 || memcmp(index, key, KEY_LENGTH) == 0){
         PRINTF("Matched!\n");
@@ -132,7 +135,7 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
         PRINTF("Readed into struct key: ");
         HEX_PRINTF(result->key, KEY_LENGTH)
 
-        result->cbor_len = atoi(cbor_len_buffer);
+        result->cbor_len = curr_size;
         PRINTF("Cbor len: %d\n", result->cbor_len);
 
         if(result->cbor_len > 0) {
@@ -146,6 +149,14 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
           PRINTF("Record has no CBOR info associated to it.\n");
         }
     }
+    else {
+      if(curr_size > 0) {
+        // We need to skip over the cbor content to get to the next entry.
+        cfs_seek(fd_read, curr_size, CFS_SEEK_CUR);
+        bytes_read += curr_size;
+      }
+    }
+
     PRINTF("bytes read is %d\n", bytes_read);
   }
 
