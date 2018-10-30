@@ -114,7 +114,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   printf("Looking for scopes in list: %s\n", valid_scopes);
   int scope_found = 0;
-  char* scope_list = (char*) malloc(strlen(valid_scopes + 1));
+  char* scope_list = (char*) malloc(strlen(valid_scopes) + 1);
   strncpy(scope_list, valid_scopes, strlen(valid_scopes));
   char* curr_scope = strtok(scope_list, ";");
   while(curr_scope) {
