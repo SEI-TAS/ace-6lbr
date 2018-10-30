@@ -1,10 +1,17 @@
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include "utils.h"
 #include "cbor-encode.h"
 
 #define CBOR_PREFIX_MAP_HEADER_LENGTH 1
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned char** cbor_result);
 
@@ -20,14 +27,14 @@ int encode_map_to_cbor(int key1, int int_value1, const char* str_value1,
 
   // Move both encoded bytes into a unified buffer.
   int cbor_bytes_len = CBOR_PREFIX_MAP_HEADER_LENGTH + pair1_len + pair2_len;
-  printf("Encoding both pairs in map, total length %d.\n", cbor_bytes_len);
+  PRINTF("Encoding both pairs in map, total length %d.\n", cbor_bytes_len);
   *cbor_result = (unsigned char*) malloc(cbor_bytes_len);
   (*cbor_result)[0] = cbor_map_header;
   memcpy((*cbor_result) + CBOR_PREFIX_MAP_HEADER_LENGTH, pair1_cbor, pair1_len);
   memcpy((*cbor_result) + CBOR_PREFIX_MAP_HEADER_LENGTH + pair1_len, pair2_cbor, pair2_len);
   free(pair1_cbor);
   free(pair2_cbor);
-  printf("Final encoded bytes: ");
+  PRINTF("Final encoded bytes: ");
   HEX_PRINTF((*cbor_result), cbor_bytes_len);
 
   return cbor_bytes_len;
@@ -35,15 +42,15 @@ int encode_map_to_cbor(int key1, int int_value1, const char* str_value1,
 
 // NOTE: We assume all ints, keys or values, will be less than 24, to simplify encoding.
 int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned char** cbor_result) {
-  printf("Encoding pair to CBOR, with key %d, int value %d.\n", key, int_value);
+  PRINTF("Encoding pair to CBOR, with key %d, int value %d.\n", key, int_value);
 
   // Encode using the CBOR RFC rules. First key.
-  printf("Encoding key %d.\n", key);
+  PRINTF("Encoding key %d.\n", key);
   unsigned char* encoded_key;
   int encoded_key_len = encode_int_to_cbor(key, &encoded_key);
 
   // Now encode value.
-  printf("Encoding value.\n");
+  PRINTF("Encoding value.\n");
   unsigned char* encoded_value;
   int encoded_value_len;
   if(str_value != 0) {
@@ -55,14 +62,14 @@ int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned 
 
   // Put key and value contigously in a buffer.
   int encoded_len = encoded_key_len + encoded_value_len;
-  printf("Encoding key and value together, total length %d.\n", encoded_len);
+  PRINTF("Encoding key and value together, total length %d.\n", encoded_len);
   *cbor_result = (unsigned char*) malloc(encoded_len);
   memcpy((*cbor_result), encoded_key, encoded_key_len);
   memcpy((*cbor_result) + encoded_key_len, encoded_value, encoded_value_len);
   free(encoded_key);
   free(encoded_value);
 
-  printf("Encoded bytes: ");
+  PRINTF("Encoded bytes: ");
   HEX_PRINTF((*cbor_result), encoded_len);
 
   return encoded_len;
@@ -72,10 +79,10 @@ int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned 
 // NOTE: We are not supporting ints larger than 23 here.
 int encode_int_to_cbor(int int_value, unsigned char** cbor_result) {
   int encoded_len = 1;
-  printf("Encoded int will use %d bytes.\n", encoded_len);
+  PRINTF("Encoded int will use %d bytes.\n", encoded_len);
   *cbor_result = (unsigned char*) malloc(encoded_len);
   (*cbor_result)[0] = CBOR_PRFIX_INT | int_value;
-  printf("Encoded int: ");
+  PRINTF("Encoded int: ");
   HEX_PRINTF((*cbor_result), encoded_len);
   return encoded_len;
 }
@@ -91,24 +98,24 @@ int encode_string_to_cbor(const char* str_value, unsigned char** cbor_result) {
   }
   encoded_len += str_value_len;
 
-  printf("Encoded string will use %d bytes.\n", encoded_len);
+  PRINTF("Encoded string will use %d bytes.\n", encoded_len);
   *cbor_result = (unsigned char*) malloc(encoded_len);
 
   int pos = 0;
-  printf("Encoding string %s of length %d.\n", str_value, str_value_len);
+  PRINTF("Encoding string %s of length %d.\n", str_value, str_value_len);
   if(str_value_len < CBOR_ONE_BYTE_LIMIT) {
-    printf("Adding 1 byte txt header.\n");
+    PRINTF("Adding 1 byte txt header.\n");
     (*cbor_result)[pos++] = CBOR_PREFIX_TXT | str_value_len;
   }
   else {
-    printf("Adding 2 byte txt header.\n");
+    PRINTF("Adding 2 byte txt header.\n");
     (*cbor_result)[pos++] = CBOR_PREFIX_TXT | CBOR_ONE_BYTE_LIMIT;
     (*cbor_result)[pos++] = str_value_len;
   }
 
   // Now actually add the string.
   memcpy((*cbor_result) + pos, str_value, str_value_len);
-  printf("Encoded string: ");
+  PRINTF("Encoded string: ");
   HEX_PRINTF((*cbor_result), encoded_len);
 
   return encoded_len;
