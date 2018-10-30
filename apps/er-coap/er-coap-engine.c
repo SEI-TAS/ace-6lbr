@@ -44,9 +44,8 @@
 
 #if WITH_DTLS_COAP
 #include "dtls_helpers.h"
-#endif
-
 #include "resources.h"
+#endif
 
 #define DEBUG 0
 #if DEBUG
