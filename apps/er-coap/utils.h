@@ -1,4 +1,9 @@
 
+#ifndef UTILS_H
+#define UTILS_H
+
+#include <stdio.h>
+
 #define HEX_PRINTF(byte_array, length) {                        \
         printf("Hex bytes: ");                                      \
         int i;                                                  \
@@ -8,3 +13,5 @@
      }
 
 unsigned char* left_pad_array(const unsigned char* const byte_array, int array_length, int final_length, char padding);
+
+#endif // UTILS_H
