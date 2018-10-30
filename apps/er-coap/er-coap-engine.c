@@ -100,7 +100,7 @@ coap_receive(context_t * ctx)
 
       /*TODO duplicates suppression, if required by application */
 
-      printf("  Parsed: v %u, t %u, tkl %u, c %u, mid %u\n", message->version,
+      PRINTF("  Parsed: v %u, t %u, tkl %u, c %u, mid %u\n", message->version,
              message->type, message->token_len, message->code, message->mid);
       PRINTF("  URL: %.*s\n", message->uri_path_len, message->uri_path);
       PRINTF("  Payload: %.*s\n", message->payload_len, message->payload);
@@ -139,9 +139,6 @@ coap_receive(context_t * ctx)
             block_size = MIN(block_size, COAP_MAX_BLOCK_SIZE);
             new_offset = block_offset;
           }
-
-      printf("  Response: v %u, t %u, tkl %u, c %u, mid %u\n", response->version,
-             response->type, response->token_len, response->code, response->mid);
 
           /* invoke resource handler */
           if(service_cbk) {
