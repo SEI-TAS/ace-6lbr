@@ -119,7 +119,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   char* curr_scope = strtok(scope_list, ";");
   while(curr_scope) {
     // Check if this valid scope is the list of scopes in the token.
-    printf("Checking next scope: %s\n", curr_scope);
+    printf("Checking next scope: %s, length %d\n", curr_scope, len(curr_scope));
     if(strstr(claims->sco, curr_scope) != 0) {
       scope_found = 1;
       break;
