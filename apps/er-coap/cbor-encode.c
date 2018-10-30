@@ -11,6 +11,7 @@
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
+#define HEX_PRINTF(byte_array, length)
 #endif
 
 int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned char** cbor_result);

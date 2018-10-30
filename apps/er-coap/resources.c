@@ -28,6 +28,8 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   unsigned char* padded_id = left_pad_array(key_id, key_id_len, KEY_ID_LENGTH, 0);
 
+  printf("Finding token for given identity: ");
+  HEX_PRINTF(key_id, key_id_len);
   token_entry entry = {0};
   if(find_token_entry(padded_id, KEY_ID_LENGTH, &entry) == 0) {
     printf("Entry not found!\n");

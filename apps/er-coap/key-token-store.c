@@ -17,6 +17,7 @@
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
+#define HEX_PRINTF(byte_array, length)
 #endif
 
 

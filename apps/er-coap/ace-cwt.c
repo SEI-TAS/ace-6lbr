@@ -29,6 +29,7 @@
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
+#define HEX_PRINTF(byte_array, length)
 #endif
 
 // Parses the unencrypted CBOR bytes of a CWT token, and loads all claims into a cwt C struct object.
