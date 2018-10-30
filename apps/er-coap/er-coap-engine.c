@@ -166,7 +166,7 @@ coap_receive(context_t * ctx)
                 if(!can_access) {
                   printf("Can't access resource.\n");
                   erbium_status_code = UNAUTHORIZED_4_01;
-                  coap_error_message = "NoTokenScopeRes";
+                  coap_error_message = "TokenNotAuthorized";
                 }
                 else {
                   printf("Can access resource!\n");
