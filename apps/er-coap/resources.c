@@ -6,7 +6,6 @@
 #include "rest-constants.h"
 #include "rest-engine.h"
 #include "dtls.h"
-#include "er-coap-dtls.h"
 
 #include "resources.h"
 #include "cwt.h"
