@@ -115,7 +115,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   printf("Looking for scopes in list: %s, len %d\n", valid_scopes, strlen(valid_scopes));
   int scope_found = 0;
   char* scope_list = (char*) malloc(strlen(valid_scopes) + 1);
-  strncpy(scope_list, valid_scopes, strlen(valid_scopes));
+  memcpy(scope_list, valid_scopes, strlen(valid_scopes) + 1);
   printf("Copied list: %s, len %d\n", scope_list, strlen(scope_list));
   char* curr_scope = strtok(scope_list, ";");
   while(curr_scope) {
