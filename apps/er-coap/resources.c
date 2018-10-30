@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "rest-constants.h"
+#include "rest-engine.h"
 #include "dtls.h"
 #include "er-coap-dtls.h"
 
@@ -11,6 +12,7 @@
 #include "cwt.h"
 #include "utils.h"
 #include "key-token-store.h"
+#include "dtls_helpers.h"
 
 // TODO: fix this too.
 // First position in array is GET, second is POST, third is PUT, fourth is DELETE.
@@ -129,4 +131,40 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   printf("Can access resource according to check.\n");
   return 1;
+}
+
+// Call function to verify if client can access resource.
+int check_access_error(context_t* ctx, void* request, void* response) {
+  int access_error_found = 0;
+
+  unsigned char* key_id = 0;
+  int key_id_len = find_dtls_context_key_id(ctx, &key_id);
+  if(key_id_len == 0) {
+    char* error_msg = "Can't find DTLS handshake key id!";
+    printf("%s\n", error_msg);
+    REST.set_response_status(response, REST.status.UNAUTHORIZED);
+    REST.set_response_payload(response, error_msg, strlen(error_msg));
+    access_error_found = 1;
+  }
+  else {
+    const char* resource = 0;
+    int res_length = REST.get_url(request, &resource);
+    printf("Got resource (%.*s) with length: %d\n", res_length, resource, res_length);
+    rest_resource_flags_t method = REST.get_method_type(request);
+
+    int can_access = can_access_resource(resource, res_length, method, key_id, key_id_len);
+    if(!can_access) {
+      char* error_msg = "Can't access resource";
+      printf("%s\n", error_msg);
+      REST.set_response_status(response, REST.status.UNAUTHORIZED);
+      REST.set_response_payload(response, error_msg, strlen(error_msg));
+      access_error_found = 1;
+    }
+    else {
+      printf("Can access resource!\n");
+    }
+  }
+
+  REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+  return access_error;
 }

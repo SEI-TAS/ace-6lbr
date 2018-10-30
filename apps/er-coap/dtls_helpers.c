@@ -17,7 +17,6 @@ static int current_key_id_length;
 
 int lookup_dtls_key(const unsigned char * const id, size_t id_len,
          unsigned char * const result, size_t result_length){
-
   token_entry tok = {0};
   int key_length = 0;
   if (find_token_entry(id, id_len, &tok) > 0){
@@ -46,6 +45,7 @@ int lookup_dtls_key(const unsigned char * const id, size_t id_len,
 }
 
 // Gets the identity of the current connection. Tries context, gets last global variable otherwise.
+// Identity is in ctx->peers[0?]->handshake_parameters->keyx.identity
 int find_dtls_context_key_id(context_t* ctx, unsigned char** identity) {
     // Identity is in ctx->peers[0?]->handshake_parameters->keyx.psk.identity
     (*identity) = 0;
