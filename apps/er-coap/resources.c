@@ -112,15 +112,15 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     return 0;
   }
 
-  printf("Looking for scopes in list: %s, len %lu\n", valid_scopes, strlen(valid_scopes));
+  printf("Looking for scopes in list: %s, len %u\n", valid_scopes, (unsigned int) strlen(valid_scopes));
   int scope_found = 0;
   char* scope_list = (char*) malloc(strlen(valid_scopes) + 1);
   memcpy(scope_list, valid_scopes, strlen(valid_scopes) + 1);
-  printf("Copied list: %s, len %lu\n", scope_list, strlen(scope_list));
+  printf("Copied list: %s, len %u\n", scope_list, (unsigned int) strlen(scope_list));
   char* curr_scope = strtok(scope_list, ";");
   while(curr_scope) {
     // Check if this valid scope is the list of scopes in the token.
-    printf("Checking next scope: %s, length %lu\n", curr_scope, strlen(curr_scope));
+    printf("Checking next scope: %s, length %u\n", curr_scope, (unsigned int) strlen(curr_scope));
     if(strstr(claims->sco, curr_scope) != 0) {
       scope_found = 1;
       break;

@@ -78,7 +78,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
   } else if (type == DTLS_PSK_KEY) {
     printf("Requesting psk key\n");
     if (id) {
-      printf("Id length is %lu\n", id_len);
+      printf("Id length is %u\n", (unsigned int) id_len);
       unsigned char* lookupid = left_pad_array(id, id_len, KEY_ID_LENGTH, 0);
 
       printf("Looking up id: ");
