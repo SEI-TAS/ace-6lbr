@@ -44,8 +44,6 @@
 #include "session.h"
 #include "prng.h"
 
-#include "keystore.h"
-
 #ifdef WITH_SHA256
 #  include "sha2/sha2.h"
 #endif
@@ -184,7 +182,6 @@ dtls_init() {
   dtls_crypto_init();
   netq_init();
   peer_init();
-  keystore_init();
 }
 
 /* Calls cb_alert() with given arguments if defined, otherwise an

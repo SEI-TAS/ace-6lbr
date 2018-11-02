@@ -42,6 +42,8 @@
 #include <string.h>
 #include "er-coap-engine.h"
 
+#include "key-token-store.h"
+
 #if WITH_DTLS_COAP
 #include "dtls_helpers.h"
 #include "resources.h"
@@ -359,6 +361,8 @@ PROCESS_THREAD(coap_engine, ev, data)
 {
   PROCESS_BEGIN();
   PRINTF("Starting %s receiver...\n", coap_rest_implementation.name);
+
+  initialize_key_token_store();
 
 #if WITH_DTLS_COAP
   rest_activate_resource(&res_pair, "pair");

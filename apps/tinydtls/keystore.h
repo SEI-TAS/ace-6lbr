@@ -1,1 +1,0 @@
-void keystore_init();
