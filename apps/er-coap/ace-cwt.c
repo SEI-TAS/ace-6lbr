@@ -4,8 +4,8 @@
 #include <time.h>
 
 #include "cfs/cfs.h"
-#include "dtls.h"
 
+#include "tinydtls_aes.h"
 #include "cn-cbor/cn-cbor/cn-cbor.h"
 #include "cwt.h"
 #include "key-token-store.h"
@@ -18,7 +18,6 @@
 #define CBOR_CONTEXT_PARAM
 #endif
 
-#define A_DATA_LEN 0
 #define NONCE_SIZE 13
 #define MAX_CBOR_CLAIMS_LEN 200
 #define COSE_PROTECTED_HEADER_SIZE 6
@@ -159,8 +158,6 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   //char key[KEY_LENGTH] = {0xa1, 0xa2, 0xa3, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10};
   //char key[KEY_LENGTH] = {0x7d, 0xd4, 0x43, 0x81, 0x1e, 0x32, 0x21, 0x08, 0x13, 0xc3, 0xc5, 0x11, 0x1e, 0x4d, 0x3d, 0xb4};
 
-  unsigned char A_DATA[A_DATA_LEN];
-
   // The structure of this wrapper is: 16 [<protected-headers-as-b-string>, <unprotected-headers-as-map>, <cyphertext-as-b-string>]
   // We assume byte 1 in CWT is 0xD0, 16, which means COSE_Encrypt0, the type of COSE wrapper we are using.
   // We assume byte 2 is 83, which indicates we have an array.
@@ -212,8 +209,10 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 
   PRINTF("Decrypting claims.\n");
   unsigned char* decrypted_cbor = (unsigned char*) malloc(MAX_CBOR_CLAIMS_LEN);
-  int decrypted_cbor_len = dtls_decrypt(encrypted_cbor, encrypted_cbor_length,
-                                        decrypted_cbor, nonce, pairing_key_info.key, KEY_LENGTH, A_DATA, A_DATA_LEN);
+  int decrypted_cbor_len = dtls_decrypt_with_nounce_len(encrypted_cbor, encrypted_cbor_length,
+                                                        decrypted_cbor,
+                                                        nonce, NONCE_SIZE,
+                                                        pairing_key_info.key, KEY_LENGTH);
   PRINTF("%d bytes COSE decrypted\n", decrypted_cbor_len);
 
   PRINTF("Freeing temporary allocated memory for decryption.\n");
