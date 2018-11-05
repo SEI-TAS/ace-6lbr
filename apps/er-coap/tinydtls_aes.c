@@ -20,7 +20,7 @@ dtls_decrypt_with_nounce_len(const unsigned char *src, size_t srclen,
   if (ret < 0) {
     /* cleanup everything in case the key has the wrong size */
     printf("Cannot set rijndael key\n");
-    goto error;
+    return ret;
   }
 
   if (src != buf)
@@ -33,8 +33,5 @@ dtls_decrypt_with_nounce_len(const unsigned char *src, size_t srclen,
 				 nounce,
 				 buf, srclen,
 				 A_DATA, A_DATA_LEN);
-
-error:
-  dtls_cipher_context_release();
   return ret;
 }

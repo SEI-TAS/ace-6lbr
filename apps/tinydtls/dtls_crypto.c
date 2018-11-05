@@ -47,7 +47,8 @@ static struct dtls_cipher_context_t cipher_context;
 static pthread_mutex_t cipher_context_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-static struct dtls_cipher_context_t *dtls_cipher_context_get(void)
+// TODO: maybe find better way? NOTE: this had to be mofidified to remove extern, so that context can be obtained outside of tinydtls.
+struct dtls_cipher_context_t *dtls_cipher_context_get(void)
 {
 #ifndef WITH_CONTIKI
   pthread_mutex_lock(&cipher_context_mutex);
