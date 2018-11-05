@@ -300,6 +300,7 @@ dtls_ccm_decrypt_message(rijndael_ctx *ctx, size_t M, size_t L,
   memxor(msg, S, M);
 
   /* return length if MAC is valid, otherwise continue with error handling */
+  // TODO: Figure out why MAC is not matching and we had to disable this check.
   /*  if (equals(X, msg, M)) */
   return len - M;
   

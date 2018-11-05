@@ -210,6 +210,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   int encrypted_cbor_length = token_length - encrypted_cbor_pos;
   unsigned char* encrypted_cbor = (unsigned char *) malloc(encrypted_cbor_length);
   memcpy(encrypted_cbor, &cbor_token[encrypted_cbor_pos], encrypted_cbor_length);
+  PRINTF("Encrypted CBOR claims length: %d\n", encrypted_cbor_length);
 
   PRINTF("Decrypting claims.\n");
   unsigned char* decrypted_cbor = (unsigned char*) malloc(MAX_CBOR_CLAIMS_LEN);
