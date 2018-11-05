@@ -193,12 +193,16 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
     PRINTF("Could not find key to decrypt COSE wrapper of CWT; aborting parsing token.\n");
     return 0;
   }
+  PRINTF("Key is: ");
+  HEX_PRINTF(pairing_key_info.key, KEY_LENGTH);
 
   // After the key id, there are 2 bytes indicating that the nonce is coming, and it size. We assume it will always be 13.
   int nonce_pos = key_id_pos + key_id_size + 2;
   PRINTF("Getting nonce.\n");
   unsigned char* nonce = (unsigned char *) malloc(NONCE_SIZE);
   memcpy(nonce, &cbor_token[nonce_pos], NONCE_SIZE);
+  PRINTF("Nonce is: ");
+  HEX_PRINTF(nonce, NONCE_SIZE);
 
   // After the nonce there are 2 bytes indicating that a byte string is coming and its size.
   PRINTF("Getting encrypted claims.\n");
