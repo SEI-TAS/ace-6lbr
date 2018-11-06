@@ -132,9 +132,16 @@ coap_receive(void* ctx, int dtls)
             coap_init_message(response, COAP_TYPE_ACK, CONTENT_2_05,
                               message->mid);
           } else {
+            uint16_t curr_mid;
+            if(!dtls) {
+              curr_mid = coap_get_mid();
+            }
+            else {
+              curr_mid = coap_get_mid_dtls();
+            }
             /* unreliable NON requests are answered with a NON as well */
             coap_init_message(response, COAP_TYPE_NON, CONTENT_2_05,
-                              coap_get_mid());
+                              curr_mid);
             /* mirror token */
           } if(message->token_len) {
             coap_set_token(response, message->token, message->token_len);
@@ -384,6 +391,7 @@ extern resource_t res_authz_info;
 
    coap_register_as_transaction_handler();
    coap_init_connection(SERVER_LISTEN_PORT);
+   printf("CoAPs server listening on port %d", COAP_DEFAULT_PORT);
 
    while(1) {
      PROCESS_YIELD();
@@ -413,6 +421,7 @@ PROCESS_THREAD(coaps_engine, ev, data)
 
   coap_register_as_transaction_handler_dtls();
   coap_init_connection_dtls(SERVER_DTLS_LISTEN_PORT);
+  printf("CoAPs server listening on port %d", COAPS_DEFAULT_PORT);
 
   while(1) {
     PROCESS_YIELD();
