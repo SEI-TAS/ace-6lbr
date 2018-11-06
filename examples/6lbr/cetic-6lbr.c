@@ -96,9 +96,7 @@
 #include "node-config.h"
 #endif
 
-#if WITH_COAPSERVER
 #include "rest-engine.h"
-#endif
 
 #if WITH_TINYDTLS
 #include "dtls.h"
