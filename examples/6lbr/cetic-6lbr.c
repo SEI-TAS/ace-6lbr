@@ -97,7 +97,7 @@
 #endif
 
 #if WITH_COAPSERVER
-#include "coap-server.h"
+#include "rest-engine.h"
 #endif
 
 #if WITH_TINYDTLS
@@ -723,8 +723,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
 #endif
 
 #if WITH_COAPSERVER
+  rest_init_engine();
+  printf("CoAP server started.\n");
   if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_COAP_SERVER) == 0) {
-    coap_server_init();
+    //coap_server_init();
   }
 #endif
 
