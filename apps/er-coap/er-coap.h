@@ -45,8 +45,6 @@
 #include "er-coap-conf.h"
 #include "er-coap-communication.h"
 
-#define COAP_CORE_OBSERVE 0
-
 /* sanity check for configured values */
 #define COAP_MAX_PACKET_SIZE  (COAP_MAX_HEADER_SIZE + REST_MAX_CHUNK_SIZE)
 #if COAP_MAX_PACKET_SIZE > (UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPH_LEN - UIP_UDPH_LEN)

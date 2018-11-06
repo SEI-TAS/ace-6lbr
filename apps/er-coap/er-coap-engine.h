@@ -54,7 +54,7 @@ typedef coap_packet_t rest_request_t;
 typedef coap_packet_t rest_response_t;
 
 void coap_init_engine(void);
-int coap_receive(void * ctx);
+int coap_receive(void * ctx, int dtls);
 
 extern context_t * coap_default_context;
 extern struct dtls_context_t * coap_default_context_dtls;

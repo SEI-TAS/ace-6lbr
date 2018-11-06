@@ -50,7 +50,7 @@
 #endif
 
 #ifndef COAP_CORE_OBSERVE
-#define COAP_CORE_OBSERVE                    1
+#define COAP_CORE_OBSERVE                    0
 #endif
 
 /* Listening port for the CoAP REST Engine */
