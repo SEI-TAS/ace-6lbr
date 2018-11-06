@@ -90,7 +90,7 @@ APPS+=dns-proxy
 endif
 
 ifneq ($(WITH_COAPSERVER),0)
-APPS += er-coap rest-engine coap
+APPS += er-coap rest-engine
 endif
 
 ifneq ($(WITH_TINYDTLS), 0)
