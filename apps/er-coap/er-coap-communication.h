@@ -3,11 +3,8 @@
 
 #include "contiki.h"
 
-#if WITH_DTLS_COAP
 #include "er-coap-dtls.h"
-#else
 #include "er-coap-udp.h"
-#endif
 
 context_t *
 coap_init_communication_layer(uint16_t port);

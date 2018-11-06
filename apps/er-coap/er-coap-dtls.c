@@ -106,8 +106,8 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
 }
 #endif
 /*-----------------------------------------------------------------------------------*/
-context_t *
-coap_init_communication_layer(uint16_t port)
+struct dtls_context_t *
+coap_init_communication_layer_dtls(uint16_t port)
 {
   static dtls_handler_t cb = {
     .write = send_to_peer,
@@ -121,7 +121,7 @@ coap_init_communication_layer(uint16_t port)
     .verify_ecdsa_key = NULL,
 #endif
   };
-  context_t * ctx;
+  struct dtls_context_t * ctx;
 
   struct uip_udp_conn *server_conn = udp_new(NULL, 0, NULL);
   udp_bind(server_conn, port);
@@ -157,7 +157,7 @@ send_to_peer(struct dtls_context_t *ctx,
 }
 /*-----------------------------------------------------------------------------------*/
 void
-coap_send_message(context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length)
+coap_send_message_dtls(struct dtls_context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length)
 {
   session_t session;
 
@@ -174,12 +174,12 @@ read_from_peer(struct dtls_context_t *ctx,
 {
   uip_len = len;
   memmove(uip_appdata, data, len);
-  coap_receive(ctx);
+  coap_receive(ctx, 1);
   return 0;
 }
 /*-----------------------------------------------------------------------------------*/
 void
-coap_handle_receive(context_t *ctx)
+coap_handle_receive_dtls(struct dtls_context_t *ctx)
 {
   session_t session;
 

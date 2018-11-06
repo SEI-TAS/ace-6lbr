@@ -42,11 +42,12 @@
 #include "pt.h"
 #include "er-coap.h"
 #include "er-coap-transactions.h"
-#include "er-coap-observe.h"
-#include "er-coap-separate.h"
-#include "er-coap-observe-client.h"
+//#include "er-coap-observe.h"
+//#include "er-coap-separate.h"
+//#include "er-coap-observe-client.h"
 
-#define SERVER_LISTEN_PORT      UIP_HTONS(COAP_SERVER_PORT)
+#define SERVER_LISTEN_PORT           UIP_HTONS(COAP_SERVER_PORT)
+#define SERVER_DTLS_LISTEN_PORT      UIP_HTONS(COAPS_DEFAULT_PORT)
 
 typedef coap_packet_t rest_request_t;
 typedef coap_packet_t rest_response_t;

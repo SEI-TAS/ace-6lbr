@@ -37,5 +37,5 @@ coap_send_message(context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *d
 void
 coap_handle_receive(context_t * ctx)
 {
-  coap_receive(ctx);
+  coap_receive(ctx, 0);
 }

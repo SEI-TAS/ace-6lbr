@@ -144,7 +144,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 }
 
 // Call function to verify if client can access resource.
-int check_access_error(context_t* ctx, void* request, void* response) {
+int check_access_error(struct dtls_context_t* ctx, void* request, void* response) {
   int access_error_found = 0;
 
   unsigned char* key_id = 0;

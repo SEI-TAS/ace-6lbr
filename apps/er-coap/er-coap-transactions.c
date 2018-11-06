@@ -40,7 +40,8 @@
 #include "contiki-net.h"
 #include "er-coap-transactions.h"
 #include "er-coap-engine.h"
-#include "er-coap-observe.h"
+//#include "er-coap-observe.h"
+#include "er-coap-dtls.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -59,6 +60,7 @@ MEMB(transactions_memb, coap_transaction_t, COAP_MAX_OPEN_TRANSACTIONS);
 LIST(transactions_list);
 
 static struct process *transaction_handler_process = NULL;
+static struct process *transaction_handler_process_dtls = NULL;
 
 /*---------------------------------------------------------------------------*/
 /*- Internal API ------------------------------------------------------------*/
@@ -68,6 +70,13 @@ coap_register_as_transaction_handler()
 {
   transaction_handler_process = PROCESS_CURRENT();
 }
+
+void
+coap_register_as_transaction_handler_dtls()
+{
+  transaction_handler_process_dtls = PROCESS_CURRENT();
+}
+
 coap_transaction_t *
 coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port)
 {
@@ -95,11 +104,16 @@ coap_set_transaction_context(coap_transaction_t *t, context_t *ctx)
 }
 /*---------------------------------------------------------------------------*/
 void
-coap_send_transaction(coap_transaction_t *t)
+coap_send_transaction(coap_transaction_t *t, int dtls)
 {
   PRINTF("Sending transaction %u\n", t->mid);
 
-  coap_send_message(t->ctx, &t->addr, t->port, t->packet, t->packet_len);
+  if(!dtls) {
+    coap_send_message(t->ctx, &t->addr, t->port, t->packet, t->packet_len);
+  }
+  else {
+    coap_send_message_dtls(t->ctx, &t->addr, t->port, t->packet, t->packet_len);
+  }
 
   if(COAP_TYPE_CON ==
      ((COAP_HEADER_TYPE_MASK & t->packet[0]) >> COAP_HEADER_TYPE_POSITION)) {
@@ -121,9 +135,16 @@ coap_send_transaction(coap_transaction_t *t)
                (float)t->retrans_timer.timer.interval / CLOCK_SECOND);
       }
 
-      PROCESS_CONTEXT_BEGIN(transaction_handler_process);
-      etimer_restart(&t->retrans_timer);        /* interval updated above */
-      PROCESS_CONTEXT_END(transaction_handler_process);
+      if(!dtls){
+        PROCESS_CONTEXT_BEGIN(transaction_handler_process);
+        etimer_restart(&t->retrans_timer);        /* interval updated above */
+        PROCESS_CONTEXT_END(transaction_handler_process);
+      }
+      else{
+        PROCESS_CONTEXT_BEGIN(transaction_handler_process_dtls);
+        etimer_restart(&t->retrans_timer);        /* interval updated above */
+        PROCESS_CONTEXT_END(transaction_handler_process_dtls);
+      }
 
       t = NULL;
     } else {
@@ -173,7 +194,7 @@ coap_get_transaction_by_mid(uint16_t mid)
 }
 /*---------------------------------------------------------------------------*/
 void
-coap_check_transactions()
+coap_check_transactions(int dtls)
 {
   coap_transaction_t *t = NULL;
 
@@ -181,7 +202,7 @@ coap_check_transactions()
     if(etimer_expired(&t->retrans_timer)) {
       ++(t->retrans_counter);
       PRINTF("Retransmitting %u (%u)\n", t->mid, t->retrans_counter);
-      coap_send_transaction(t);
+      coap_send_transaction(t, dtls);
     }
   }
 }

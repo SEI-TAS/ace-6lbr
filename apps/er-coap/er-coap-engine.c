@@ -41,13 +41,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "er-coap-engine.h"
+#include "er-coap-dtls.h"
 
 #include "key-token-store.h"
-
-#if WITH_DTLS_COAP
 #include "dtls_helpers.h"
 #include "resources.h"
-#endif
 
 #define DEBUG 0
 #if DEBUG
@@ -62,6 +60,7 @@
 #endif
 
 PROCESS(coap_engine, "CoAP Engine");
+PROCESS(coaps_engine, "CoAPs Engine");
 
 rest_resource_flags_t
 coap_get_rest_method(void *packet);
@@ -76,7 +75,7 @@ context_t * coap_default_context = NULL;
 /*- Internal API ------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 int
-coap_receive(context_t * ctx)
+coap_receive(context_t * ctx, int dtls)
 {
   erbium_status_code = NO_ERROR;
 
@@ -146,10 +145,10 @@ coap_receive(context_t * ctx)
           if(service_cbk) {
 
             int access_error_found = 0;
-            #if WITH_DTLS_COAP
+            if(dtls) {
               // Call function to verify if client can access resource.
               access_error_found = check_access_error(ctx, (void*) message, (void*) response);
-            #endif
+            }
 
             /* call REST framework and check if found and allowed */
             if(access_error_found || service_cbk
@@ -290,7 +289,7 @@ coap_receive(context_t * ctx)
     /* if(parsed correctly) */
     if(erbium_status_code == NO_ERROR) {
       if(transaction) {
-        coap_send_transaction(transaction);
+        coap_send_transaction(transaction, dtls);
       }
     } else if(erbium_status_code == MANUAL_RESPONSE) {
       PRINTF("Clearing transaction for manual response");
@@ -313,9 +312,17 @@ coap_receive(context_t * ctx)
                         message->mid);
       coap_set_payload(message, coap_error_message,
                        strlen(coap_error_message));
-      coap_send_message(ctx, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
+
+      if(! dtls) {
+        coap_send_message(ctx, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
                         uip_appdata, coap_serialize_message(message,
                                                             uip_appdata));
+      }
+      else {
+        coap_send_message_dtls(ctx, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
+                        uip_appdata, coap_serialize_message(message,
+                                                            uip_appdata));
+      }
     }
   }
 
@@ -327,6 +334,7 @@ void
 coap_init_engine(void)
 {
   process_start(&coap_engine, NULL);
+  process_start(&coaps_engine, NULL);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -348,46 +356,65 @@ coap_get_rest_method(void *packet)
 /* the discover resource is automatically included for CoAP */
 extern resource_t res_well_known_core;
 
-#if WITH_DTLS_COAP
 extern resource_t res_pair;
 extern resource_t res_hello;
 extern resource_t res_lock;
-#else
 extern resource_t res_authz_info;
-#endif
 
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(coap_engine, ev, data)
+ PROCESS_THREAD(coap_engine, ev, data)
+ {
+   PROCESS_BEGIN();
+   PRINTF("Starting %s CoAP receiver...\n", coap_rest_implementation.name);
+
+   initialize_key_token_store();
+
+   rest_activate_resource(&res_authz_info, "authz-info");
+
+ #if WITH_WELL_KNOWN_CORE
+   rest_activate_resource(&res_well_known_core, ".well-known/core");
+ #endif
+
+   coap_register_as_transaction_handler();
+   coap_init_connection(SERVER_LISTEN_PORT);
+
+   while(1) {
+     PROCESS_YIELD();
+
+     if(ev == tcpip_event) {
+       coap_handle_receive(coap_default_context);
+     } else if(ev == PROCESS_EVENT_TIMER) {
+       /* retransmissions are handled here */
+       coap_check_transactions(0);
+     }
+   } /* while (1) */
+
+   PROCESS_END();
+ }
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(coaps_engine, ev, data)
 {
   PROCESS_BEGIN();
-  PRINTF("Starting %s receiver...\n", coap_rest_implementation.name);
+  PRINTF("Starting %s CoAP DTLS receiver...\n", coap_rest_implementation.name);
 
   initialize_key_token_store();
 
-#if WITH_DTLS_COAP
   rest_activate_resource(&res_pair, "pair");
   rest_activate_resource(&res_hello, "ace/helloWorld");
   rest_activate_resource(&res_lock, "ace/lock");
-#else
-  rest_activate_resource(&res_authz_info, "authz-info");
-#endif
 
-
-#if WITH_WELL_KNOWN_CORE
-  rest_activate_resource(&res_well_known_core, ".well-known/core");
-#endif
-
-  coap_register_as_transaction_handler();
-  coap_init_connection(SERVER_LISTEN_PORT);
+  coap_register_as_transaction_handler_dtls();
+  coap_init_connection_dtls(SERVER_DTLS_LISTEN_PORT);
 
   while(1) {
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      coap_handle_receive(coap_default_context);
+      coap_handle_receive_dtls(coap_default_context);
     } else if(ev == PROCESS_EVENT_TIMER) {
       /* retransmissions are handled here */
-      coap_check_transactions();
+      coap_check_transactions(1);
     }
   } /* while (1) */
 
@@ -442,7 +469,8 @@ PT_THREAD(coap_blocking_request
                                                               transaction->
                                                               packet);
 
-      coap_send_transaction(state->transaction);
+      // TODO: passing 0 here will make this not work if using DTLS. Should be fixed better.
+      coap_send_transaction(state->transaction, 0);
       PRINTF("Requested #%lu (MID %u)\n", state->block_num, request->mid);
 
       PT_YIELD_UNTIL(&state->pt, ev == PROCESS_EVENT_POLL);

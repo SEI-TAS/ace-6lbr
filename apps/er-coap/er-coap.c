@@ -45,6 +45,7 @@
 #include "er-coap.h"
 #include "er-coap-engine.h"
 #include "er-coap-transactions.h"
+#include "er-coap-dtls.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -62,6 +63,7 @@
 /*- Variables ---------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 static uint16_t current_mid = 0;
+static uint16_t current_mid_dtls = 0;
 
 coap_status_t erbium_status_code = NO_ERROR;
 char *coap_error_message = "";
@@ -284,6 +286,24 @@ coap_init_connection(uint16_t port)
   /* initialize transaction ID */
   current_mid = random_rand();
 }
+
+void
+coap_init_connection_dtls(uint16_t port)
+{
+  /* new connection with remote host */
+  coap_default_context = coap_init_communication_layer_dtls(port);
+
+  /* initialize transaction ID */
+  current_mid_dtls = random_rand();
+}
+
+/*---------------------------------------------------------------------------*/
+uint16_t
+coap_get_mid_dtls()
+{
+  return ++current_mid_dtls;
+}
+
 /*---------------------------------------------------------------------------*/
 uint16_t
 coap_get_mid()
