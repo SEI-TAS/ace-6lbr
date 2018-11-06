@@ -45,6 +45,8 @@
 #include "er-coap-conf.h"
 #include "er-coap-communication.h"
 
+#define COAP_CORE_OBSERVE 0
+
 /* sanity check for configured values */
 #define COAP_MAX_PACKET_SIZE  (COAP_MAX_HEADER_SIZE + REST_MAX_CHUNK_SIZE)
 #if COAP_MAX_PACKET_SIZE > (UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPH_LEN - UIP_UDPH_LEN)
@@ -178,7 +180,9 @@ extern coap_status_t erbium_status_code;
 extern char *coap_error_message;
 
 void coap_init_connection(uint16_t port);
+void coap_init_connection_dtls(uint16_t port);
 uint16_t coap_get_mid(void);
+uint16_t coap_get_mid_dtls(void);
 
 void coap_init_message(void *packet, coap_message_type_t type, uint8_t code,
                        uint16_t mid);

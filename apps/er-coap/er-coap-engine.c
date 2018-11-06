@@ -511,6 +511,16 @@ PT_THREAD(coap_blocking_request
 /*---------------------------------------------------------------------------*/
 /*- REST Engine Interface ---------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
+void
+coap_notify_observers(resource_t *resource)
+{
+}
+
+void
+coap_observe_handler(resource_t *resource, void *request, void *response)
+{
+}
+
 const struct rest_implementation coap_rest_implementation = {
   "CoAP-18",
 

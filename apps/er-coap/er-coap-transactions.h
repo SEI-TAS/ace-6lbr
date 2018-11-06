@@ -71,10 +71,12 @@ typedef struct coap_transaction {
 } coap_transaction_t;
 
 void coap_register_as_transaction_handler(void);
+void coap_register_as_transaction_handler_dtls(void);
 
 coap_transaction_t *coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr,
                                          uint16_t port, int dtls);
 void coap_set_transaction_context(coap_transaction_t *t, context_t *ctx);
+void coap_set_transaction_context_dtls(coap_transaction_t *t, struct dtls_context_t *ctx);
 void coap_send_transaction(coap_transaction_t *t, int dtls);
 void coap_clear_transaction(coap_transaction_t *t);
 coap_transaction_t *coap_get_transaction_by_mid(uint16_t mid);
