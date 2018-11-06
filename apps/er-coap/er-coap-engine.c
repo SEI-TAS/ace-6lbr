@@ -391,7 +391,7 @@ extern resource_t res_authz_info;
 
    coap_register_as_transaction_handler();
    coap_init_connection(SERVER_LISTEN_PORT);
-   printf("CoAPs server listening on port %d", COAP_DEFAULT_PORT);
+   printf("CoAPs server listening on port %d\n", COAP_DEFAULT_PORT);
 
    while(1) {
      PROCESS_YIELD();
@@ -413,7 +413,7 @@ PROCESS_THREAD(coaps_engine, ev, data)
   PROCESS_BEGIN();
   PRINTF("Starting %s CoAP DTLS receiver...\n", coap_rest_implementation.name);
 
-  initialize_key_token_store();
+  // initialize_key_token_store();
 
   rest_activate_resource(&res_pair, "pair");
   rest_activate_resource(&res_hello, "ace/helloWorld");
@@ -421,7 +421,7 @@ PROCESS_THREAD(coaps_engine, ev, data)
 
   coap_register_as_transaction_handler_dtls();
   coap_init_connection_dtls(SERVER_DTLS_LISTEN_PORT);
-  printf("CoAPs server listening on port %d", COAPS_DEFAULT_PORT);
+  printf("CoAPs server listening on port %d\n", COAPS_DEFAULT_PORT);
 
   while(1) {
     PROCESS_YIELD();
