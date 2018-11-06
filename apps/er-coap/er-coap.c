@@ -291,7 +291,7 @@ void
 coap_init_connection_dtls(uint16_t port)
 {
   /* new connection with remote host */
-  coap_default_context = coap_init_communication_layer_dtls(port);
+  coap_default_context_dtls = coap_init_communication_layer_dtls(port);
 
   /* initialize transaction ID */
   current_mid_dtls = random_rand();

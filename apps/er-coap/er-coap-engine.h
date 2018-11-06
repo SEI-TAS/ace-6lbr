@@ -42,6 +42,7 @@
 #include "pt.h"
 #include "er-coap.h"
 #include "er-coap-transactions.h"
+#include "er-coap-dtls.h"
 //#include "er-coap-observe.h"
 //#include "er-coap-separate.h"
 //#include "er-coap-observe-client.h"
@@ -56,6 +57,7 @@ void coap_init_engine(void);
 int coap_receive(context_t * ctx);
 
 extern context_t * coap_default_context;
+extern struct dtls_context_t * coap_default_context_dtls;
 
 /*---------------------------------------------------------------------------*/
 /*- Client Part -------------------------------------------------------------*/

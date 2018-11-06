@@ -70,12 +70,13 @@ coap_get_rest_method(void *packet);
 /*---------------------------------------------------------------------------*/
 static service_callback_t service_cbk = NULL;
 context_t * coap_default_context = NULL;
+struct dtls_context_t * coap_default_context_dtls = NULL;
 
 /*---------------------------------------------------------------------------*/
 /*- Internal API ------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 int
-coap_receive(context_t * ctx, int dtls)
+coap_receive(void* ctx, int dtls)
 {
   erbium_status_code = NO_ERROR;
 
@@ -112,12 +113,18 @@ coap_receive(context_t * ctx, int dtls)
         /* use transaction buffer for response to confirmable request */
         if((transaction =
               coap_new_transaction(message->mid, &UIP_IP_BUF->srcipaddr,
-                                   UIP_UDP_BUF->srcport))) {
+                                   UIP_UDP_BUF->srcport, dtls))) {
           uint32_t block_num = 0;
           uint16_t block_size = COAP_MAX_BLOCK_SIZE;
           uint32_t block_offset = 0;
           int32_t new_offset = 0;
-          coap_set_transaction_context(transaction, ctx);
+
+          if(!dtls) {
+            coap_set_transaction_context(transaction, (context_t*) ctx);
+          }
+          else {
+            coap_set_transaction_context_dtls(transaction, (struct dtls_context_t*) ctx);
+          }
 
           /* prepare response */
           if(message->type == COAP_TYPE_CON) {
@@ -411,7 +418,7 @@ PROCESS_THREAD(coaps_engine, ev, data)
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      coap_handle_receive_dtls(coap_default_context);
+      coap_handle_receive_dtls(coap_default_context_dtls);
     } else if(ev == PROCESS_EVENT_TIMER) {
       /* retransmissions are handled here */
       coap_check_transactions(1);
@@ -453,9 +460,10 @@ PT_THREAD(coap_blocking_request
   block_error = 0;
 
   do {
+    // TODO: passing 0 here will make this not work if using DTLS. Should be fixed better. Same with get_mid.
     request->mid = coap_get_mid();
     if((state->transaction = coap_new_transaction(request->mid, remote_ipaddr,
-                                                  remote_port))) {
+                                                  remote_port, 0))) {
       coap_set_transaction_context(state->transaction, ctx);
       state->transaction->callback = coap_blocking_request_callback;
       state->transaction->callback_data = state;

@@ -78,7 +78,7 @@ coap_register_as_transaction_handler_dtls()
 }
 
 coap_transaction_t *
-coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port)
+coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port, int dtls)
 {
   coap_transaction_t *t = memb_alloc(&transactions_memb);
 
@@ -86,7 +86,12 @@ coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port)
     t->mid = mid;
     t->retrans_counter = 0;
 
-    t->ctx = coap_default_context;
+    if(!dtls) {
+      t->ctx = coap_default_context;
+    }
+    else {
+      t->ctx_dtls = coap_default_context_dtls;
+    }
     /* save client address */
     uip_ipaddr_copy(&t->addr, addr);
     t->port = port;
@@ -102,6 +107,15 @@ coap_set_transaction_context(coap_transaction_t *t, context_t *ctx)
 {
   t->ctx = ctx;
 }
+
+/*---------------------------------------------------------------------------*/
+void
+coap_set_transaction_context_dtls(coap_transaction_t *t, struct dtls_context_t *ctx)
+{
+  t->ctx_dtls = ctx;
+}
+
+
 /*---------------------------------------------------------------------------*/
 void
 coap_send_transaction(coap_transaction_t *t, int dtls)
@@ -112,7 +126,7 @@ coap_send_transaction(coap_transaction_t *t, int dtls)
     coap_send_message(t->ctx, &t->addr, t->port, t->packet, t->packet_len);
   }
   else {
-    coap_send_message_dtls(t->ctx, &t->addr, t->port, t->packet, t->packet_len);
+    coap_send_message_dtls(t->ctx_dtls, &t->addr, t->port, t->packet, t->packet_len);
   }
 
   if(COAP_TYPE_CON ==
