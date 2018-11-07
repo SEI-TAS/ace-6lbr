@@ -19,7 +19,7 @@
 #endif
 
 #define NONCE_SIZE 13
-#define MAX_CBOR_CLAIMS_LEN 200
+#define MAC_LENGTH 8
 #define COSE_PROTECTED_HEADER_SIZE 6
 
 
@@ -213,7 +213,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   PRINTF("Encrypted CBOR claims length: %d\n", encrypted_cbor_length);
 
   PRINTF("Decrypting claims.\n");
-  unsigned char* decrypted_cbor = (unsigned char*) malloc(MAX_CBOR_CLAIMS_LEN);
+  unsigned char* decrypted_cbor = (unsigned char*) malloc(encrypted_cbor_length - MAC_LENGTH); // Descrypted bytes will have the same length, minus the MAC.
   int decrypted_cbor_len = dtls_decrypt_with_nounce_len(encrypted_cbor, encrypted_cbor_length,
                                                         decrypted_cbor,
                                                         nonce, NONCE_SIZE,
@@ -300,13 +300,27 @@ int validate_claims(const cwt* token, char** error) {
   }
 
   // 4. Check if the token has a known scope.
-  if(strstr(SCOPES, token->sco) == 0) {
-    int error_len = strlen(UNKNOWN_SCOPE_ERROR) - 2 + strlen(token->sco) + 1;
-    *error = (char*) malloc(error_len);
-    snprintf(*error, error_len, UNKNOWN_SCOPE_ERROR, token->sco);
-    PRINTF("Error validating token: %s\n", *error);
-    return 0;
+  PRINTF("Checking if all scopes in token are known: %s\n", token->sco);
+  int scope_list_len = strlen(token->sco) + 1;
+  char* scope_list = (char*) malloc(scope_list_len);
+  memcpy(scope_list, token->sco, scope_list_len);
+  char* curr_scope = strtok(scope_list, " ");
+  while(curr_scope) {
+    // Check if this scope is in the list of known scopes.
+    PRINTF("Checking next scope: %s, length %u\n", curr_scope, (unsigned int) strlen(curr_scope));
+    if(strstr(SCOPES, curr_scope) == 0) {
+      int error_len = strlen(UNKNOWN_SCOPE_ERROR) - 2 + strlen(curr_scope) + 1;
+      *error = (char*) malloc(error_len);
+      snprintf(*error, error_len, UNKNOWN_SCOPE_ERROR, curr_scope);
+      PRINTF("Error validating token: %s\n", *error);
+      free(scope_list);
+      return 0;
+    }
+
+    // Move to next scope.
+    curr_scope = strtok(NULL, " ");
   }
+  free(scope_list);
 
   PRINTF("All claims are valid.\n");
   return 1;
