@@ -213,7 +213,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   PRINTF("Encrypted CBOR claims length: %d\n", encrypted_cbor_length);
 
   PRINTF("Decrypting claims.\n");
-  unsigned char* decrypted_cbor = (unsigned char*) malloc(encrypted_cbor_length - MAC_LENGTH); // Descrypted bytes will have the same length, minus the MAC.
+  unsigned char* decrypted_cbor = (unsigned char*) malloc(encrypted_cbor_length);
   int decrypted_cbor_len = dtls_decrypt_with_nounce_len(encrypted_cbor, encrypted_cbor_length,
                                                         decrypted_cbor,
                                                         nonce, NONCE_SIZE,
