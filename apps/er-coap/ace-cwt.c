@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+//#include <time.h>
 
 #include "cfs/cfs.h"
 
@@ -270,8 +270,9 @@ cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len) {
 int validate_claims(const cwt* token, char** error) {
   PRINTF("Validating tokens.\n");
 
-  // 1. Check if the token has expired.
-  time_t curr_time_ms = time(NULL) * 1000;
+  // TODO: time() needs gettimeofday() implementation for CC2538dk TI boards for this version to compile and work.
+  // 1. Check if the token has expired. NOTE: disabled since it won't work on an unsynched IoT device.
+  /*time_t curr_time_ms = time(NULL) * 1000;
   PRINTF("Checking if current time %ld is greater than expiration time %ld\n", curr_time_ms, token->exp);
   if(curr_time_ms > token->exp) {
     int error_len = strlen(TOKEN_EXPIRED_ERROR) + 1;
@@ -279,7 +280,7 @@ int validate_claims(const cwt* token, char** error) {
     snprintf(*error, error_len, TOKEN_EXPIRED_ERROR);
     PRINTF("Error validating token: %s\n", *error);
     return 0;
-  }
+  }*/
 
   // 2. Check if we are the audience.
   if(strncmp(RS_ID, token->aud, strlen(RS_ID)) != 0) {
