@@ -12,6 +12,7 @@
  * Contributors:
  *    Olaf Bergmann  - initial API and implementation
  *    Hauke Mehrtens - memory optimization, ECC integration
+ *    Carnegie Mellon University - Modifications to enable ACE Constrained RS
  *
  *******************************************************************************/
 
