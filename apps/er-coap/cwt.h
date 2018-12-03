@@ -26,12 +26,17 @@ DM18-1273
 #define CTI 7
 #define SCO 12
 #define CNF 25
+#define EXI 35
+
+#define CNF_KID 2
+#define CNK_KEY -1
 
 typedef struct cwt {
   char* iss;
   char* sub;
   char* aud;    // Only string auds supported; no support for array of auds.
   time_t exp;
+  uint64_t exi;
   time_t nbf;
   time_t iat;
   char* cti;
@@ -42,6 +47,8 @@ typedef struct cwt {
   unsigned char* key;
   unsigned char* cbor_claims;
   int cbor_claims_len;
+  uint64_t time_received_seconds;
+  int time_received_size;
 } cwt ;
 
 typedef struct cosewt {
@@ -54,6 +61,7 @@ typedef struct token_entry {
   unsigned char* key;
   unsigned char* cbor;
   int cbor_len;
+  uint64_t time_received_seconds;
 } token_entry;
 
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);

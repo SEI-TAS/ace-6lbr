@@ -14,7 +14,7 @@ DM18-1273
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <time.h>
+#include <time.h>
 
 #include "cfs/cfs.h"
 
@@ -68,19 +68,19 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
       PRINTF("Type is Byte String\n");
       HEX_PRINTF(cbor_object->v.str, cbor_object->length)
       switch(*curr_claim){
-        case 7:     // CTI
+        case CTI:
           token->cti = (char *) malloc(cbor_object->length);
           memcpy(token->cti, cbor_object->v.str, cbor_object->length);
           PRINTF("cti found\n");
           break;
-        case 2:     // KID (inside CNF)
+        case CNF_KID:     // KID (inside CNF)
           token->kid = (unsigned char *) malloc(cbor_object->length);
           token->kid_len = cbor_object->length;
           PRINTF("kid len is %d\n", token->kid_len);
           memcpy(token->kid, cbor_object->v.str, token->kid_len);
           PRINTF("kid found\n");
           break;
-        case -1:    // KEY (inside CNF)
+        case CNK_KEY:    // KEY (inside CNF)
           token->key = (unsigned char *) malloc(cbor_object->length);
           memcpy(token->key, cbor_object->v.str, cbor_object->length);
           PRINTF("key found\n");
@@ -96,25 +96,25 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
       PRINTF("TXT: %.*s\n", cbor_object->length, cbor_object->v.str);
 
       switch(*curr_claim){
-        case 1: // ISS
+        case ISS:
           token->iss = (char *) malloc(cbor_object->length + 1);
           strncpy(token->iss, cbor_object->v.str, cbor_object->length);
           token->iss[cbor_object->length] = '\0';
           PRINTF("iss is %s\n", token->iss);
           break;
-        case 2: // SUB
+        case SUB:
           token->sub = (char *) malloc(cbor_object->length + 1);
           strncpy(token->sub, cbor_object->v.str, cbor_object->length);
           token->sub[cbor_object->length] = '\0';
           PRINTF("sub is %s\n", token->sub);
           break;
-        case 3: // AUD
+        case AUD:
           token->aud = (char *) malloc(cbor_object->length + 1);
           strncpy(token->aud, cbor_object->v.str, cbor_object->length);
           token->aud[cbor_object->length] = '\0';
           PRINTF("aud is %s\n", token->aud);
           break;
-        case 12:    // SCOPE
+        case SCO:
           token->sco = (char *) malloc(cbor_object->length + 1);
           strncpy(token->sco, cbor_object->v.str, cbor_object->length);
           token->sco[cbor_object->length] = '\0';
@@ -133,17 +133,21 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
       }
       else {
         switch(*curr_claim){
-          case 4:
+          case EXP:
             token->exp = cbor_object->v.uint;
             PRINTF("exp is %lu\n", token->exp);
             break;
-          case 5:
+          case NBF:
             token->nbf = cbor_object->v.uint;
             PRINTF("nbf is %lu\n", token->nbf);
             break;
-          case 6:
+          case IAT:
             token->iat = cbor_object->v.uint;
             PRINTF("iat is %lu\n", token->iat);
+            break;
+          case EXI:
+            token->exi = cbor_object->v.uint;
+            PRINTF("exi is %lu\n", token->exi);
             break;
         }
         *curr_claim = 0;
@@ -250,6 +254,11 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   // Add original CBOR bytes so we can serialize it faster if needed.
   token_info->cbor_claims = decrypted_cbor;
   token_info->cbor_claims_len = decrypted_cbor_len;
+
+  // And time token was received (now)
+  token_info->time_received_seconds = (uint64_t) time(NULL);
+  token_info->time_received_size = sizeof(uint64_t);
+
   return token_info;
 }
 
@@ -267,6 +276,7 @@ cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len) {
   token_info->sco = 0;
   token_info->aud = 0;
   token_info->exp = 0;
+  token_info->exi = 0;
   long curr_claim = 0;
   parse_claims(&curr_claim, token_info, cbor_claims);
   token_info->cbor_claims_len = 0;
@@ -284,16 +294,17 @@ int validate_claims(const cwt* token, char** error) {
   PRINTF("Validating tokens.\n");
 
   // TODO: time() needs gettimeofday() implementation for CC2538dk TI boards for this version to compile and work.
-  // 1. Check if the token has expired. NOTE: disabled since it won't work on an unsynched IoT device.
-  /*time_t curr_time_ms = time(NULL) * 1000;
-  PRINTF("Checking if current time %ld is greater than expiration time %ld\n", curr_time_ms, token->exp);
-  if(curr_time_ms > token->exp) {
+  // 1. Check if the token has expired. We use the exi claim and not the exp claim since exp requires clock synch.
+  uint64_t curr_time_seconds = (uint64_t) time(NULL);
+  uint64_t time_since_received = curr_time_seconds - token->time_received_seconds;
+  PRINTF("Checking if time since token was received %ld is greater than expires in time %ld\n", time_since_received, token->exi);
+  if((token->exi != 0) && (time_since_received > token->exi)) {
     int error_len = strlen(TOKEN_EXPIRED_ERROR) + 1;
     *error = (char*) malloc(error_len);
     snprintf(*error, error_len, TOKEN_EXPIRED_ERROR);
     PRINTF("Error validating token: %s\n", *error);
     return 0;
-  }*/
+  }
 
   // 2. Check if we are the audience.
   if(strncmp(RS_ID, token->aud, strlen(RS_ID)) != 0) {

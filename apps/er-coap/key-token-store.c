@@ -92,6 +92,9 @@ int store_token(cwt* token) {
     if(token->cbor_claims_len > 0) {
       PRINTF("Storing CBOR claims.\n");
       bytes_written += cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_len);
+
+      PRINTF("Storing received time.\n");
+      bytes_written += cfs_write(fd_tokens_file, token->time_received_seconds, token->time_received_size);
     }
 
     cfs_close(fd_tokens_file);
@@ -128,13 +131,13 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
     bytes_read += cfs_read(fd_read, kid, KEY_ID_LENGTH);
     bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
     bytes_read += cfs_read(fd_read, cbor_len_buffer, CBOR_SIZE_LENGTH);
-    curr_size = atoi(cbor_len_buffer);
+    cbor_size = atoi(cbor_len_buffer);
 
     PRINTF("Current key id: ");
     HEX_PRINTF(kid, KEY_ID_LENGTH);
     PRINTF("Current key: ");
     HEX_PRINTF(key, KEY_LENGTH);
-    PRINTF("Current cbor len: %d\n", curr_size);
+    PRINTF("Current cbor len: %d\n", cbor_size);
 
     if (memcmp(index, kid, KEY_ID_LENGTH) == 0 || memcmp(index, key, KEY_LENGTH) == 0){
         PRINTF("Matched!\n");
@@ -149,7 +152,7 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
         PRINTF("Readed into struct key: ");
         HEX_PRINTF(result->key, KEY_LENGTH)
 
-        result->cbor_len = curr_size;
+        result->cbor_len = cbor_size;
         PRINTF("Cbor len: %d\n", result->cbor_len);
 
         if(result->cbor_len > 0) {
@@ -157,6 +160,14 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
           bytes_read += cfs_read(fd_read, result->cbor, result->cbor_len);
           PRINTF("Readed cbor into struct: \n");
           HEX_PRINTF(result->cbor, result->cbor_len)
+
+          unsigned char* received_time = (unsigned char *) malloc(sizeof(uint64_t));
+          bytes_read += cfs_read(fd_read, received_time, sizeof(uint64_t));
+          PRINTF("Readed received time into buffer: \n");
+          HEX_PRINTF(received_time, sizeof(uint64_t));
+
+          result->time_received_seconds = bytes_to_uint64_t(received_time, sizeof(uint64_t));
+          PRINTF("Stored received time into buffer: %lu\n", result->received_time);
         }
         else {
           result->cbor = 0;
@@ -164,10 +175,11 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
         }
     }
     else {
-      if(curr_size > 0) {
-        // We need to skip over the cbor content to get to the next entry.
-        cfs_seek(fd_read, curr_size, CFS_SEEK_CUR);
-        bytes_read += curr_size;
+      if(cbor_size > 0) {
+        // We need to skip over the cbor content and time to get to the next entry.
+        cfs_seek(fd_read, cbor_size, CFS_SEEK_CUR);
+        cfs_seek(fd_read, sizeof(uint64_t), CFS_SEEK_CUR);
+        bytes_read += cbor_size;
       }
     }
 
@@ -193,4 +205,13 @@ void free_token_entry(token_entry* entry) {
   if(entry->cbor_len > 0) {
     free(entry->cbor);
   }
+}
+
+uint64_t bytes_to_uint64_t(unsigned char* bytes, int length){
+  long value = 0;
+  int i = 0;
+  for (i = 0; i < length; i++) {
+    value += ((long) bytes[i] & 0xffL) << (8 * i);
+  }
+  return value;
 }

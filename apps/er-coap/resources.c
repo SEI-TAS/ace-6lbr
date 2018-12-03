@@ -26,7 +26,7 @@ DM18-1273
 #include "key-token-store.h"
 #include "dtls_helpers.h"
 
-// TODO: fix this too.
+// TODO: improve this too.
 // First position in array is GET, second is POST, third is PUT, fourth is DELETE.
 static const char* res_hw_scopes[] = {"HelloWorld", 0, 0, 0};
 static const char* res_lock_scopes[] = {"r_Lock;rw_Lock", 0, "rw_Lock", 0};
