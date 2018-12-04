@@ -95,7 +95,9 @@ int store_token(cwt* token) {
       bytes_written += cfs_write(fd_tokens_file, token->cbor_claims, token->cbor_claims_len);
 
       PRINTF("Storing received time.\n");
-      bytes_written += cfs_write(fd_tokens_file, token->time_received_seconds, token->time_received_size);
+      unsigned char* time_buffer = uint64_t_to_bytes(token->time_received_seconds);
+      bytes_written += cfs_write(fd_tokens_file, time_buffer, token->time_received_size);
+      free(time_buffer);
     }
 
     cfs_close(fd_tokens_file);
@@ -213,6 +215,15 @@ uint64_t bytes_to_uint64_t(unsigned char* bytes, int length){
   int i = 0;
   for (i = 0; i < length; i++) {
     value += ((long) bytes[i] & 0xffL) << (8 * i);
+  }
+  return value;
+}
+
+unsigned char* uint64_t_to_bytes(uint64_t number, int length){
+  unsigned char* bytes = (unsigned char *) malloc(sizeof(uint64_t));
+  int i = 0;
+  for (i = 0; i < sizeof(uint64_t); i++) {
+    bytes[i] = ((number >> (8 * i)) & 0xffL);
   }
   return value;
 }
