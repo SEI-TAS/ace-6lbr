@@ -33,6 +33,7 @@ DM18-1273
 #define HEX_PRINTF(byte_array, length)
 #endif
 
+uint64_t bytes_to_uint64_t(unsigned char* bytes, int length);
 
 void initialize_key_token_store() {
   printf("Creating keystore...\n");
@@ -126,7 +127,7 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
   unsigned char key[KEY_LENGTH] = { 0 };
   char cbor_len_buffer[CBOR_SIZE_LENGTH + 1] = { 0 };
   int bytes_read = 0;
-  int curr_size = 0;
+  int cbor_size = 0;
   while(bytes_read < file_size) {
     bytes_read += cfs_read(fd_read, kid, KEY_ID_LENGTH);
     bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
