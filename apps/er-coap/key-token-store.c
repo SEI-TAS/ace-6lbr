@@ -34,6 +34,7 @@ DM18-1273
 #endif
 
 uint64_t bytes_to_uint64_t(unsigned char* bytes, int length);
+unsigned char* uint64_t_to_bytes(uint64_t number);
 
 void initialize_key_token_store() {
   printf("Creating keystore...\n");
@@ -219,11 +220,11 @@ uint64_t bytes_to_uint64_t(unsigned char* bytes, int length){
   return value;
 }
 
-unsigned char* uint64_t_to_bytes(uint64_t number, int length){
+unsigned char* uint64_t_to_bytes(uint64_t number){
   unsigned char* bytes = (unsigned char *) malloc(sizeof(uint64_t));
   int i = 0;
   for (i = 0; i < sizeof(uint64_t); i++) {
     bytes[i] = ((number >> (8 * i)) & 0xffL);
   }
-  return value;
+  return bytes;
 }
