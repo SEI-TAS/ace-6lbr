@@ -24,6 +24,7 @@ DM18-1273
 
 #define PAIRING_KEY_ID "Authentication01"
 #define NON_TOKEN_ENTRY_CBOR_LENGTH "0000"
+#define MAX_TOKENS 20
 
 #define DEBUG 0
 #if DEBUG
@@ -182,8 +183,9 @@ int find_token_entry(const unsigned char* const index, size_t idx_len, token_ent
       if(cbor_size > 0) {
         // We need to skip over the cbor content and time to get to the next entry.
         cfs_seek(fd_read, cbor_size, CFS_SEEK_CUR);
-        cfs_seek(fd_read, sizeof(uint64_t), CFS_SEEK_CUR);
         bytes_read += cbor_size;
+        cfs_seek(fd_read, sizeof(uint64_t), CFS_SEEK_CUR);
+        bytes_read += sizeof(uint64_t);
       }
     }
 
@@ -211,6 +213,97 @@ void free_token_entry(token_entry* entry) {
   }
 }
 
+// Removes the token for the given key id.
+int remove_token(const unsigned char* const key_id, int key_id_len) {
+  int success = 0;
+
+  int fd_read = cfs_open(TOKENS_FILE_NAME, CFS_READ);
+  if(fd_read == -1) {
+    PRINTF("ERROR: could not open tokens file '%s' for reading\n", TOKENS_FILE_NAME);
+    return success;
+  }
+
+  int file_size = cfs_seek(fd_read, 0, CFS_SEEK_END);
+  PRINTF("File size is %d\n", file_size);
+  cfs_seek(fd_read, 0, CFS_SEEK_SET);
+
+  PRINTF("Looking for token identified by key: ");
+  HEX_PRINTF(key_id, key_id_len)
+
+  int bytes_read = 0;
+  int num_tokens = 0;
+  token_entry* token_list[MAX_TOKENS] = {0};
+  while(bytes_read < file_size) {
+    if(num_tokens == MAX_TOKENS) {
+      PRINTF("Max tokens reached; removing rest of tokens");
+      break;
+    }
+
+    unsigned char* kid = (unsigned char*) malloc(KEY_ID_LENGTH);
+    bytes_read += cfs_read(fd_read, kid, KEY_ID_LENGTH);
+    PRINTF("Current key id: ");
+    HEX_PRINTF(kid, KEY_ID_LENGTH);
+
+    unsigned char* key = (unsigned char*) malloc(KEY_LENGTH);
+    bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
+
+    unsigned char* cbor_len_buffer = (unsigned char*) malloc(CBOR_SIZE_LENGTH);
+    bytes_read += cfs_read(fd_read, cbor_len_buffer, CBOR_SIZE_LENGTH);
+    int cbor_size = atoi(cbor_len_buffer);
+
+    if (memcmp(key_id, kid, KEY_ID_LENGTH) == 0){
+        PRINTF("Ignoring token to remove!\n");
+        // We need to skip over the key and cbor size.
+        if(cbor_size > 0) {
+          // We need to skip over the cbor content and time to get to the next entry.
+          cfs_seek(fd_read, cbor_size, CFS_SEEK_CUR);
+          bytes_read += cbor_size;
+          cfs_seek(fd_read, sizeof(uint64_t), CFS_SEEK_CUR);
+          bytes_read += sizeof(uint64_t);
+
+          // Free the stored key id, key and cbor size.
+          free(kid);
+          free(key);
+          free(cbor_len_buffer);
+        }
+        continue;
+    }
+    else {
+      // Store this entry in memory so we can write it back to the file.
+      token_entry* token_info = (token_entry*) malloc(sizeof(token_entry));
+      token_info->kid = kid;
+      token_info->key = key;
+      token_info->cbor_len = cbor_size;
+      if(cbor_size > 0) {
+        // We still need to get the token info and time.
+        unsigned char* cbor = (unsigned char*) malloc(cbor_size);
+        bytes_read += cfs_read(fd_read, cbor, cbor_size);
+        token_info->cbor = cbor;
+
+        unsigned char* received_time = (unsigned char *) malloc(sizeof(uint64_t));
+        bytes_read += cfs_read(fd_read, received_time, sizeof(uint64_t));
+        token_info->time_received_seconds = bytes_to_uint64_t(received_time, sizeof(uint64_t));
+      }
+
+      token_list[num_tokens++] = token_entry;
+    }
+
+    PRINTF("bytes read is %d\n", bytes_read);
+  }
+  cfs_close(fd_read);
+
+  // Now write them all but the removed one back to the file.
+  int fd_write = cfs_open(TOKENS_FILE_NAME, CFS_WRITE);
+  int curr_token = 0;
+  while(curr_token < num_tokens) {
+    token_entry* curr_token = token_list[curr_token++];
+
+  }
+
+  return success;
+}
+
+// Converts from byte array to uint64.
 uint64_t bytes_to_uint64_t(unsigned char* bytes, int length){
   long value = 0;
   int i = 0;
@@ -220,6 +313,7 @@ uint64_t bytes_to_uint64_t(unsigned char* bytes, int length){
   return value;
 }
 
+// Converts from uint64 to byte array.
 unsigned char* uint64_t_to_bytes(uint64_t number){
   unsigned char* bytes = (unsigned char *) malloc(sizeof(uint64_t));
   int i = 0;
