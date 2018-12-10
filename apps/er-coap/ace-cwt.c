@@ -245,9 +245,9 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   cwt* token_info = parse_cbor_claims(decrypted_cbor, decrypted_cbor_len);
 
   // Store authz info.
-  token_info->authz_info-> kid = token->kid;
-  token_info->authz_info-> key = token->key;
-  token_info->authz_info = (authz_entry*) malloc(sizeof(authz_entry));
+  token_info->authz_info->kid = token->kid;
+  token_info->authz_info->key = token->key;
+  token_info->authz_info = (authz_entry) malloc(sizeof(authz_entry));
   token_info->authz_info->claims = decrypted_cbor;
   token_info->authz_info->claims_len = decrypted_cbor_len;
   token_info->authz_info->time_received_seconds = (uint64_t) time(NULL);
