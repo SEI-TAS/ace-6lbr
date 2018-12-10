@@ -22,6 +22,7 @@ DM18-1273
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
+#define HEX_PRINTF(byte_array, length) HEX_PRINTF_INL(byte_array, length)
 #else
 #define PRINTF(...)
 #define HEX_PRINTF(byte_array, length)

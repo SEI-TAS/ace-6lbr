@@ -39,6 +39,7 @@ DM18-1273
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
+#define HEX_PRINTF(byte_array, length) HEX_PRINTF_INL(byte_array, length)
 #else
 #define PRINTF(...)
 #define HEX_PRINTF(byte_array, length)
@@ -272,7 +273,6 @@ cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len) {
   token_info->exi = 0;
   long curr_claim = 0;
   parse_claims(&curr_claim, token_info, cbor_claims);
-  token_info->cbor_claims_len = 0;
   PRINTF("Finished parsing claims into cwt object.\n");
 
   return token_info;
@@ -289,7 +289,7 @@ int validate_claims(const cwt* token, char** error) {
   // TODO: time() needs gettimeofday() implementation for CC2538dk TI boards for this version to compile and work.
   // 1. Check if the token has expired. We use the exi claim and not the exp claim since exp requires clock synch.
   uint64_t curr_time_seconds = (uint64_t) time(NULL);
-  uint64_t time_since_received = curr_time_seconds - token->time_received_seconds;
+  uint64_t time_since_received = curr_time_seconds - token->authz_info->time_received_seconds;
   PRINTF("Checking if time since token was received %ld is greater than expires in time %ld\n", time_since_received, token->exi);
   if((token->exi != 0) && (time_since_received > token->exi)) {
     int error_len = strlen(TOKEN_EXPIRED_ERROR) + 1;
