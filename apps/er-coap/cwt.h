@@ -46,7 +46,7 @@ typedef struct cwt {
   unsigned char* kid;
   int kid_len;
   unsigned char* key;
-  authz_entry authz_info;
+  authz_entry* authz_info;
 } cwt ;
 
 typedef struct cosewt {
