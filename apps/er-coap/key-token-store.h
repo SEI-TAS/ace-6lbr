@@ -15,11 +15,18 @@ DM18-1273
 #define KEY_TOKEN_STORE_H
 
 #include <stdlib.h>
-#include "cwt.h"
+
+typedef struct authz_entry {
+  unsigned char* kid;
+  unsigned char* key;
+  int claims_len;
+  unsigned char* claims;
+  uint64_t time_received_seconds;
+} authz_entry;
 
 void initialize_key_token_store();
-int store_token(cwt* token);
-int find_token_entry(const unsigned char* const index, size_t idx_len, token_entry *result);
-void free_token_entry(token_entry* entry);
+int store_authz_entry(authz_entry* entry);
+int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_entry *result);
+void free_authz_entry(authz_entry* entry);
 
 #endif // KEY_TOKEN_STORE_H

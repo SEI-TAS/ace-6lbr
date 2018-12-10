@@ -66,7 +66,7 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
   }
 
   // If token is valid, store.
-  if(store_token(token) == 0) {
+  if(store_authz_info(token->authz_info) == 0) {
     REST.set_response_status(response, REST.status.INTERNAL_SERVER_ERROR);
     const char* error_message = "Failed to store token.";
     REST.set_response_payload(response, error_message, strlen(error_message));

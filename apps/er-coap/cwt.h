@@ -16,6 +16,7 @@ DM18-1273
 #define CWT_H
 
 #include <time.h>
+#include "key-token-store.h"
 
 #define ISS 1
 #define SUB 2
@@ -43,26 +44,14 @@ typedef struct cwt {
   char* sco;
   char* cnf;
   unsigned char* kid;
-  int kid_len;
   unsigned char* key;
-  unsigned char* cbor_claims;
-  int cbor_claims_len;
-  uint64_t time_received_seconds;
-  int time_received_size;
+  authz_entry authz_info;
 } cwt ;
 
 typedef struct cosewt {
   char* nonce;
   char* pay;
 } cosewt;
-
-typedef struct token_entry {
-  unsigned char* kid;
-  unsigned char* key;
-  unsigned char* cbor;
-  int cbor_len;
-  uint64_t time_received_seconds;
-} token_entry;
 
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
 cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len);

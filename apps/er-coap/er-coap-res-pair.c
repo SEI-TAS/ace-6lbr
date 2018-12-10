@@ -64,7 +64,7 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
       key_info->kid = (unsigned char*) RS_ID;
       key_info->kid_len = strlen(RS_ID);
 
-      if(store_token(key_info)) {
+      if(store_authz_entry(key_info->authz_info)) {
         // We have to respond with our key and scopes, encoded in CBOR.
         printf("Encoding response with device id and scopes.\n");
         unsigned char* cbor_bytes = 0;

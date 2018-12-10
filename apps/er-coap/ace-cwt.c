@@ -172,9 +172,6 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
 
 // Reads a CWT token in CBOR byte format, and loads it into a cwt C struct.
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
-  //char key[KEY_LENGTH] = {0xa1, 0xa2, 0xa3, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10};
-  //char key[KEY_LENGTH] = {0x7d, 0xd4, 0x43, 0x81, 0x1e, 0x32, 0x21, 0x08, 0x13, 0xc3, 0xc5, 0x11, 0x1e, 0x4d, 0x3d, 0xb4};
-
   // The structure of this wrapper is: 16 [<protected-headers-as-b-string>, <unprotected-headers-as-map>, <cyphertext-as-b-string>]
   // We assume byte 1 in CWT is 0xD0, 16, which means COSE_Encrypt0, the type of COSE wrapper we are using.
   // We assume byte 2 is 83, which indicates we have an array.
@@ -182,10 +179,6 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   // Bytes 4,5,6 should be A1010A, meaning profile AES_CCM_16_64_128 for the encrypted cypher.
   // Byte 7 should be A2, indicating a map for the unprotected header params.
   // Byte 8 should be 04, indicating the key id to be used.
-
-  //char protected_header[COSE_PROTECTED_HEADER_SIZE];
-  //memcpy(header, cbor_token, COSE_PROTECTED_HEADER_SIZE);
-  ///if (header == "\xD0\x83\x43\xA1\x01\x0A\xA2\04\"){
 
   PRINTF("Received COSE message, last byte is %02x\n", cbor_token[token_length - 1]);
 
@@ -204,9 +197,9 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   PRINTF("Key id is %s.\n", key_id);
 
   PRINTF("Looking for stored key associated with kid.\n");
-  token_entry pairing_key_info = {0};
+  authz_entry pairing_key_info = {0};
   unsigned char* padded_key_id = left_pad_array((unsigned char*) key_id, key_id_size, KEY_ID_LENGTH, 0);
-  if(find_token_entry(padded_key_id, KEY_ID_LENGTH, &pairing_key_info) == 0) {
+  if(find_authz_entry(padded_key_id, KEY_ID_LENGTH, &pairing_key_info) == 0) {
     PRINTF("Could not find key to decrypt COSE wrapper of CWT; aborting parsing token.\n");
     return 0;
   }
@@ -238,7 +231,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   PRINTF("%d bytes COSE decrypted\n", decrypted_cbor_len);
 
   PRINTF("Freeing temporary allocated memory for decryption.\n");
-  free_token_entry(&pairing_key_info);
+  free_authz_entry(&pairing_key_info);
   free(key_id);
   free(padded_key_id);
   free(nonce);
@@ -251,13 +244,13 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   // Parse bytes into a cwt object.
   cwt* token_info = parse_cbor_claims(decrypted_cbor, decrypted_cbor_len);
 
-  // Add original CBOR bytes so we can serialize it faster if needed.
-  token_info->cbor_claims = decrypted_cbor;
-  token_info->cbor_claims_len = decrypted_cbor_len;
-
-  // And time token was received (now)
-  token_info->time_received_seconds = (uint64_t) time(NULL);
-  token_info->time_received_size = sizeof(uint64_t);
+  // Store authz info.
+  token_info->authz_info-> kid = token->kid;
+  token_info->authz_info-> key = token->key;
+  token_info->authz_info = (authz_entry*) malloc(sizeof(authz_entry));
+  token_info->authz_info->claims = decrypted_cbor;
+  token_info->authz_info->claims_len = decrypted_cbor_len;
+  token_info->authz_info->time_received_seconds = (uint64_t) time(NULL);
 
   return token_info;
 }
