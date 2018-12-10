@@ -65,21 +65,9 @@ void write_entry_to_file(authz_entry* entry, int fd_tokens_file) {
   int bytes_written = 0;
   PRINTF("Storing key id and key.\n");
 
-  unsigned char* kid_to_store = entry->kid;
-  int padded = 0;
-  if(entry->kid_len < KEY_ID_LENGTH) {
-    // Pad the KID with zeroes so that it is always of KEY_ID_LENGTH.
-    kid_to_store = left_pad_array(entry->kid, entry->kid_len, KEY_ID_LENGTH, 0);
-    PRINTF("Padded KID \n");
-    padded = 1;
-  }
-  PRINTF("KID: \n");
-  HEX_PRINTF(kid_to_store, KEY_ID_LENGTH);
-  bytes_written += cfs_write(fd_tokens_file, kid_to_store, KEY_ID_LENGTH);
-
-  if(padded) {
-    free(kid_to_store);
-  }
+  PRINTF("KID \n");
+  HEX_PRINTF(entry->kid, KEY_ID_LENGTH);
+  bytes_written += cfs_write(fd_tokens_file, entry->kid, KEY_ID_LENGTH);
 
   PRINTF("KEY: \n");
   HEX_PRINTF(entry->key, KEY_LENGTH);
@@ -93,7 +81,7 @@ void write_entry_to_file(authz_entry* entry, int fd_tokens_file) {
   bytes_written += cfs_write(fd_tokens_file, length_as_string, strlen(length_as_string));
   if(entry->claims_len > 0) {
     PRINTF("Storing CBOR claims.\n");
-    bytes_written += cfs_write(fd_tokens_file, entry->cbor_claims, entry->claims_len);
+    bytes_written += cfs_write(fd_tokens_file, entry->claims, entry->claims_len);
 
     PRINTF("Storing received time.\n");
     unsigned char* time_buffer = uint64_t_to_bytes(entry->time_received_seconds);
@@ -255,8 +243,9 @@ int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
     unsigned char* key = (unsigned char*) malloc(KEY_LENGTH);
     bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
 
-    unsigned char* claims_len_buffer = (unsigned char*) malloc(CBOR_SIZE_LENGTH);
+    char* claims_len_buffer = (unsigned char) malloc(CBOR_SIZE_LENGTH + 1);
     bytes_read += cfs_read(fd_read, claims_len_buffer, CBOR_SIZE_LENGTH);
+    claims_len_buffer[CBOR_SIZE_LENGTH] = 0;
     int claims_len = atoi(claims_len_buffer);
 
     if (memcmp(key_id, kid, KEY_ID_LENGTH) == 0){
@@ -292,7 +281,7 @@ int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
         current_entry->time_received_seconds = bytes_to_uint64_t(received_time, sizeof(uint64_t));
       }
 
-      entry_list[total_entries++] = authz_entry;
+      entry_list[total_entries++] = current_entry;
     }
 
     PRINTF("bytes read is %d\n", bytes_read);
