@@ -17,7 +17,7 @@ DM18-1273
 
 #include <stdio.h>
 
-#define HEX_PRINTF_INL(byte_array, length) {                        \
+#define HEX_PRINTF(byte_array, length) {                        \
         printf("Hex bytes: ");                                      \
         int i;                                                  \
         for (i=0; i < length; i++)                              \

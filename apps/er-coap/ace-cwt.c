@@ -39,10 +39,10 @@ DM18-1273
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
-#define HEX_PRINTF(byte_array, length) HEX_PRINTF_INL(byte_array, length)
+#define HEX_PRINTF_INL(byte_array, length) HEX_PRINTF(byte_array, length)
 #else
 #define PRINTF(...)
-#define HEX_PRINTF(byte_array, length)
+#define HEX_PRINTF_INL(byte_array, length)
 #endif
 
 // Parses the unencrypted CBOR bytes of a CWT token, and loads all claims into a cwt C struct object.
@@ -67,7 +67,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
 
     case CN_CBOR_BYTES:
       PRINTF("Type is Byte String\n");
-      HEX_PRINTF(cbor_object->v.str, cbor_object->length)
+      HEX_PRINTF_INL(cbor_object->v.str, cbor_object->length)
       switch(*curr_claim){
         case CTI:
           token->cti = (char *) malloc(cbor_object->length);
@@ -205,7 +205,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
     return 0;
   }
   PRINTF("Key is: ");
-  HEX_PRINTF(pairing_key_info.key, KEY_LENGTH);
+  HEX_PRINTF_INL(pairing_key_info.key, KEY_LENGTH);
 
   // After the key id, there are 2 bytes indicating that the nonce is coming, and it size. We assume it will always be 13.
   int nonce_pos = key_id_pos + key_id_size + 2;
@@ -213,7 +213,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   unsigned char* nonce = (unsigned char *) malloc(NONCE_SIZE);
   memcpy(nonce, &cbor_token[nonce_pos], NONCE_SIZE);
   PRINTF("Nonce is: ");
-  HEX_PRINTF(nonce, NONCE_SIZE);
+  HEX_PRINTF_INL(nonce, NONCE_SIZE);
 
   // After the nonce there are 2 bytes indicating that a byte string is coming and its size.
   PRINTF("Getting encrypted claims.\n");
@@ -239,7 +239,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   free(encrypted_cbor);
 
   PRINTF("Decrypted CBOR:");
-  HEX_PRINTF(decrypted_cbor, decrypted_cbor_len)
+  HEX_PRINTF_INL(decrypted_cbor, decrypted_cbor_len)
   PRINTF("Decrypted CBOR length: %d\n", decrypted_cbor_len);
 
   // Parse bytes into a cwt object.

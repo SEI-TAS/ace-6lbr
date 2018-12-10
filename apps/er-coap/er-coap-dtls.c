@@ -42,7 +42,7 @@ DM18-1273
 #define DTLS_PSK_KEY_VALUE DTLS_CONF_PSK_KEY
 #define DTLS_PSK_KEY_VALUE_LENGTH DTLS_CONF_PSK_KEY_LENGTH
 #else
-#warning "DTLS: Using default secret key !"
+//#warning "DTLS: Using default secret key !"
 #define DTLS_PSK_KEY_VALUE "secretPSK"
 #define DTLS_PSK_KEY_VALUE_LENGTH 9
 #endif

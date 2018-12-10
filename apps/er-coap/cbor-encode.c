@@ -22,10 +22,10 @@ DM18-1273
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
-#define HEX_PRINTF(byte_array, length) HEX_PRINTF_INL(byte_array, length)
+#define HEX_PRINTF_INL(byte_array, length) HEX_PRINTF(byte_array, length)
 #else
 #define PRINTF(...)
-#define HEX_PRINTF(byte_array, length)
+#define HEX_PRINTF_INL(byte_array, length)
 #endif
 
 int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned char** cbor_result);
@@ -50,7 +50,7 @@ int encode_map_to_cbor(int key1, int int_value1, const char* str_value1,
   free(pair1_cbor);
   free(pair2_cbor);
   PRINTF("Final encoded bytes: ");
-  HEX_PRINTF((*cbor_result), cbor_bytes_len);
+  HEX_PRINTF_INL((*cbor_result), cbor_bytes_len);
 
   return cbor_bytes_len;
 }
@@ -85,7 +85,7 @@ int encode_pair_to_cbor(int key, int int_value, const char* str_value, unsigned 
   free(encoded_value);
 
   PRINTF("Encoded bytes: ");
-  HEX_PRINTF((*cbor_result), encoded_len);
+  HEX_PRINTF_INL((*cbor_result), encoded_len);
 
   return encoded_len;
 }
@@ -98,7 +98,7 @@ int encode_int_to_cbor(int int_value, unsigned char** cbor_result) {
   *cbor_result = (unsigned char*) malloc(encoded_len);
   (*cbor_result)[0] = CBOR_PRFIX_INT | int_value;
   PRINTF("Encoded int: ");
-  HEX_PRINTF((*cbor_result), encoded_len);
+  HEX_PRINTF_INL((*cbor_result), encoded_len);
   return encoded_len;
 }
 
@@ -131,7 +131,7 @@ int encode_string_to_cbor(const char* str_value, unsigned char** cbor_result) {
   // Now actually add the string.
   memcpy((*cbor_result) + pos, str_value, str_value_len);
   PRINTF("Encoded string: ");
-  HEX_PRINTF((*cbor_result), encoded_len);
+  HEX_PRINTF_INL((*cbor_result), encoded_len);
 
   return encoded_len;
 }
