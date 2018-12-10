@@ -56,7 +56,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   }
   free(padded_id);
 
-  if(entry.cbor_len == 0) {
+  if(entry.claims_len == 0) {
     last_error = "Entry has no token!";
     printf("%s\n", last_error);
     free_authz_entry(&entry);
