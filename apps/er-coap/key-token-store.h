@@ -25,6 +25,7 @@ typedef struct authz_entry {
 } authz_entry;
 
 void initialize_key_token_store();
+authz_entry* create_authz_entry(unsigned char* kid, int kid_len, unsigned char* key, int claims_len, unsigned char* claims, uint64_t time);
 int store_authz_entry(authz_entry* entry);
 int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_entry *result);
 void free_authz_entry(authz_entry* entry);

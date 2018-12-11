@@ -42,19 +42,15 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     return 1;
   }
 
-  unsigned char* padded_id = left_pad_array(key_id, key_id_len, KEY_ID_LENGTH, 0);
-
   printf("Finding token for given identity: ");
   HEX_PRINTF(key_id, key_id_len);
   authz_entry entry = {0};
-  if(find_authz_entry(padded_id, KEY_ID_LENGTH, &entry) == 0) {
+  if(find_authz_entry(key_id, key_id_len, &entry) == 0) {
     last_error = "Entry not found!";
     printf("%s\n", last_error);
     free_authz_entry(&entry);
-    free(padded_id);
     return 0;
   }
-  free(padded_id);
 
   if(entry.claims_len == 0) {
     last_error = "Entry has no token!";

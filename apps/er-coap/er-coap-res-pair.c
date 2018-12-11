@@ -61,10 +61,8 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
 
       // We will ignore the AS id, since our id is what the AS will use as the Key ID for this key.
       printf("Will store key with our id: %s\n", RS_ID);
-      key_info->kid = (unsigned char*) RS_ID;
-      key_info->kid_len = strlen(RS_ID);
-
-      if(store_authz_entry(key_info->authz_info)) {
+      authz_entry* authz_info = create_authz_entry((unsigned char*) RS_ID, strlen(RS_ID), key_info->key, 0, 0, 0);
+      if(store_authz_entry(authz_info)) {
         // We have to respond with our key and scopes, encoded in CBOR.
         printf("Encoding response with device id and scopes.\n");
         unsigned char* cbor_bytes = 0;

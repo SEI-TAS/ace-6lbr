@@ -92,12 +92,9 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
     printf("Requesting psk key\n");
     if (id) {
       printf("Id length is %u\n", (unsigned int) id_len);
-      unsigned char* lookupid = left_pad_array(id, id_len, KEY_ID_LENGTH, 0);
-
       printf("Looking up id: ");
-      HEX_PRINTF(lookupid, KEY_ID_LENGTH);
-      int key_length = lookup_dtls_key(lookupid, KEY_ID_LENGTH, result, result_length);
-      free(lookupid);
+      HEX_PRINTF(id, id_len);
+      int key_length = lookup_dtls_key(id, id_len, result, result_length);
       if(key_length == 0) {
           dtls_warn("Could not find or set PSK.\n");
           return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);

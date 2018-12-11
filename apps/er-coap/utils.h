@@ -25,6 +25,4 @@ DM18-1273
         printf("\n");                                           \
      }
 
-unsigned char* left_pad_array(const unsigned char* const byte_array, int array_length, int final_length, char padding);
-
 #endif // UTILS_H

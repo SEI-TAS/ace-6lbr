@@ -38,6 +38,15 @@ DM18-1273
 uint64_t bytes_to_uint64_t(unsigned char* bytes, int length);
 unsigned char* uint64_t_to_bytes(uint64_t number);
 
+// Adds the given value as padding to the left of the array.
+unsigned char* left_pad_array(const unsigned char* const byte_array, int array_length, int final_length, char padding) {
+  unsigned char* padded_array = (unsigned char *) malloc(final_length);
+  memset(padded_array, padding, final_length);
+  int padding_len = final_length - array_length;
+  memcpy(&padded_array[padding_len], byte_array, array_length);
+  return padded_array;
+}
+
 void initialize_key_token_store() {
   printf("Creating keystore...\n");
   unsigned char pairing_key[KEY_LENGTH] = {'a', 'b', 'c', 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
@@ -57,6 +66,16 @@ void initialize_key_token_store() {
   else {
     printf("Won't create keystore, already exists.\n");
   }
+}
+
+authz_entry* create_authz_entry(unsigned char* kid, int kid_len, unsigned char* key, int claims_len, unsigned char* claims, uint64_t time) {
+  authz_entry authz_info = (authz_entry*) malloc(sizeof(authz_entry));
+  authz_info->kid = left_pad_array(kid, kid_len, KEY_ID_LENGTH, 0);
+  authz_info->key = key;
+  authz_info->claims_len = claims_len;
+  authz_info->claims = claims;
+  authz_info->time_received_seconds = time;
+  return authz_info;
 }
 
 // Writes an authz entry into the given open file.
@@ -122,8 +141,10 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
   PRINTF("File size is %d\n", file_size);
   cfs_seek(fd_read, 0, CFS_SEEK_SET);
 
+  unsigned char* padded_idx = left_pad_array(index, idx_len, KEY_ID_LENGTH, 0);
   PRINTF("Looking for record identified by: ");
-  HEX_PRINTF_DBG(index, idx_len);
+  HEX_PRINTF_DBG(padded_idx, KEY_ID_LENGTH);
+
   unsigned char kid[KEY_ID_LENGTH] = { 0 };
   unsigned char key[KEY_LENGTH] = { 0 };
   char claims_len_buffer[CBOR_SIZE_LENGTH + 1] = { 0 };
@@ -141,7 +162,7 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
     HEX_PRINTF_DBG(key, KEY_LENGTH);
     PRINTF("Current claims len: %d\n", claims_len);
 
-    if (memcmp(index, kid, KEY_ID_LENGTH) == 0 || memcmp(index, key, KEY_LENGTH) == 0){
+    if (memcmp(padded_idx, kid, KEY_ID_LENGTH) == 0){
         PRINTF("Matched!\n");
         key_found = 1;
 
@@ -191,6 +212,7 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
   }
 
   cfs_close(fd_read);
+  free(padded_idx);
   if (key_found == 0)
   {
     PRINTF("No matching entry\n");

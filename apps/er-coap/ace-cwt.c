@@ -199,8 +199,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 
   PRINTF("Looking for stored key associated with kid.\n");
   authz_entry pairing_key_info = {0};
-  unsigned char* padded_key_id = left_pad_array((unsigned char*) key_id, key_id_size, KEY_ID_LENGTH, 0);
-  if(find_authz_entry(padded_key_id, KEY_ID_LENGTH, &pairing_key_info) == 0) {
+  if(find_authz_entry((unsigned char*) key_id, key_id_size, &pairing_key_info) == 0) {
     PRINTF("Could not find key to decrypt COSE wrapper of CWT; aborting parsing token.\n");
     return 0;
   }
@@ -234,7 +233,6 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   PRINTF("Freeing temporary allocated memory for decryption.\n");
   free_authz_entry(&pairing_key_info);
   free(key_id);
-  free(padded_key_id);
   free(nonce);
   free(encrypted_cbor);
 
@@ -246,12 +244,8 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   cwt* token_info = parse_cbor_claims(decrypted_cbor, decrypted_cbor_len);
 
   // Store authz info.
-  token_info->authz_info->kid = left_pad_array(token_info->kid, token_info->kid_len, KEY_ID_LENGTH, 0);
-  token_info->authz_info->key = token_info->key;
-  token_info->authz_info = (authz_entry*) malloc(sizeof(authz_entry));
-  token_info->authz_info->claims = decrypted_cbor;
-  token_info->authz_info->claims_len = decrypted_cbor_len;
-  token_info->authz_info->time_received_seconds = (uint64_t) time(NULL);
+  token_info->authz_info = create_authz_entry(token_info->kid, token_info->kid_len, token_info->key,
+                                              decrypted_cbor_len, decrypted_cbor, (uint64_t) time(NULL));
 
   return token_info;
 }
