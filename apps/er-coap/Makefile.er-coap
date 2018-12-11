@@ -17,7 +17,7 @@ er-coap_src = er-coap.c er-coap-engine.c er-coap-transactions.c      \
   er-coap-res-well-known-core.c \
   er-coap-block1.c  \
   cn-cbor/cn-cbor.c cn-cbor/cn-create.c cn-cbor/cn-encoder.c cn-cbor/cn-error.c cn-cbor/cn-get.c \
-  ace-cwt.c key-token-store.c utils.c tinydtls_aes.c \
+  ace-cwt.c key-token-store.c tinydtls_aes.c \
   er-coap-dtls.c dtls_helpers.c er-coap-res-pair.c er-coap-res-hello.c er-coap-res-lock.c cbor-encode.c resources.c \
   er-coap-udp.c er-coap-res-authz-info.c
 
