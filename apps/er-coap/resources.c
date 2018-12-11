@@ -62,7 +62,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   printf("Parsing claims... \n");
   cwt* claims = parse_cbor_claims(entry.claims, entry.claims_len);
-  claims->authz_info = entry;
+  claims->authz_info = &entry;
   if(claims == 0) {
     last_error = "Could not parse claims.";
     printf("%s\n", last_error);
