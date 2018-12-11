@@ -62,10 +62,11 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   printf("Parsing claims... \n");
   cwt* claims = parse_cbor_claims(entry.claims, entry.claims_len);
-  free_authz_entry(&entry);
+  claims->authz_info = entry;
   if(claims == 0) {
     last_error = "Could not parse claims.";
     printf("%s\n", last_error);
+    free_authz_entry(&entry);
     return 0;
   }
 
@@ -75,8 +76,10 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     last_error = error;
     // TODO: note: since this will never be freed, any errors of this type will be memory leaks.
     printf("Problem validating claims: %s\n", error);
+    free_authz_entry(&entry);
     return 0;
   }
+  free_authz_entry(&entry);
 
   // TODO: fix extensibility here too.
   // Now validate that the scope makes sense for the current resource.

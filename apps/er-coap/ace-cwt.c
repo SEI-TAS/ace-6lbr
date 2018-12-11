@@ -278,7 +278,7 @@ cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len) {
 #define UNKNOWN_SCOPE_ERROR "Unknown scope: %s"
 
 int validate_claims(const cwt* token, char** error) {
-  PRINTF("Validating tokens.\n");
+  PRINTF("Validating claims.\n");
 
   // TODO: time() needs gettimeofday() implementation for CC2538dk TI boards for this version to compile and work.
   // 1. Check if the token has expired. We use the exi claim and not the exp claim since exp requires clock synch.
