@@ -95,9 +95,9 @@ int write_entry_to_file(authz_entry* entry, int fd_tokens_file) {
 // Stores the given token into the tokens file.
 int store_authz_entry(authz_entry* entry) {
   printf("Storing pop key and token in token file.\n");
-  int fd_tokens_file = cfs_open(TOKENS_FILE_NAME, CFS_APPEND);
+  int fd_tokens_file = cfs_open(TOKENS_FILE_NAME, CFS_WRITE | CFS_APPEND);
   if(fd_tokens_file == -1){
-    PRINTF("Could not open file to store key and token.");
+    PRINTF("Could not open file to store key and token.\n");
     return 0;
   }
 
