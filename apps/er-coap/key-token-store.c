@@ -29,10 +29,10 @@ DM18-1273
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
-#define HEX_PRINTF_INL(byte_array, length) HEX_PRINTF(byte_array, length)
+#define HEX_PRINTF_DBG(byte_array, length) HEX_PRINTF(byte_array, length)
 #else
 #define PRINTF(...)
-#define HEX_PRINTF_INL(byte_array, length)
+#define HEX_PRINTF_DBG(byte_array, length)
 #endif
 
 uint64_t bytes_to_uint64_t(unsigned char* bytes, int length);
@@ -66,11 +66,11 @@ void write_entry_to_file(authz_entry* entry, int fd_tokens_file) {
   PRINTF("Storing key id and key.\n");
 
   PRINTF("KID \n");
-  HEX_PRINTF_INL(entry->kid, KEY_ID_LENGTH);
+  HEX_PRINTF_DBG(entry->kid, KEY_ID_LENGTH);
   bytes_written += cfs_write(fd_tokens_file, entry->kid, KEY_ID_LENGTH);
 
   PRINTF("KEY: \n");
-  HEX_PRINTF_INL(entry->key, KEY_LENGTH);
+  HEX_PRINTF_DBG(entry->key, KEY_LENGTH);
   bytes_written += cfs_write(fd_tokens_file, entry->key, KEY_LENGTH);
 
   // Now write CBOR claims length, and the CBOR claims.
@@ -88,6 +88,8 @@ void write_entry_to_file(authz_entry* entry, int fd_tokens_file) {
     bytes_written += cfs_write(fd_tokens_file, time_buffer, sizeof(uint64_t));
     free(time_buffer);
   }
+
+  return bytes_written;
 }
 
 // Stores the given token into the tokens file.
@@ -99,7 +101,7 @@ int store_authz_entry(authz_entry* entry) {
     return 0;
   }
 
-  write_entry_to_file(entry, fd_tokens_file);
+  int bytes_written = write_entry_to_file(entry, fd_tokens_file);
 
   cfs_close(fd_tokens_file);
   PRINTF("Finished storing pop key and token in token file. Wrote %d bytes.\n", bytes_written);
@@ -121,7 +123,7 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
   cfs_seek(fd_read, 0, CFS_SEEK_SET);
 
   PRINTF("Looking for record identified by: ");
-  HEX_PRINTF_INL(index, idx_len)
+  HEX_PRINTF_DBG(index, idx_len);
   unsigned char kid[KEY_ID_LENGTH] = { 0 };
   unsigned char key[KEY_LENGTH] = { 0 };
   char claims_len_buffer[CBOR_SIZE_LENGTH + 1] = { 0 };
@@ -134,9 +136,9 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
     claims_len = atoi(claims_len_buffer);
 
     PRINTF("Current key id: ");
-    HEX_PRINTF_INL(kid, KEY_ID_LENGTH);
+    HEX_PRINTF_DBG(kid, KEY_ID_LENGTH);
     PRINTF("Current key: ");
-    HEX_PRINTF_INL(key, KEY_LENGTH);
+    HEX_PRINTF_DBG(key, KEY_LENGTH);
     PRINTF("Current claims len: %d\n", claims_len);
 
     if (memcmp(index, kid, KEY_ID_LENGTH) == 0 || memcmp(index, key, KEY_LENGTH) == 0){
@@ -150,7 +152,7 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
         result->key = (unsigned char *) malloc(KEY_LENGTH);
         memcpy(result->key, key, KEY_LENGTH);
         PRINTF("Readed into struct key: ");
-        HEX_PRINTF_INL(result->key, KEY_LENGTH)
+        HEX_PRINTF_DBG(result->key, KEY_LENGTH);
 
         result->claims_len = claims_len;
         PRINTF("Claims len: %d\n", result->claims_len);
@@ -159,15 +161,15 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
           result->claims = (unsigned char *) malloc(result->claims_len);
           bytes_read += cfs_read(fd_read, result->claims, result->claims_len);
           PRINTF("Readed claims into struct: \n");
-          HEX_PRINTF_INL(result->claims, result->claims_len)
+          HEX_PRINTF_DBG(result->claims, result->claims_len);
 
           unsigned char* received_time = (unsigned char *) malloc(sizeof(uint64_t));
           bytes_read += cfs_read(fd_read, received_time, sizeof(uint64_t));
           PRINTF("Readed received time into buffer: \n");
-          HEX_PRINTF_INL(received_time, sizeof(uint64_t));
+          HEX_PRINTF_DBG(received_time, sizeof(uint64_t));
 
           result->time_received_seconds = bytes_to_uint64_t(received_time, sizeof(uint64_t));
-          PRINTF("Stored received time into struct: %lu\n", result->received_time);
+          PRINTF("Stored received time into struct: %lu\n", result->time_received_seconds);
         }
         else {
           result->claims = 0;
@@ -224,7 +226,7 @@ int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
   cfs_seek(fd_read, 0, CFS_SEEK_SET);
 
   PRINTF("Looking for entry identified by key: ");
-  HEX_PRINTF_INL(key_id, key_id_len)
+  HEX_PRINTF_DBG(key_id, key_id_len);
 
   int bytes_read = 0;
   int total_entries = 0;
@@ -238,7 +240,7 @@ int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
     unsigned char* kid = (unsigned char*) malloc(KEY_ID_LENGTH);
     bytes_read += cfs_read(fd_read, kid, KEY_ID_LENGTH);
     PRINTF("Current key id: ");
-    HEX_PRINTF_INL(kid, KEY_ID_LENGTH);
+    HEX_PRINTF_DBG(kid, KEY_ID_LENGTH);
 
     unsigned char* key = (unsigned char*) malloc(KEY_LENGTH);
     bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
