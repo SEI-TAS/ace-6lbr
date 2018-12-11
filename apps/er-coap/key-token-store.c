@@ -26,7 +26,7 @@ DM18-1273
 #define NON_TOKEN_ENTRY_CBOR_LENGTH "0000"
 #define MAX_ENTRIES 20
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #define HEX_PRINTF_DBG(byte_array, length) HEX_PRINTF(byte_array, length)
@@ -60,7 +60,7 @@ void initialize_key_token_store() {
 }
 
 // Writes an authz entry into the given open file.
-void write_entry_to_file(authz_entry* entry, int fd_tokens_file) {
+int write_entry_to_file(authz_entry* entry, int fd_tokens_file) {
   // First write key id and key.
   int bytes_written = 0;
   PRINTF("Storing key id and key.\n");
