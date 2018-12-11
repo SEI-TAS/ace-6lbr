@@ -217,6 +217,7 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
   {
     PRINTF("No matching entry\n");
   }
+  PRINTF("Returning from find\n");
   return key_found;
 }
 

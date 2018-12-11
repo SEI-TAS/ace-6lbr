@@ -42,7 +42,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     return 1;
   }
 
-  printf("Finding token for given identity: ");
+  printf("Finding token for given identity...\n");
   HEX_PRINTF(key_id, key_id_len);
   authz_entry entry = {0};
   if(find_authz_entry(key_id, key_id_len, &entry) == 0) {
@@ -52,13 +52,15 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     return 0;
   }
 
+  printf("Entry found, checking if it has claims...\n");
   if(entry.claims_len == 0) {
-    last_error = "Entry has no token!";
+    last_error = "Entry has no claims!";
     printf("%s\n", last_error);
     free_authz_entry(&entry);
     return 0;
   }
 
+  printf("Parsing claims... \n");
   cwt* claims = parse_cbor_claims(entry.claims, entry.claims_len);
   free_authz_entry(&entry);
   if(claims == 0) {
@@ -67,6 +69,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     return 0;
   }
 
+  printf("Validating claims... \n");
   char* error;
   if(validate_claims(claims, &error) == 0) {
     last_error = error;
