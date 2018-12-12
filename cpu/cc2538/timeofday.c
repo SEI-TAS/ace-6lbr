@@ -13,12 +13,14 @@ DM18-1273
 */
 
 #include <time.h>
+#include "sys/clock.h"
 
-// TODO: Implement actual CC2538dk function for time here.
+// CC2538dk implementation for using time() function.
 int _gettimeofday(struct timeval *tv, void *tzvp) {
-    //uint64_t t = __your_system_time_function_here__();  // get uptime in nanoseconds
-    uint64_t t = 0;
-    tv->tv_sec = t / 1000000000;  // convert to seconds
-    tv->tv_usec = ( t % 1000000000 ) / 1000;  // get remaining microseconds
+    // TODO: this is not really getting time since epoch, only time since startup. This could be a vulnerability.
+    // TODO: This can't be fixed without having some way of getting the current epoch from the AS or somewhere.
+    uint64_t t = (uint64_t) clock_seconds();
+    tv->tv_sec = t;
+    tv->tv_usec = 0;
     return 0;
 }
