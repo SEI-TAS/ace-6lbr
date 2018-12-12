@@ -128,7 +128,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
     case CN_CBOR_UINT:
       PRINTF("Type is Positive Int\n");
       PRINTF("UINT: %lu\n", cbor_object->v.uint);
-      if(cbor_object->v.uint < 256){
+      if(cbor_object->v.uint < 40){ // TODO: fix very fragile way of checking if this is claim or value.
         *curr_claim = cbor_object->v.uint;
         PRINTF("Found CLM: %ld\n", *curr_claim);
       }
