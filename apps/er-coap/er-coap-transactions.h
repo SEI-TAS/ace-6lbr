@@ -1,4 +1,17 @@
 /*
+Modifications to enable ACE Constrained RS
+
+Copyright 2018 Carnegie Mellon University. All Rights Reserved.
+
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+
+Released under a BSD (SEI)-style license, please see https://github.com/cetic/6lbr/blob/develop/LICENSE or contact permission@sei.cmu.edu for full terms.
+
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+
+DM18-1273
+*/
+/*
  * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
@@ -60,6 +73,7 @@ typedef struct coap_transaction {
   uint16_t port;
 
   context_t *ctx;
+  struct dtls_context_t *ctx_dtls;
 
   restful_response_handler callback;
   void *callback_data;
@@ -70,14 +84,16 @@ typedef struct coap_transaction {
 } coap_transaction_t;
 
 void coap_register_as_transaction_handler(void);
+void coap_register_as_transaction_handler_dtls(void);
 
 coap_transaction_t *coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr,
-                                         uint16_t port);
+                                         uint16_t port, int dtls);
 void coap_set_transaction_context(coap_transaction_t *t, context_t *ctx);
-void coap_send_transaction(coap_transaction_t *t);
+void coap_set_transaction_context_dtls(coap_transaction_t *t, struct dtls_context_t *ctx);
+void coap_send_transaction(coap_transaction_t *t, int dtls);
 void coap_clear_transaction(coap_transaction_t *t);
 coap_transaction_t *coap_get_transaction_by_mid(uint16_t mid);
 
-void coap_check_transactions(void);
+void coap_check_transactions(int dtls);
 
 #endif /* COAP_TRANSACTIONS_H_ */

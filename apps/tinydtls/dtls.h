@@ -591,7 +591,7 @@ int get_psk_info(struct dtls_context_t *ctx UNUSED_PARAM,
 	    dtls_credentials_type_t type,
 	    const unsigned char *id, size_t id_len,
 	    unsigned char *result, size_t result_length) {
-  dtls_debug("Using tinydtls\n");
+
   switch (type) {
   case DTLS_PSK_IDENTITY:
     if (result_length < psk_id_length) {

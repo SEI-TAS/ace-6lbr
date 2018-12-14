@@ -1,0 +1,9 @@
+sudo apt install autoconf
+
+git clone https://github.com/SEI-TTG/ace-6lbr
+cd ace-6lbr
+git submodule update --init --recursive
+cd examples/6lbr
+cd ../../apps/tinydtls
+bash reconf.sh
+cd ../../examples/6lbr

@@ -24,7 +24,7 @@
 
 #define DTLS_CCM_BLOCKSIZE  16	/**< size of hmac blocks */
 #define DTLS_CCM_MAX        16	/**< max number of bytes in digest */
-#define DTLS_CCM_NONCE_SIZE 13	/**< size of nonce */
+#define DTLS_CCM_NONCE_SIZE 12	/**< size of nonce */
 
 /** 
  * Authenticates and encrypts a message using AES in CCM mode. Please

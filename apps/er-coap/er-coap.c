@@ -1,4 +1,17 @@
 /*
+Modifications to enable ACE Constrained RS
+
+Copyright 2018 Carnegie Mellon University. All Rights Reserved.
+
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+
+Released under a BSD (SEI)-style license, please see https://github.com/cetic/6lbr/blob/develop/LICENSE or contact permission@sei.cmu.edu for full terms.
+
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+
+DM18-1273
+*/
+/*
  * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
@@ -45,6 +58,7 @@
 #include "er-coap.h"
 #include "er-coap-engine.h"
 #include "er-coap-transactions.h"
+#include "er-coap-dtls.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -62,6 +76,7 @@
 /*- Variables ---------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 static uint16_t current_mid = 0;
+static uint16_t current_mid_dtls = 0;
 
 coap_status_t erbium_status_code = NO_ERROR;
 char *coap_error_message = "";
@@ -284,6 +299,24 @@ coap_init_connection(uint16_t port)
   /* initialize transaction ID */
   current_mid = random_rand();
 }
+
+void
+coap_init_connection_dtls(uint16_t port)
+{
+  /* new connection with remote host */
+  coap_default_context_dtls = coap_init_communication_layer_dtls(port);
+
+  /* initialize transaction ID */
+  current_mid_dtls = random_rand();
+}
+
+/*---------------------------------------------------------------------------*/
+uint16_t
+coap_get_mid_dtls()
+{
+  return ++current_mid_dtls;
+}
+
 /*---------------------------------------------------------------------------*/
 uint16_t
 coap_get_mid()
@@ -468,7 +501,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
   unsigned int option_delta = 0;
   size_t option_length = 0;
 
-  printf("REST_MAX_CHUNK_SIZE is %d\n", REST_MAX_CHUNK_SIZE);
+  PRINTF("REST_MAX_CHUNK_SIZE is %d\n", REST_MAX_CHUNK_SIZE);
   while(current_option < data + data_len) {
     /* payload marker 0xFF, currently only checking for 0xF* because rest is reserved */
     if((current_option[0] & 0xF0) == 0xF0) {
@@ -476,7 +509,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
       coap_pkt->payload_len = data_len - (coap_pkt->payload - data);
 
       /* also for receiving, the Erbium upper bound is REST_MAX_CHUNK_SIZE */
-      printf("payload_len is %d\n", coap_pkt->payload_len);
+      PRINTF("payload_len is %d\n", coap_pkt->payload_len);
       if(coap_pkt->payload_len > REST_MAX_CHUNK_SIZE) {
         coap_pkt->payload_len = REST_MAX_CHUNK_SIZE;
         /* null-terminate payload */

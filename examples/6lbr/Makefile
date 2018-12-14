@@ -1,10 +1,18 @@
+#
+# Modifications to enable ACE Constrained RS
+# Copyright 2018 Carnegie Mellon University. All Rights Reserved.
+# NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+# Released under a BSD (SEI)-style license, please see https://github.com/cetic/6lbr/blob/develop/LICENSE or contact permission@sei.cmu.edu for full terms.
+# [DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+#
+
 CONTIKI_PROJECT = cetic-6lbr
 
 # Default mode selection
 
 CETIC_6LBR_SMARTBRIDGE=0
 CETIC_6LBR_TRANSPARENTBRIDGE=0
-CETIC_6LBR_ROUTER=1
+CETIC_6LBR_ROUTER=0
 CETIC_6LBR_6LR=0
 CETIC_6LBR_ONE_ITF=0
 CETIC_6LBR_LEARN_RPL_MAC=0
@@ -90,7 +98,7 @@ APPS+=dns-proxy
 endif
 
 ifneq ($(WITH_COAPSERVER),0)
-APPS += er-coap rest-engine coap
+APPS += er-coap rest-engine
 endif
 
 ifneq ($(WITH_TINYDTLS), 0)

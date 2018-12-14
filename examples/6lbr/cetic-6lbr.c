@@ -96,9 +96,7 @@
 #include "node-config.h"
 #endif
 
-#if WITH_COAPSERVER
-#include "coap-server.h"
-#endif
+#include "rest-engine.h"
 
 #if WITH_TINYDTLS
 #include "dtls.h"
@@ -722,11 +720,11 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   dtls_init();
 #endif
 
-#if WITH_COAPSERVER
+  rest_init_engine();
+  printf("CoAP server started.\n");
   if((nvm_data.global_flags & CETIC_GLOBAL_DISABLE_COAP_SERVER) == 0) {
-    coap_server_init();
+    //coap_server_init();
   }
-#endif
 
 #if WITH_DTLS_ECHO
   process_start(&dtls_echo_server_process, NULL);

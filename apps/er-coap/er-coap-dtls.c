@@ -1,3 +1,16 @@
+/*
+Modifications to enable ACE Constrained RS
+
+Copyright 2018 Carnegie Mellon University. All Rights Reserved.
+
+NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+
+Released under a BSD (SEI)-style license, please see https://github.com/cetic/6lbr/blob/develop/LICENSE or contact permission@sei.cmu.edu for full terms.
+
+[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+
+DM18-1273
+*/
 #include "contiki.h"
 #include "contiki-net.h"
 #include "er-coap.h"
@@ -5,6 +18,10 @@
 #include "er-coap-dtls.h"
 
 #include "dtls.h"
+
+#include "utils.h"
+#include "cwt.h"
+#include "dtls_helpers.h"
 
 #include <string.h>
 
@@ -25,7 +42,7 @@
 #define DTLS_PSK_KEY_VALUE DTLS_CONF_PSK_KEY
 #define DTLS_PSK_KEY_VALUE_LENGTH DTLS_CONF_PSK_KEY_LENGTH
 #else
-#warning "DTLS: Using default secret key !"
+//#warning "DTLS: Using default secret key !"
 #define DTLS_PSK_KEY_VALUE "secretPSK"
 #define DTLS_PSK_KEY_VALUE_LENGTH 9
 #endif
@@ -58,6 +75,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
   } psk[1] = {
     { (unsigned char *)DTLS_IDENTITY_HINT, DTLS_IDENTITY_HINT_LENGTH, (unsigned char *)DTLS_PSK_KEY_VALUE, DTLS_PSK_KEY_VALUE_LENGTH },
   };
+    printf("Checking key type request\n");
   if (type ==  DTLS_PSK_IDENTITY) {
     if (id_len) {
       dtls_debug("got psk_identity_hint: '%.*s'\n", id_len, id);
@@ -71,19 +89,24 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
     memcpy(result, psk[0].id, psk[0].id_length);
     return psk[0].id_length;
   } else if (type == DTLS_PSK_KEY) {
+    printf("Requesting psk key\n");
     if (id) {
-      int i, j;
-      unsigned char* lookupid;
-      i = 16 - id_len;
-      for (j = 0; j <= i - 1; j++){
-        lookupid[j] = "0";
+      printf("Id length is %u\n", (unsigned int) id_len);
+      printf("Looking up id: ");
+      HEX_PRINTF(id, id_len);
+      int key_length = lookup_dtls_key(id, id_len, result, result_length);
+      if(key_length == 0) {
+          dtls_warn("Could not find or set PSK.\n");
+          return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
       }
-      strcat(lookupid, id);
-        
-      printf("Looking up id: %s\n", id);
-      lookup_dtls_key(id, id_len, result, result_length); 
 
-      return result_length;
+      printf("PSK has been found: ");
+      HEX_PRINTF(result, key_length);
+      return key_length;
+    }
+    else {
+      dtls_warn("Key was requested, but no id was provided.\n");
+      return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
     }
   } else {
     return 0;
@@ -93,8 +116,8 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
 }
 #endif
 /*-----------------------------------------------------------------------------------*/
-context_t *
-coap_init_communication_layer(uint16_t port)
+struct dtls_context_t *
+coap_init_communication_layer_dtls(uint16_t port)
 {
   static dtls_handler_t cb = {
     .write = send_to_peer,
@@ -108,7 +131,7 @@ coap_init_communication_layer(uint16_t port)
     .verify_ecdsa_key = NULL,
 #endif
   };
-  context_t * ctx;
+  struct dtls_context_t * ctx;
 
   struct uip_udp_conn *server_conn = udp_new(NULL, 0, NULL);
   udp_bind(server_conn, port);
@@ -144,7 +167,7 @@ send_to_peer(struct dtls_context_t *ctx,
 }
 /*-----------------------------------------------------------------------------------*/
 void
-coap_send_message(context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length)
+coap_send_message_dtls(struct dtls_context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length)
 {
   session_t session;
 
@@ -161,12 +184,12 @@ read_from_peer(struct dtls_context_t *ctx,
 {
   uip_len = len;
   memmove(uip_appdata, data, len);
-  coap_receive(ctx);
+  coap_receive(ctx, 1);
   return 0;
 }
 /*-----------------------------------------------------------------------------------*/
 void
-coap_handle_receive(context_t *ctx)
+coap_handle_receive_dtls(struct dtls_context_t *ctx)
 {
   session_t session;
 

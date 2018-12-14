@@ -1,11 +1,27 @@
+#Modifications to enable ACE Constrained RS
+
+#Copyright 2018 Carnegie Mellon University. All Rights Reserved.
+
+#NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE MATERIAL IS FURNISHED ON AN "AS-IS" BASIS. CARNEGIE MELLON UNIVERSITY MAKES NO WARRANTIES OF ANY KIND, EITHER EXPRESSED OR IMPLIED, AS TO ANY MATTER INCLUDING, BUT NOT LIMITED TO, WARRANTY OF FITNESS FOR PURPOSE OR MERCHANTABILITY, EXCLUSIVITY, OR RESULTS OBTAINED FROM USE OF THE MATERIAL. CARNEGIE MELLON UNIVERSITY DOES NOT MAKE ANY WARRANTY OF ANY KIND WITH RESPECT TO FREEDOM FROM PATENT, TRADEMARK, OR COPYRIGHT INFRINGEMENT.
+
+#Released under a BSD (SEI)-style license, please see https://github.com/cetic/6lbr/blob/develop/LICENSE or contact permission@sei.cmu.edu for full terms.
+
+#[DISTRIBUTION STATEMENT A] This material has been approved for public release and unlimited distribution.  Please see Copyright notice for non-US Government use and distribution.
+
+#DM18-1273
+
+# Needed to create subfolder for cn-cbor
+_dummy := $(shell mkdir -p $(OBJECTDIR)/cn-cbor)
+
 er-coap_src = er-coap.c er-coap-engine.c er-coap-transactions.c      \
-  er-coap-observe.c er-coap-separate.c er-coap-res-well-known-core.c \
-  er-coap-block1.c er-coap-observe-client.c er-coap-res-authz-info.c \
-  er-coap-res-pair.c aes.c \
-  cn-cbor.c cn-create.c cn-encoder.c cn-error.c cn-get.c ace-cwt.c \
-  er-coap-udp.c
+  er-coap-res-well-known-core.c \
+  er-coap-block1.c  \
+  cn-cbor/cn-cbor.c cn-cbor/cn-create.c cn-cbor/cn-encoder.c cn-cbor/cn-error.c cn-cbor/cn-get.c \
+  ace-cwt.c key-token-store.c tinydtls_aes.c \
+  er-coap-dtls.c dtls_helpers.c er-coap-res-pair.c er-coap-res-hello.c er-coap-res-lock.c cbor-encode.c resources.c \
+  er-coap-udp.c er-coap-res-authz-info.c
+
+# er-coap-observe.c er-coap-observe-client.c er-coap-separate.c
 
 # Erbium will implement the REST Engine
 CFLAGS += -DREST=coap_rest_implementation
-
-
