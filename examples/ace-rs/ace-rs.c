@@ -21,6 +21,7 @@ DM18-1273
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
+#include "net/ip/uip-debug.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -30,12 +31,11 @@ DM18-1273
 #include "rest-engine.h"
 #include "dtls.h"
 
-/*---------------------------------------------------------------------------*/
+#define PRINTF(...) printf(__VA_ARGS__)
 
+/*---------------------------------------------------------------------------*/
 PROCESS(acers, "ACE RS");
 AUTOSTART_PROCESSES(&acers);
-
-
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
