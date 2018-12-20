@@ -10,10 +10,10 @@ CFLAGS += -DWITH_TINYDTLS=1
 
 PROJECTDIRS += $(CONTIKI)/apps/tinydtls/aes $(CONTIKI)/apps/tinydtls/sha2 $(CONTIKI)/apps/tinydtls/ecc
 
-MODULES += core/net/ip
+#MODULES += core/net/ip core/net/ipv6
 
 all: $(CONTIKI_PROJECT)
 
-CONTIKI = ../..
+CONTIKI_WITH_IPV6 = 1
 CONTIKI_WITH_RIME = 1
 include $(CONTIKI)/Makefile.include
