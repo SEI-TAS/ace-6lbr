@@ -31,8 +31,6 @@ DM18-1273
 #include "rest-engine.h"
 #include "dtls.h"
 
-#define PRINTF(...) printf(__VA_ARGS__)
-
 /*---------------------------------------------------------------------------*/
 PROCESS(acers, "ACE RS");
 AUTOSTART_PROCESSES(&acers);
