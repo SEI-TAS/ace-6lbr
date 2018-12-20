@@ -43,7 +43,7 @@
 #define REST_MAX_CHUNK_SIZE   64
 #define UIP_CONF_BUFFER_SIZE  200
 
-#define RPL_WITH_DAO_ACK 1
+#define RPL_CONF_WITH_DAO_ACK 1
 
 #endif /* PROJECT_CONF_H_ */
 
