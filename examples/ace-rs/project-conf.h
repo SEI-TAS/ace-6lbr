@@ -40,7 +40,7 @@
 
 #define NETSTACK_CONF_RDC     nullrdc_driver
 
-#define REST_MAX_CHUNK_SIZE   256
+#define REST_MAX_CHUNK_SIZE   64
 
 #endif /* PROJECT_CONF_H_ */
 

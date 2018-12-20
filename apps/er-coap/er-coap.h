@@ -58,16 +58,9 @@ DM18-1273
 #include "er-coap-conf.h"
 #include "er-coap-communication.h"
 
-#define REST_MAX_CHUNK_SIZE 123
-#define UIP_CONF_BUFFER_SIZE 1
-#define UIP_BUFSIZE 1
-#define UIP_LLH_LEN 1
-#define UIP_IPH_LEN 1
-#define UIP_UDPH_LEN 1
-
 /* sanity check for configured values */
-#define COAP_MAX_PACKET_SIZE  (COAP_MAX_HEADER_SIZE + REST_MAX_CHUNK_SIZE)
-#if COAP_MAX_PACKET_SIZE > (UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPH_LEN - UIP_UDPH_LEN) /* ? + 0 + 20 + 8 */
+#define COAP_MAX_PACKET_SIZE  (COAP_MAX_HEADER_SIZE + REST_MAX_CHUNK_SIZE)  /* 65 + 256 = 321, or 65 + 64 = 129 */
+#if COAP_MAX_PACKET_SIZE > (UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPH_LEN - UIP_UDPH_LEN) /* 108 + 0 + 20 + 8 = 136 */
 #error "UIP_CONF_BUFFER_SIZE too small for REST_MAX_CHUNK_SIZE"
 #endif
 
