@@ -69,6 +69,7 @@ PROCESS_THREAD(acers, ev, data)
   rest_init_engine();
 
   printf("CoAP servers started.\n");
+  printf("Checking IP addresses.\n");
   print_local_addresses();
 
   PROCESS_END();
