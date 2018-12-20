@@ -10,6 +10,8 @@ CFLAGS += -DWITH_TINYDTLS=1
 
 PROJECTDIRS += $(CONTIKI)/apps/tinydtls/aes $(CONTIKI)/apps/tinydtls/sha2 $(CONTIKI)/apps/tinydtls/ecc
 
+MODULES += core/net/ip
+
 all: $(CONTIKI_PROJECT)
 
 CONTIKI = ../..
