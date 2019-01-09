@@ -27,14 +27,14 @@ DM18-1273
 
 void check_revoked_tokens() {
 
-  authz_entry_iterator_initialize();
-  authz_entry* curr_entry = authz_entry_iterator_get_next();
+  authz_entry_iterator iterator = authz_entry_iterator_initialize();
 
+  authz_entry* curr_entry = authz_entry_iterator_get_next(&authz_entry_iterator);
   while(curr_entry != 0) {
 
-    curr_entry = authz_entry_iterator_get_next();
+    curr_entry = authz_entry_iterator_get_next(&authz_entry_iterator);
   }
 
-  authz_entry_iterator_finish();
+  authz_entry_iterator_finish(authz_entry_iterator);
 }
 

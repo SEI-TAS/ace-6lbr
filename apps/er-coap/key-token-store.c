@@ -200,14 +200,14 @@ int store_authz_entry(authz_entry* entry) {
 int find_authz_entry2(const unsigned char* const index, size_t idx_len, authz_entry *result){
   int key_found = 0;
 
-  authz_entry_iterator_initialize();
+  authz_entry_iterator iterator = authz_entry_iterator_initialize();
 
   unsigned char* padded_idx = left_pad_array(index, idx_len, KEY_ID_LENGTH, 0);
   PRINTF("Looking for record identified by: ");
   HEX_PRINTF_DBG(padded_idx, KEY_ID_LENGTH);
 
   // Loop over all entries until we find one with the given KID.
-  authz_entry* curr_entry = authz_entry_iterator_get_next();
+  authz_entry* curr_entry = authz_entry_iterator_get_next(&iterator);
   while(curr_entry != 0) {
     if (memcmp(padded_idx, curr_entry->kid, KEY_ID_LENGTH) == 0){
         PRINTF("Found match!\n");
@@ -223,10 +223,10 @@ int find_authz_entry2(const unsigned char* const index, size_t idx_len, authz_en
 
     free_authz_entry(curr_entry);
     free(curr_entry);
-    curr_entry = authz_entry_iterator_get_next();
+    curr_entry = authz_entry_iterator_get_next(&iterator);
   }
 
-  authz_entry_iterator_finish();
+  authz_entry_iterator_finish(iterator);
   free(padded_idx);
 
   if (key_found == 0)
@@ -352,12 +352,12 @@ int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
   PRINTF("Removing entry identified by key: ");
   HEX_PRINTF_DBG(key_id, key_id_len);
 
-  authz_entry_iterator_initialize();
+  authz_entry_iterator iterator = authz_entry_iterator_initialize();
 
   // Loop over all entries, adding all of them but the one we want to remove to an array.
   int total_entries = 0;
   authz_entry* entry_list[MAX_ENTRIES] = {0};
-  authz_entry* curr_entry = authz_entry_iterator_get_next();
+  authz_entry* curr_entry = authz_entry_iterator_get_next(&iterator);
   while(curr_entry != 0) {
     if(total_entries == MAX_ENTRIES) {
       PRINTF("Max entries reached; removing rest of entries");
@@ -373,10 +373,10 @@ int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
       entry_list[total_entries++] = current_entry;
     }
 
-    curr_entry = authz_entry_iterator_get_next();
+    curr_entry = authz_entry_iterator_get_next(&iterator);
   }
 
-  authz_entry_iterator_finish();
+  authz_entry_iterator_finish(iterator);
 
   // Now write them all but the removed one back to the file, removing what was in the file before.
   PRINTF("Re-writing all entries but the deleted one to file.");
@@ -396,40 +396,34 @@ int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
 
 /*--------------------------------------------------------------------*/
 // Authz entry iterator.
-// TODO: thread-safety of these vars?
-static int iterator_entry_file_fd = 0;
-static int iterator_file_size = 0;
-static int iterator_curr_pos = 0;
 
-// Initialize iterator global variables, opening file.
-int authz_entry_iterator_initialize() {
-  iterator_entry_file_fd = cfs_open(TOKENS_FILE_NAME, CFS_READ);
-  if(iterator_entry_file_fd == -1) {
+// Initialize iterator, opening file.
+authz_entry_iterator authz_entry_iterator_initialize() {
+  authz_entry_iterator iterator;
+  iterator.entry_file_fd = cfs_open(TOKENS_FILE_NAME, CFS_READ);
+  if(iterator.entry_file_fd == -1) {
     PRINTF("ERROR: could not open tokens file '%s' for reading\n", TOKENS_FILE_NAME);
-    return 0;
+    return iterator;
   }
 
-  iterator_file_size = cfs_seek(iterator_entry_file_fd, 0, CFS_SEEK_END);
-  PRINTF("File size is %d\n", iterator_file_size);
-  cfs_seek(iterator_entry_file_fd, 0, CFS_SEEK_SET);
-  iterator_curr_pos = 0;
+  iterator.file_size = cfs_seek(iterator.entry_file_fd, 0, CFS_SEEK_END);
+  PRINTF("File size is %d\n", iterator.file_size);
+  cfs_seek(iterator.entry_file_fd, 0, CFS_SEEK_SET);
+  iterator.curr_pos = 0;
 
-  return 1;
+  return iterator;
 }
 
 // Clear up global variables, including closing file.
-void authz_entry_iterator_finish() {
-  cfs_close(iterator_entry_file_fd);
-  iterator_entry_file_fd = 0;
-  iterator_file_size = 0;
-  iterator_curr_pos = 0;
+void authz_entry_iterator_finish(authz_entry_iterator iterator) {
+  cfs_close(iterator.entry_file_fd);
 }
 
 // Get next entry from file.
-authz_entry* authz_entry_iterator_get_next() {
-  if(iterator_curr_pos < iterator_file_size) {
+authz_entry* authz_entry_iterator_get_next(authz_entry_iterator* iterator) {
+  if(iterator->curr_pos < iterator->file_size) {
     authz_entry* curr_entry;
-    iterator_curr_pos += read_entry_from_file(&curr_entry, iterator_entry_file_fd);
+    iterator->curr_pos += read_entry_from_file(&curr_entry, iterator->entry_file_fd);
     return curr_entry;
   }
   else {

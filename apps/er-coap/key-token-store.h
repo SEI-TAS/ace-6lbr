@@ -30,4 +30,14 @@ int store_authz_entry(authz_entry* entry);
 int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_entry *result);
 void free_authz_entry(authz_entry* entry);
 
+typedef struct authz_entry_iterator {
+  int entry_file_fd;
+  int file_size;
+  int curr_pos;
+} authz_entry_iterator;
+
+authz_entry_iterator authz_entry_iterator_initialize();
+void authz_entry_iterator_finish(authz_entry_iterator iterator);
+authz_entry* authz_entry_iterator_get_next(authz_entry_iterator* iterator)
+
 #endif // KEY_TOKEN_STORE_H
