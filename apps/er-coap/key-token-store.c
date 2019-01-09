@@ -35,8 +35,28 @@ DM18-1273
 #define HEX_PRINTF_DBG(byte_array, length)
 #endif
 
-uint64_t bytes_to_uint64_t(unsigned char* bytes, int length);
-unsigned char* uint64_t_to_bytes(uint64_t number);
+/*--------------------------------------------------------------------*/
+// Private utility functions.
+
+// Converts from byte array to uint64.
+uint64_t bytes_to_uint64_t(unsigned char* bytes, int length){
+  long value = 0;
+  int i = 0;
+  for (i = 0; i < length; i++) {
+    value += ((long) bytes[i] & 0xffL) << (8 * i);
+  }
+  return value;
+}
+
+// Converts from uint64 to byte array.
+unsigned char* uint64_t_to_bytes(uint64_t number){
+  unsigned char* bytes = (unsigned char *) malloc(sizeof(uint64_t));
+  int i = 0;
+  for (i = 0; i < sizeof(uint64_t); i++) {
+    bytes[i] = ((number >> (8 * i)) & 0xffL);
+  }
+  return bytes;
+}
 
 // Adds the given value as padding to the left of the array.
 unsigned char* left_pad_array(const unsigned char* const byte_array, int array_length, int final_length, char padding) {
@@ -47,36 +67,8 @@ unsigned char* left_pad_array(const unsigned char* const byte_array, int array_l
   return padded_array;
 }
 
-void initialize_key_token_store() {
-  printf("Creating keystore...\n");
-  unsigned char pairing_key[KEY_LENGTH] = {'a', 'b', 'c', 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
-
-  int fd_check_file = cfs_open(TOKENS_FILE_NAME, CFS_READ);
-  cfs_close(fd_check_file);
-  if(fd_check_file == -1) {
-    // File does not exist, let's create it with the pairing key.
-    int bytes_written = 0;
-    int fd_write = cfs_open(TOKENS_FILE_NAME, CFS_WRITE);
-    bytes_written += cfs_write(fd_write, PAIRING_KEY_ID, KEY_ID_LENGTH);
-    bytes_written += cfs_write(fd_write, pairing_key, KEY_LENGTH);
-    bytes_written += cfs_write(fd_write, NON_TOKEN_ENTRY_CBOR_LENGTH, CBOR_SIZE_LENGTH);
-    printf("Stored default pairing key in tokens file.\n");
-    cfs_close(fd_write);
-  }
-  else {
-    printf("Won't create keystore, already exists.\n");
-  }
-}
-
-authz_entry* create_authz_entry(unsigned char* kid, int kid_len, unsigned char* key, int claims_len, unsigned char* claims, uint64_t time) {
-  authz_entry* authz_info = (authz_entry*) malloc(sizeof(authz_entry));
-  authz_info->kid = left_pad_array(kid, kid_len, KEY_ID_LENGTH, 0);
-  authz_info->key = key;
-  authz_info->claims_len = claims_len;
-  authz_info->claims = claims;
-  authz_info->time_received_seconds = time;
-  return authz_info;
-}
+/*--------------------------------------------------------------------*/
+// Private read and write single entry functions.
 
 // Writes an authz entry into the given open file.
 int write_entry_to_file(authz_entry* entry, int fd_tokens_file) {
@@ -111,6 +103,83 @@ int write_entry_to_file(authz_entry* entry, int fd_tokens_file) {
   return bytes_written;
 }
 
+// Reads and loads the next authz_entry object from file, returning the bytes read.
+int read_entry_from_file(authz_entry** entry, int fd_tokens_file) {
+  int bytes_read = 0;
+
+  unsigned char* kid = (unsigned char *) malloc(KEY_ID_LENGTH);
+  bytes_read += cfs_read(fd_read, kid, KEY_ID_LENGTH);
+  PRINTF("Key id: ");
+  HEX_PRINTF_DBG(kid, KEY_ID_LENGTH);
+
+  unsigned char key = (unsigned char *) malloc(KEY_LENGTH);
+  bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
+  PRINTF("Key: ");
+  HEX_PRINTF_DBG(key, KEY_LENGTH);
+
+  char claims_len_buffer[CBOR_SIZE_LENGTH + 1] = { 0 };
+  bytes_read += cfs_read(fd_read, claims_len_buffer, CBOR_SIZE_LENGTH);
+  int claims_len = atoi(claims_len_buffer);
+  PRINTF("Claims len: %d\n", claims_len);
+
+  unsigned char* claims = 0;
+  uint64_t time_received_seconds = 0;
+  if(claims_len > 0) {
+    claims = (unsigned char *) malloc(result->claims_len);
+    bytes_read += cfs_read(fd_read, result->claims, result->claims_len);
+    PRINTF("Claims: \n");
+    HEX_PRINTF_DBG(result->claims, result->claims_len);
+
+    unsigned char* received_time = (unsigned char *) malloc(sizeof(uint64_t));
+    bytes_read += cfs_read(fd_read, received_time, sizeof(uint64_t));
+    time_received_seconds = bytes_to_uint64_t(received_time, sizeof(uint64_t));
+    PRINTF("Received time: %lu\n", time_received_seconds);
+    free(received_time);
+  }
+  else {
+    PRINTF("Record has no claim info associated to it.\n");
+  }
+
+  (*entry) = create_authz_entry(kid, KEY_ID_LENGTH, key, claims_len, claims, time_received_seconds);
+  return bytes_read;
+}
+
+/*--------------------------------------------------------------------*/
+// Public functions.
+
+// Initialization of storage.
+void initialize_key_token_store() {
+  printf("Creating keystore...\n");
+  unsigned char pairing_key[KEY_LENGTH] = {'a', 'b', 'c', 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+
+  int fd_check_file = cfs_open(TOKENS_FILE_NAME, CFS_READ);
+  cfs_close(fd_check_file);
+  if(fd_check_file == -1) {
+    // File does not exist, let's create it with the pairing key.
+    int bytes_written = 0;
+    int fd_write = cfs_open(TOKENS_FILE_NAME, CFS_WRITE);
+    bytes_written += cfs_write(fd_write, PAIRING_KEY_ID, KEY_ID_LENGTH);
+    bytes_written += cfs_write(fd_write, pairing_key, KEY_LENGTH);
+    bytes_written += cfs_write(fd_write, NON_TOKEN_ENTRY_CBOR_LENGTH, CBOR_SIZE_LENGTH);
+    printf("Stored default pairing key in tokens file.\n");
+    cfs_close(fd_write);
+  }
+  else {
+    printf("Won't create keystore, already exists.\n");
+  }
+}
+
+// Constructor-like function. Ensures KID is paddded to size.
+authz_entry* create_authz_entry(unsigned char* kid, int kid_len, unsigned char* key, int claims_len, unsigned char* claims, uint64_t time) {
+  authz_entry* authz_info = (authz_entry*) malloc(sizeof(authz_entry));
+  authz_info->kid = left_pad_array(kid, kid_len, KEY_ID_LENGTH, 0);
+  authz_info->key = key;
+  authz_info->claims_len = claims_len;
+  authz_info->claims = claims;
+  authz_info->time_received_seconds = time;
+  return authz_info;
+}
+
 // Stores the given token into the tokens file.
 int store_authz_entry(authz_entry* entry) {
   printf("Storing pop key and token in token file.\n");
@@ -125,6 +194,48 @@ int store_authz_entry(authz_entry* entry) {
   cfs_close(fd_tokens_file);
   PRINTF("Finished storing pop key and token in token file. Wrote %d bytes.\n", bytes_written);
   return 1;
+}
+
+// Looks for an entry in the store, given the key id or key.
+int find_authz_entry2(const unsigned char* const index, size_t idx_len, authz_entry *result){
+  int key_found = 0;
+
+  authz_entry_iterator_initialize();
+
+  unsigned char* padded_idx = left_pad_array(index, idx_len, KEY_ID_LENGTH, 0);
+  PRINTF("Looking for record identified by: ");
+  HEX_PRINTF_DBG(padded_idx, KEY_ID_LENGTH);
+
+  // Loop over all entries until we find one with the given KID.
+  authz_entry* curr_entry = authz_entry_iterator_get_next();
+  while(curr_entry != 0) {
+    if (memcmp(padded_idx, curr_entry->kid, KEY_ID_LENGTH) == 0){
+        PRINTF("Found match!\n");
+        key_found = 1;
+
+        // Copy the entry to the result param.
+        memcpy(result->kid, curr_entry->kid, KEY_ID_LENGTH);
+        memcpy(result->key, curr_entry->key, KEY_LENGTH);
+        memcpy(result->claims, curr_entry->claims, curr_entry->claims_len);
+        result->claim_len = curr_entry->claims_len;
+        result->time_received_seconds = curr_entry->time_received_seconds;
+    }
+
+    free_authz_entry(curr_entry);
+    free(curr_entry);
+    curr_entry = authz_entry_iterator_get_next();
+  }
+
+  authz_entry_iterator_finish();
+  free(padded_idx);
+
+  if (key_found == 0)
+  {
+    PRINTF("No matching entry\n");
+  }
+
+  PRINTF("Returning from find\n");
+  return key_found;
 }
 
 // Looks for an entry in the store, given the key id or key.
@@ -221,7 +332,7 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
   return key_found;
 }
 
-// Frees a generated token entry.
+// Frees the inner data of a  generated entry.
 void free_authz_entry(authz_entry* entry) {
   if(entry->kid) {
     free(entry->kid);
@@ -238,80 +349,34 @@ void free_authz_entry(authz_entry* entry) {
 int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
   int success = 0;
 
-  int fd_read = cfs_open(TOKENS_FILE_NAME, CFS_READ);
-  if(fd_read == -1) {
-    PRINTF("ERROR: could not open tokens file '%s' for reading\n", TOKENS_FILE_NAME);
-    return success;
-  }
-
-  int file_size = cfs_seek(fd_read, 0, CFS_SEEK_END);
-  PRINTF("File size is %d\n", file_size);
-  cfs_seek(fd_read, 0, CFS_SEEK_SET);
-
-  PRINTF("Looking for entry identified by key: ");
+  PRINTF("Removing entry identified by key: ");
   HEX_PRINTF_DBG(key_id, key_id_len);
 
-  int bytes_read = 0;
+  authz_entry_iterator_initialize();
+
+  // Loop over all entries, adding all of them but the one we want to remove to an array.
   int total_entries = 0;
   authz_entry* entry_list[MAX_ENTRIES] = {0};
-  while(bytes_read < file_size) {
+  authz_entry* curr_entry = authz_entry_iterator_get_next();
+  while(curr_entry != 0) {
     if(total_entries == MAX_ENTRIES) {
       PRINTF("Max entries reached; removing rest of entries");
       break;
     }
 
-    unsigned char* kid = (unsigned char*) malloc(KEY_ID_LENGTH);
-    bytes_read += cfs_read(fd_read, kid, KEY_ID_LENGTH);
-    PRINTF("Current key id: ");
-    HEX_PRINTF_DBG(kid, KEY_ID_LENGTH);
-
-    unsigned char* key = (unsigned char*) malloc(KEY_LENGTH);
-    bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
-
-    char* claims_len_buffer = (char*) malloc(CBOR_SIZE_LENGTH + 1);
-    bytes_read += cfs_read(fd_read, claims_len_buffer, CBOR_SIZE_LENGTH);
-    claims_len_buffer[CBOR_SIZE_LENGTH] = 0;
-    int claims_len = atoi(claims_len_buffer);
-
     if (memcmp(key_id, kid, KEY_ID_LENGTH) == 0){
-        PRINTF("Ignoring token to remove!\n");
-        // We need to skip over the key and claims size.
-        if(claims_len > 0) {
-          cfs_seek(fd_read, claims_len, CFS_SEEK_CUR);
-          bytes_read += claims_len;
-          cfs_seek(fd_read, sizeof(uint64_t), CFS_SEEK_CUR);
-          bytes_read += sizeof(uint64_t);
-
-          // Free the stored key id, key and claims size.
-          free(kid);
-          free(key);
-          free(claims_len_buffer);
-        }
-        continue;
+      PRINTF("Ignoring token to remove!\n");
+      free_authz_entry(curr_entry);
+      free(curr_entry)
     }
     else {
-      // Store this entry in memory so we can write it back to the file.
-      authz_entry* current_entry = (authz_entry*) malloc(sizeof(authz_entry));
-      current_entry->kid = kid;
-      current_entry->key = key;
-      current_entry->claims_len = claims_len;
-      if(claims_len > 0) {
-        // We still need to get the token info and time.
-        unsigned char* claims = (unsigned char*) malloc(claims_len);
-        bytes_read += cfs_read(fd_read, claims, claims_len);
-        current_entry->claims = claims;
-
-        unsigned char* received_time = (unsigned char *) malloc(sizeof(uint64_t));
-        bytes_read += cfs_read(fd_read, received_time, sizeof(uint64_t));
-        current_entry->time_received_seconds = bytes_to_uint64_t(received_time, sizeof(uint64_t));
-      }
-
       entry_list[total_entries++] = current_entry;
     }
 
-    PRINTF("bytes read is %d\n", bytes_read);
+    curr_entry = authz_entry_iterator_get_next();
   }
-  cfs_close(fd_read);
+
+  authz_entry_iterator_finish();
 
   // Now write them all but the removed one back to the file, removing what was in the file before.
   PRINTF("Re-writing all entries but the deleted one to file.");
@@ -320,6 +385,8 @@ int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
   while(curr_entry_num < total_entries) {
     authz_entry* curr_entry = entry_list[curr_entry_num++];
     write_entry_to_file(curr_entry, fd_write);
+    free_authz_entry(curr_entry);
+    free(curr_entry)
   }
   cfs_close(fd_write);
   PRINTF("Finished re-writing all entries but the deleted one to file.");
@@ -327,22 +394,46 @@ int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
   return success;
 }
 
-// Converts from byte array to uint64.
-uint64_t bytes_to_uint64_t(unsigned char* bytes, int length){
-  long value = 0;
-  int i = 0;
-  for (i = 0; i < length; i++) {
-    value += ((long) bytes[i] & 0xffL) << (8 * i);
+/*--------------------------------------------------------------------*/
+// Authz entry iterator.
+// TODO: thread-safety of these vars?
+static int iterator_entry_file_fd = 0;
+static int iterator_file_size = 0;
+static int iterator_curr_pos = 0;
+
+// Initialize iterator global variables, opening file.
+int authz_entry_iterator_initialize() {
+  iterator_entry_file_fd = cfs_open(TOKENS_FILE_NAME, CFS_READ);
+  if(iterator_entry_file_fd == -1) {
+    PRINTF("ERROR: could not open tokens file '%s' for reading\n", TOKENS_FILE_NAME);
+    return 0;
   }
-  return value;
+
+  iterator_file_size = cfs_seek(iterator_entry_file_fd, 0, CFS_SEEK_END);
+  PRINTF("File size is %d\n", iterator_file_size);
+  cfs_seek(iterator_entry_file_fd, 0, CFS_SEEK_SET);
+  iterator_curr_pos = 0;
+
+  return 1;
 }
 
-// Converts from uint64 to byte array.
-unsigned char* uint64_t_to_bytes(uint64_t number){
-  unsigned char* bytes = (unsigned char *) malloc(sizeof(uint64_t));
-  int i = 0;
-  for (i = 0; i < sizeof(uint64_t); i++) {
-    bytes[i] = ((number >> (8 * i)) & 0xffL);
+// Clear up global variables, including closing file.
+void authz_entry_iterator_finish() {
+  cfs_close(iterator_entry_file_fd);
+  iterator_entry_file_fd = 0;
+  iterator_file_size = 0;
+  iterator_curr_pos = 0;
+}
+
+// Get next entry from file.
+authz_entry* authz_entry_iterator_get_next() {
+  if(iterator_curr_pos < iterator_file_size) {
+    authz_entry* curr_entry;
+    iterator_curr_pos += read_entry_from_file(&curr_entry, iterator_entry_file_fd);
+    return curr_entry;
   }
-  return bytes;
+  else {
+    // No more entries in file.
+    return 0;
+  }
 }

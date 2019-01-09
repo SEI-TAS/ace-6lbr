@@ -17,7 +17,6 @@ DM18-1273
  *         Main ace-rs process and initialisation
  */
 
-
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
@@ -32,10 +31,9 @@ DM18-1273
 #include "dtls.h"
 
 /*---------------------------------------------------------------------------*/
-PROCESS(acers, "ACE RS");
+PROCESS(acers, "ACE-RS");
 AUTOSTART_PROCESSES(&acers);
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -59,11 +57,12 @@ print_local_addresses(void)
   }
 }
 
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(acers, ev, data)
 {
   PROCESS_BEGIN();
 
-  printf("Starting ACE RS (" CONTIKI_VERSION_STRING ")\n");
+  printf("Starting ACE-RS (Contiki " CONTIKI_VERSION_STRING ")\n");
 
   // Setup IPv6 address.
   uint8_t default_prefix[16] = {0};

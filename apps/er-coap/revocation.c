@@ -11,9 +11,12 @@ Released under a BSD (SEI)-style license, please see https://github.com/cetic/6l
 
 DM18-1273
 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "key-token-store.h"
 
 // 0. Figure out how to store the IP of each AS associated with the token. When pairing?
 // 1. Timed process or sleep.
@@ -22,4 +25,12 @@ DM18-1273
 // 4. Parse revocation response.
 // 5. Remove revoked tokens froms storage.
 
+void check_revoked_tokens() {
+
+  authz_entry_iterator_initialize();
+  authz_entry* curr_entry = authz_entry_iterator_get_next();
+
+
+  authz_entry_iterator_finish();
+}
 
