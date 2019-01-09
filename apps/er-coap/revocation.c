@@ -30,6 +30,10 @@ void check_revoked_tokens() {
   authz_entry_iterator_initialize();
   authz_entry* curr_entry = authz_entry_iterator_get_next();
 
+  while(curr_entry != 0) {
+
+    curr_entry = authz_entry_iterator_get_next();
+  }
 
   authz_entry_iterator_finish();
 }
