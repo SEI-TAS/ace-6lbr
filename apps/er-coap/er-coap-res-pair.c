@@ -21,6 +21,7 @@ DM18-1273
 
 #include <stdlib.h>
 #include <string.h>
+#include "er-coap.h"
 #include "rest-engine.h"
 #include "cfs/cfs.h"
 
@@ -33,6 +34,8 @@ DM18-1273
 
 #define CBOR_DEVICE_ID_KEY 3
 #define CBOR_DEVICE_INFO_KEY 4
+
+#define PRINT6ADDR(addr) printf("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 void set_cbor_error_response(void* response, unsigned int response_code, int error_code, const char* error_desc);
@@ -58,6 +61,10 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
       HEX_PRINTF(key_info->kid, key_info->kid_len);
       printf("Key: ");
       HEX_PRINTF(key_info->key, KEY_LENGTH);
+
+      // Checking source IP.
+      printf("Receiving UDP datagram from: ");
+      PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
 
       // We will ignore the AS id, since our id is what the AS will use as the Key ID for this key.
       printf("Will store key with our id: %s\n", RS_ID);
