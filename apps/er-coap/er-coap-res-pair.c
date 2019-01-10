@@ -37,7 +37,7 @@ DM18-1273
 
 #define IP6_ADDRESS_BYTES_LEN 16
 
-extern check_revoked_tokens();
+extern void check_revoked_tokens();
 
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 void set_cbor_error_response(void* response, unsigned int response_code, int error_code, const char* error_desc);
