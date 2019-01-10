@@ -37,8 +37,6 @@ DM18-1273
 
 #define IP6_ADDRESS_BYTES_LEN 16
 
-extern void check_revoked_tokens();
-
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 void set_cbor_error_response(void* response, unsigned int response_code, int error_code, const char* error_desc);
 
@@ -85,9 +83,6 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
         printf("Sending reply.\n");
         REST.set_response_status(response, REST.status.CREATED);
         REST.set_response_payload(response, cbor_bytes, cbor_bytes_len);
-
-        // TEST: call revocation checker.
-        check_revoked_tokens();
       }
       else {
         const char* failure_message = "Failed to store AS credentials";
