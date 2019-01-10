@@ -31,7 +31,7 @@ DM18-1273
 // 5. DONE! Remove revoked tokens froms storage.
 
 void check_revoked_tokens() {
-  printf("Revoked tokens checker!");
+  printf("Revoked tokens checker!\n");
 
   // First get the AS IP.
   authz_entry as_pairing_entry = { 0 };
@@ -48,6 +48,7 @@ void check_revoked_tokens() {
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
 
   // Add all revoked tokens to a list (removing them all together later is more efficient).
+  printf("Looping over all tokens to find revoked ones.\n");
   authz_entry* curr_entry = authz_entry_iterator_get_next(&iterator);
   int num_tokens_to_remove = 0;
   authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
@@ -61,6 +62,7 @@ void check_revoked_tokens() {
 
     // Add token to removal list if revoked, or free its temp memory if not.
     if(token_was_revoked) {
+      printf("Adding token to removal list.\n");
       tokens_to_remove[num_tokens_to_remove++] = curr_entry;
     }
     else {
@@ -74,7 +76,8 @@ void check_revoked_tokens() {
   authz_entry_iterator_finish(iterator);
 
   // Remove all revoked tokens, and then free the memory for their temp structs.
-  if(tokens_to_remove > 0) {
+  printf("Total tokens to remove: %d\n", num_tokens_to_remove);
+  if(num_tokens_to_remove > 0) {
     int num_removed = remove_authz_entries(tokens_to_remove, num_tokens_to_remove);
     printf("Removed %d tokens.\n", num_removed);
 
