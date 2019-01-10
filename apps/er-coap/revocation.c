@@ -16,6 +16,8 @@ DM18-1273
 #include <stdlib.h>
 #include <string.h>
 
+#include "cfs/cfs.h"
+
 #include "key-token-store.h"
 #include "cwt.h"
 #include "utils.h"

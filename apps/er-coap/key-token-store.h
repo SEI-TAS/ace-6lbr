@@ -31,7 +31,7 @@ authz_entry* create_authz_entry(unsigned char* kid, int kid_len, unsigned char* 
 int store_authz_entry(authz_entry* entry);
 int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_entry *result);
 void free_authz_entry(authz_entry* entry);
-int remove_authz_entries(const authz_entry* key_id_list[], int key_id_list_len);
+int remove_authz_entries(authz_entry* key_id_list[], int key_id_list_len);
 
 typedef struct authz_entry_iterator {
   int entry_file_fd;

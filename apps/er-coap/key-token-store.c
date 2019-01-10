@@ -345,7 +345,7 @@ void free_authz_entry(authz_entry* entry) {
 }
 
 // Removes the tokens for the given key ids. Assumption is that all key ids are of length KEY_ID_LENGTH.
-int remove_authz_entries(const authz_entry* key_id_list[], int key_id_list_len) {
+int remove_authz_entries(authz_entry* key_id_list[], int key_id_list_len) {
   int number_of_removed_tokens = 0;
 
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
