@@ -104,6 +104,7 @@ int write_entry_to_file(authz_entry* entry, int fd_tokens_file) {
 
 // Reads and loads the next authz_entry object from file, returning the bytes read.
 int read_entry_from_file(authz_entry** entry, int fd_tokens_file) {
+  PRINTF("Reading entry from file.\n");
   int bytes_read = 0;
 
   unsigned char* kid = (unsigned char *) malloc(KEY_ID_LENGTH);
@@ -213,6 +214,7 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
         key_found = 1;
 
         // Copy the entry to the result param.
+        PRINTF("Copying data to outout param.\n");
         memcpy(result->kid, curr_entry->kid, KEY_ID_LENGTH);
         memcpy(result->key, curr_entry->key, KEY_LENGTH);
         memcpy(result->claims, curr_entry->claims, curr_entry->claims_len);
@@ -220,11 +222,15 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
         result->time_received_seconds = curr_entry->time_received_seconds;
     }
 
+    PRINTF("Freeing resources.\n");
     free_authz_entry(curr_entry);
     free(curr_entry);
+
+    PRINTF("Moving to next item.\n");
     curr_entry = authz_entry_iterator_get_next(&iterator);
   }
 
+  PRINTF("Freeing iterator and padded idx.\n");
   authz_entry_iterator_finish(iterator);
   free(padded_idx);
 
