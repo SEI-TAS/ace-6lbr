@@ -65,6 +65,7 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
       // Checking source IP.
       printf("Receiving UDP datagram from: ");
       PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+      printf("\n.");
 
       // We will ignore the AS id, since our id is what the AS will use as the Key ID for this key.
       printf("Will store key with our id: %s\n", RS_ID);
