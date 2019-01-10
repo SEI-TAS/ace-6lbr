@@ -24,7 +24,6 @@ DM18-1273
 
 #define PAIRING_KEY_ID "Authentication01"
 #define NON_TOKEN_ENTRY_CBOR_LENGTH "0000"
-#define MAX_ENTRIES 20
 
 #define DEBUG 1
 #if DEBUG
@@ -197,7 +196,7 @@ int store_authz_entry(authz_entry* entry) {
 }
 
 // Looks for an entry in the store, given the key id or key.
-int find_authz_entry2(const unsigned char* const index, size_t idx_len, authz_entry *result){
+int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_entry *result){
   int key_found = 0;
 
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
@@ -239,7 +238,7 @@ int find_authz_entry2(const unsigned char* const index, size_t idx_len, authz_en
 }
 
 // Looks for an entry in the store, given the key id or key.
-int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_entry *result){
+int find_authz_entry2(const unsigned char* const index, size_t idx_len, authz_entry *result){
   int key_found = 0;
 
   int fd_read = cfs_open(TOKENS_FILE_NAME, CFS_READ);
@@ -345,32 +344,36 @@ void free_authz_entry(authz_entry* entry) {
   }
 }
 
-// Removes the token for the given key id.
-int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
-  int success = 0;
-
-  PRINTF("Removing entry identified by key: ");
-  HEX_PRINTF_DBG(key_id, key_id_len);
+// Removes the tokens for the given key ids. Assumption is that all key ids are of length KEY_ID_LENGTH.
+int remove_authz_entries(const authz_entry* key_id_list[], int key_id_list_len) {
+  int number_of_removed_tokens = 0;
 
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
 
   // Loop over all entries, adding all of them but the one we want to remove to an array.
   int total_entries = 0;
-  authz_entry* entry_list[MAX_ENTRIES] = {0};
+  authz_entry* entry_list[MAX_AUTHZ_ENTRIES] = {0};
   authz_entry* curr_entry = authz_entry_iterator_get_next(&iterator);
   while(curr_entry != 0) {
-    if(total_entries == MAX_ENTRIES) {
+    if(total_entries == MAX_AUTHZ_ENTRIES) {
       PRINTF("Max entries reached; removing rest of entries");
       break;
     }
 
-    if (memcmp(key_id, kid, KEY_ID_LENGTH) == 0){
-      PRINTF("Ignoring token to remove!\n");
-      free_authz_entry(curr_entry);
-      free(curr_entry)
-    }
-    else {
-      entry_list[total_entries++] = current_entry;
+    // Loop over all the tokens to delete to see if this is one of them.
+    int i = 0;
+    for(i = 0; i < key_id_list_len; i++) {
+      if (memcmp(key_id_list[i]->kid, curr_entry->kid, KEY_ID_LENGTH) == 0){
+        PRINTF("Token to remove found; identified by key id: ");
+        HEX_PRINTF_DBG(curr_entry->kid, KEY_ID_LENGTH);
+        number_of_removed_tokens++;
+        free_authz_entry(curr_entry);
+        free(curr_entry);
+        continue;
+      }
+      else {
+        entry_list[total_entries++] = current_entry;
+      }
     }
 
     curr_entry = authz_entry_iterator_get_next(&iterator);
@@ -391,7 +394,7 @@ int remove_authz_entry(const unsigned char* const key_id, int key_id_len) {
   cfs_close(fd_write);
   PRINTF("Finished re-writing all entries but the deleted one to file.");
 
-  return success;
+  return number_of_removed_tokens;
 }
 
 /*--------------------------------------------------------------------*/
