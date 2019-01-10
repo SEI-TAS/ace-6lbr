@@ -19,6 +19,7 @@ DM18-1273
 #include "cfs/cfs.h"
 
 #include "key-token-store.h"
+#include "resources.h"
 #include "cwt.h"
 #include "utils.h"
 
@@ -30,6 +31,19 @@ DM18-1273
 // 5. DONE! Remove revoked tokens froms storage.
 
 void check_revoked_tokens() {
+  printf("Revoked tokens checker!");
+
+  // First get the AS IP.
+  authz_entry as_pairing_entry = { 0 };
+  int result = find_authz_entry(RS_ID, strlen(RS_ID), &as_pairing_entry);
+  if(result == 0) {
+    printf("Could not get AS IP from token file.");
+    return;
+  }
+
+  printf("Got AS IP from tokens file: ");
+  PRINT6ADDR(as_pairing_entry.claims);
+  printf("\n");
 
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
 
