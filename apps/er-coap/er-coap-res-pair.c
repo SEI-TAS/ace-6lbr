@@ -35,6 +35,8 @@ DM18-1273
 #define CBOR_DEVICE_ID_KEY 3
 #define CBOR_DEVICE_INFO_KEY 4
 
+#define IP6_ADDRESS_BYTES_LEN 16
+
 #define PRINT6ADDR(addr) printf("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
@@ -63,13 +65,16 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
       HEX_PRINTF(key_info->key, KEY_LENGTH);
 
       // Checking source IP.
+      uip_ip6addr_t srcipaddr = &UIP_IP_BUF->srcipaddr;
       printf("Receiving UDP datagram from: ");
-      PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+      PRINT6ADDR(srcipaddr);
       printf("\n.");
 
       // We will ignore the AS id, since our id is what the AS will use as the Key ID for this key.
+      // NOTE: instead of storing claims, we will store the byte for the AS IP in that slot.
       printf("Will store key with our id: %s\n", RS_ID);
-      authz_entry* authz_info = create_authz_entry((unsigned char*) RS_ID, strlen(RS_ID), key_info->key, 0, 0, 0);
+      authz_entry* authz_info = create_authz_entry((unsigned char*) RS_ID, strlen(RS_ID), key_info->key,
+                                                   IP6_ADDRESS_BYTES_LEN, (unsigned char*) srcipaddr, 0);
       if(store_authz_entry(authz_info)) {
         // We have to respond with our key and scopes, encoded in CBOR.
         printf("Encoding response with device id and scopes.\n");
