@@ -65,16 +65,15 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
       HEX_PRINTF(key_info->key, KEY_LENGTH);
 
       // Checking source IP.
-      uip_ip6addr_t srcipaddr = &UIP_IP_BUF->srcipaddr;
       printf("Receiving UDP datagram from: ");
-      PRINT6ADDR(srcipaddr);
+      PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
       printf("\n.");
 
       // We will ignore the AS id, since our id is what the AS will use as the Key ID for this key.
-      // NOTE: instead of storing claims, we will store the byte for the AS IP in that slot.
+      // NOTE: instead of storing CBOR-encoded claims, we will store the byte for the AS IP in that slot.
       printf("Will store key with our id: %s\n", RS_ID);
       authz_entry* authz_info = create_authz_entry((unsigned char*) RS_ID, strlen(RS_ID), key_info->key,
-                                                   IP6_ADDRESS_BYTES_LEN, (unsigned char*) srcipaddr, 0);
+                                                   IP6_ADDRESS_BYTES_LEN, (unsigned char*) (uint8_t *) &UIP_IP_BUF->srcipaddr, 0);
       if(store_authz_entry(authz_info)) {
         // We have to respond with our key and scopes, encoded in CBOR.
         printf("Encoding response with device id and scopes.\n");
