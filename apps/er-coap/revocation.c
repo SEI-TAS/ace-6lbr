@@ -42,7 +42,7 @@ void check_revoked_tokens() {
   }
 
   printf("Got AS IP from tokens file: ");
-  PRINT6ADDR(as_pairing_entry.claims);
+  PRINTIP6ADDR(as_pairing_entry.claims);
   printf("\n");
 
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
