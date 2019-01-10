@@ -37,7 +37,7 @@ DM18-1273
 
 #define IP6_ADDRESS_BYTES_LEN 16
 
-#define PRINT6ADDR(addr) printf("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+extern check_revoked_tokens();
 
 static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 void set_cbor_error_response(void* response, unsigned int response_code, int error_code, const char* error_desc);
@@ -67,7 +67,7 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
       // Checking source IP.
       printf("Receiving UDP datagram from: ");
       PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-      printf("\n.");
+      printf("\n");
 
       // We will ignore the AS id, since our id is what the AS will use as the Key ID for this key.
       // NOTE: instead of storing CBOR-encoded claims, we will store the byte for the AS IP in that slot.
@@ -85,6 +85,9 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
         printf("Sending reply.\n");
         REST.set_response_status(response, REST.status.CREATED);
         REST.set_response_payload(response, cbor_bytes, cbor_bytes_len);
+
+        // TEST: call revocation checker.
+        check_revoked_tokens();
       }
       else {
         const char* failure_message = "Failed to store AS credentials";
