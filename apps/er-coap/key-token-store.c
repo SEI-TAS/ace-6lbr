@@ -107,30 +107,30 @@ int read_entry_from_file(authz_entry** entry, int fd_tokens_file) {
   int bytes_read = 0;
 
   unsigned char* kid = (unsigned char *) malloc(KEY_ID_LENGTH);
-  bytes_read += cfs_read(fd_read, kid, KEY_ID_LENGTH);
+  bytes_read += cfs_read(fd_tokens_file, kid, KEY_ID_LENGTH);
   PRINTF("Key id: ");
   HEX_PRINTF_DBG(kid, KEY_ID_LENGTH);
 
-  unsigned char key = (unsigned char *) malloc(KEY_LENGTH);
-  bytes_read += cfs_read(fd_read, key, KEY_LENGTH);
+  unsigned char* key = (unsigned char *) malloc(KEY_LENGTH);
+  bytes_read += cfs_read(fd_tokens_file, key, KEY_LENGTH);
   PRINTF("Key: ");
   HEX_PRINTF_DBG(key, KEY_LENGTH);
 
   char claims_len_buffer[CBOR_SIZE_LENGTH + 1] = { 0 };
-  bytes_read += cfs_read(fd_read, claims_len_buffer, CBOR_SIZE_LENGTH);
+  bytes_read += cfs_read(fd_tokens_file, claims_len_buffer, CBOR_SIZE_LENGTH);
   int claims_len = atoi(claims_len_buffer);
   PRINTF("Claims len: %d\n", claims_len);
 
   unsigned char* claims = 0;
   uint64_t time_received_seconds = 0;
   if(claims_len > 0) {
-    claims = (unsigned char *) malloc(result->claims_len);
-    bytes_read += cfs_read(fd_read, result->claims, result->claims_len);
+    claims = (unsigned char *) malloc(claims_len);
+    bytes_read += cfs_read(fd_tokens_file, claims, claims_len);
     PRINTF("Claims: \n");
-    HEX_PRINTF_DBG(result->claims, result->claims_len);
+    HEX_PRINTF_DBG(claims, claims_len);
 
     unsigned char* received_time = (unsigned char *) malloc(sizeof(uint64_t));
-    bytes_read += cfs_read(fd_read, received_time, sizeof(uint64_t));
+    bytes_read += cfs_read(fd_tokens_file, received_time, sizeof(uint64_t));
     time_received_seconds = bytes_to_uint64_t(received_time, sizeof(uint64_t));
     PRINTF("Received time: %lu\n", time_received_seconds);
     free(received_time);
@@ -216,7 +216,7 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
         memcpy(result->kid, curr_entry->kid, KEY_ID_LENGTH);
         memcpy(result->key, curr_entry->key, KEY_LENGTH);
         memcpy(result->claims, curr_entry->claims, curr_entry->claims_len);
-        result->claim_len = curr_entry->claims_len;
+        result->claims_len = curr_entry->claims_len;
         result->time_received_seconds = curr_entry->time_received_seconds;
     }
 
@@ -372,7 +372,7 @@ int remove_authz_entries(const authz_entry* key_id_list[], int key_id_list_len) 
         continue;
       }
       else {
-        entry_list[total_entries++] = current_entry;
+        entry_list[total_entries++] = curr_entry;
       }
     }
 
@@ -389,7 +389,7 @@ int remove_authz_entries(const authz_entry* key_id_list[], int key_id_list_len) 
     authz_entry* curr_entry = entry_list[curr_entry_num++];
     write_entry_to_file(curr_entry, fd_write);
     free_authz_entry(curr_entry);
-    free(curr_entry)
+    free(curr_entry);
   }
   cfs_close(fd_write);
   PRINTF("Finished re-writing all entries but the deleted one to file.");
