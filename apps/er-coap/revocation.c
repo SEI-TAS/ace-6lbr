@@ -35,7 +35,7 @@ void check_revoked_tokens() {
 
   // First get the AS IP.
   authz_entry as_pairing_entry = { 0 };
-  int result = find_authz_entry(RS_ID, strlen(RS_ID), &as_pairing_entry);
+  int result = find_authz_entry((unsigned char*) RS_ID, strlen(RS_ID), &as_pairing_entry);
   if(result == 0) {
     printf("Could not get AS IP from token file.");
     return;
