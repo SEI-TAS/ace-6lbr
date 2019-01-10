@@ -207,23 +207,31 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
   HEX_PRINTF_DBG(padded_idx, KEY_ID_LENGTH);
 
   // Loop over all entries until we find one with the given KID.
+  result->kid = 0;
   authz_entry* curr_entry = authz_entry_iterator_get_next(&iterator);
   while(curr_entry != 0) {
     if (memcmp(padded_idx, curr_entry->kid, KEY_ID_LENGTH) == 0){
         PRINTF("Found match!\n");
         key_found = 1;
 
+        // If we had already found a previous token, free its memory from the result param.
+        if(result->kid != 0) {
+          free_authz_entry(result);
+        }
+
         // Copy the entry to the result param.
-        PRINTF("Copying data to outout param.\n");
-        memcpy(result->kid, curr_entry->kid, KEY_ID_LENGTH);
-        memcpy(result->key, curr_entry->key, KEY_LENGTH);
-        memcpy(result->claims, curr_entry->claims, curr_entry->claims_len);
+        PRINTF("Copying data to output param.\n");
+        result->kid = curr_entry->kid;
+        result->key = curr_entry->key;
+        result->claims = curr_entry->claims;
         result->claims_len = curr_entry->claims_len;
         result->time_received_seconds = curr_entry->time_received_seconds;
     }
+    else {
+      free_authz_entry(curr_entry);
+    }
 
     PRINTF("Freeing resources.\n");
-    free_authz_entry(curr_entry);
     free(curr_entry);
 
     PRINTF("Moving to next item.\n");
