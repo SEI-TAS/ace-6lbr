@@ -32,8 +32,8 @@ void check_revoked_tokens() {
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
 
   // Add all revoked tokens to a list (removing them all together later is more efficient).
-  authz_entry* curr_entry = authz_entry_iterator_get_next(&authz_entry_iterator);
-  num_tokens_to_remove = 0;
+  authz_entry* curr_entry = authz_entry_iterator_get_next(&iterator);
+  int num_tokens_to_remove = 0;
   authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
   while(curr_entry != 0) {
     printf("Curr entry kid: ");
@@ -52,10 +52,10 @@ void check_revoked_tokens() {
       free(curr_entry);
     }
 
-    curr_entry = authz_entry_iterator_get_next(&authz_entry_iterator);
+    curr_entry = authz_entry_iterator_get_next(&iterator);
   }
 
-  authz_entry_iterator_finish(authz_entry_iterator);
+  authz_entry_iterator_finish(iterator);
 
   // Remove all revoked tokens, and then free the memory for their temp structs.
   if(tokens_to_remove > 0) {
@@ -63,7 +63,7 @@ void check_revoked_tokens() {
     printf("Removed %d tokens.\n", num_removed);
 
     int i = 0;
-    for(i = 0; i < num_tokens_to_remove: i++) {
+    for(i = 0; i < num_tokens_to_remove; i++) {
       authz_entry* curr_entry = tokens_to_remove[i];
       free_authz_entry(curr_entry);
       free(curr_entry);
