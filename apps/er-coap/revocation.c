@@ -56,7 +56,7 @@ PROCESS_THREAD(revocation_check, ev, data)
   authz_entry as_pairing_entry = { 0 };
   int result = find_authz_entry((unsigned char*) RS_ID, strlen(RS_ID), &as_pairing_entry);
   if(result == 0) {
-    printf("Could not get AS IP from token file.");
+    printf("Could not get AS IP from token file.\n");
   }
   else {
     printf("Got AS IP from tokens file: ");
@@ -88,7 +88,7 @@ void start_revocation_checker() {
 
 // Main function to check for revoked tokens.
 void check_revoked_tokens(authz_entry* as_pairing_entry) {
-  printf("Executing check iteration.");
+  printf("Executing check iteration.\n");
 
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
 
@@ -134,9 +134,9 @@ void check_revoked_tokens(authz_entry* as_pairing_entry) {
     }
   }
   else {
-    printf("No tokens to remove.");
+    printf("No tokens to remove.\n");
   }
 
-  printf("Finished executing check iteration.");
+  printf("Finished executing check iteration.\n");
 }
 
