@@ -40,7 +40,6 @@ void check_revoked_tokens();
 
 /*---------------------------------------------------------------------------*/
 PROCESS(revocation_check, "Revoked Tokens Checker");
-AUTOSTART_PROCESSES(&revocation_check);
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
@@ -48,9 +47,10 @@ PROCESS_THREAD(revocation_check, ev, data)
 {
   PROCESS_BEGIN();
 
+  printf("Executing revoked tokens checker!\n");
+
   static struct etimer et;
   int timer_started = 0;
-  printf("Executing revoked tokens checker!\n");
 
   // First get the AS IP.
   authz_entry as_pairing_entry = { 0 };
@@ -79,6 +79,11 @@ PROCESS_THREAD(revocation_check, ev, data)
   }
 
   PROCESS_END();
+}
+
+// Used to start the process.
+void start_revocation_checker() {
+  process_start(&revocation_check, NULL);
 }
 
 // Main function to check for revoked tokens.

@@ -30,6 +30,8 @@ DM18-1273
 #include "rest-engine.h"
 #include "dtls.h"
 
+extern void start_revocation_checker();
+
 /*---------------------------------------------------------------------------*/
 PROCESS(acers, "ACE-RS");
 AUTOSTART_PROCESSES(&acers);
@@ -86,6 +88,9 @@ PROCESS_THREAD(acers, ev, data)
   printf("CoAP servers started.\n");
   printf("Checking IP addresses.\n");
   print_local_addresses();
+
+  printf("Starting revocation check process.\n");
+  start_revocation_checker();
 
   PROCESS_END();
 }
