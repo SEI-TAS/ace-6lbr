@@ -12,11 +12,13 @@ Released under a BSD (SEI)-style license, please see https://github.com/cetic/6l
 DM18-1273
 */
 
+#include "contiki.h"
+#include "contiki-lib.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "contiki.h"
 #include "cfs/cfs.h"
 #include "sys/etimer.h"
 
@@ -53,7 +55,8 @@ PROCESS_THREAD(acers, ev, data)
 
 // Main function to check for revoked tokens.
 void check_revoked_tokens() {
-  static struct etimer et = 0;
+  static struct etimer et;
+  int timer_started = 0;
   printf("Executing revoked tokens checker!\n");
 
   // First get the AS IP.
@@ -121,8 +124,9 @@ void check_revoked_tokens() {
       printf("Finished executing check iteration.");
 
       // Set or reset timer and check again in a while.
-      if(et == 0) {
+      if(timer_started == 0) {
         etimer_set(&et, CHECK_WAIT_TIME_SECS * CLOCK_SECOND);
+        timer_started = 1;
       }
       else {
         etimer_reset(&et);
