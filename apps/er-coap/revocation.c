@@ -57,25 +57,25 @@ PROCESS_THREAD(revocation_check, ev, data)
   int result = find_authz_entry((unsigned char*) RS_ID, strlen(RS_ID), &as_pairing_entry);
   if(result == 0) {
     printf("Could not get AS IP from token file.");
-    return;
   }
+  else {
+    printf("Got AS IP from tokens file: ");
+    PRINTIP6ADDR(as_pairing_entry.claims);
+    printf("\n");
 
-  printf("Got AS IP from tokens file: ");
-  PRINTIP6ADDR(as_pairing_entry.claims);
-  printf("\n");
+    while(1) {
+      check_revoked_tokens(&as_pairing_entry);
 
-  while(1) {
-    check_revoked_tokens(&as_pairing_entry);
-
-    // Set or reset timer and check again in a while.
-    if(timer_started == 0) {
-      etimer_set(&et, CHECK_WAIT_TIME_SECS * CLOCK_SECOND);
-      timer_started = 1;
+       // Set or reset timer and check again in a while.
+      if(timer_started == 0) {
+        etimer_set(&et, CHECK_WAIT_TIME_SECS * CLOCK_SECOND);
+        timer_started = 1;
+      }
+      else {
+        etimer_reset(&et);
+      }
+      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     }
-    else {
-      etimer_reset(&et);
-    }
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
 
   PROCESS_END();
