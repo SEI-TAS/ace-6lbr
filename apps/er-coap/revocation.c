@@ -16,6 +16,7 @@ DM18-1273
 #include <stdlib.h>
 #include <string.h>
 
+#include "contiki.h"
 #include "cfs/cfs.h"
 #include "sys/etimer.h"
 
