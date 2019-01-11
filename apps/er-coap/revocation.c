@@ -44,7 +44,7 @@ AUTOSTART_PROCESSES(&revocation_check);
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(acers, ev, data)
+PROCESS_THREAD(revocation_check, ev, data)
 {
   PROCESS_BEGIN();
 
@@ -73,7 +73,7 @@ PROCESS_THREAD(acers, ev, data)
       timer_started = 1;
     }
     else {
-      etimer_reset(&et)
+      etimer_reset(&et);
     }
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
