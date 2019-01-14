@@ -116,7 +116,7 @@ void check_revoked_tokens(authz_entry* as_pairing_entry) {
     // Parse revocation response. We assume we have a simple map as response (as specified in the standard), and the
     // only key-pair is "active" with a CBOR value of TRUE or FALSE.
     int token_was_revoked = 0;
-    if(cbor_bytes_len > 0) {
+    if(cbor_result_len > 0) {
       cn_cbor* cbor_object = cn_cbor_decode(cbor_result, cbor_result_len CBOR_CONTEXT_PARAM, 0);
       if(cbor_object->type == CN_CBOR_MAP) {
         cn_cbor* pair_key = cbor_object->first_child;
