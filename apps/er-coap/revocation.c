@@ -22,19 +22,27 @@ DM18-1273
 #include "cfs/cfs.h"
 #include "sys/etimer.h"
 
+#include "cn-cbor/cn-cbor/cn-cbor.h"
 #include "key-token-store.h"
 #include "resources.h"
 #include "cwt.h"
 #include "utils.h"
 
 // 0. DONE! Figure out how to store the IP of each AS associated with the token. When pairing?
-// 1. Timed process or sleep.
+// 1. DONE! Timed process or sleep.
 // 2. CoAP client to send request.
 // 3. DONE! Loop over all tokens.
 // 4. Parse revocation response.
 // 5. DONE! Remove revoked tokens froms storage.
 
+#ifdef USE_CBOR_CONTEXT
+#define CBOR_CONTEXT_PARAM , NULL
+#else
+#define CBOR_CONTEXT_PARAM
+#endif
+
 #define CHECK_WAIT_TIME_SECS 20
+#define INTROSPECTION_ACTIVE_KEY "active"
 
 void check_revoked_tokens();
 
@@ -103,7 +111,30 @@ void check_revoked_tokens(authz_entry* as_pairing_entry) {
 
     int token_was_revoked = 0;
     // 2. CoAP client to send request.
-    // 4. Parse revocation response.
+    unsigned char* cbor_result = 0;
+    int cbor_bytes_len = 0; //get_introspection_result(request, cbor_result);
+
+    // Parse revocation response. We assume we have a simple map as response (as specified in the standard), and the
+    // only key-pair is "active" with a CBOR value of TRUE or FALSE.
+    if(cbor_bytes_len > 0) {
+      cn_cbor* cbor_object = cn_cbor_decode(cbor_bytes, cbor_bytes_len CBOR_CONTEXT_PARAM, 0);
+      if(cbor_object->type == CN_CBOR_MAP) {
+        cn_cbor* pair_key = cbor_object->first_child;
+        if(pair_key->type == CN_CBOR_TEXT && memcmp(pair_key->->v.str, INTROSPECTION_ACTIVE_KEY, strlen(INTROSPECTION_ACTIVE_KEY))) {
+          cn_cbor* active_value = cbor_object->next;
+
+          if(active_value->type == CN_CBOR_FALSE) {
+            token_was_revoked = 1;
+          }
+        }
+        else {
+          printf("Response did not have 'active' key first".);
+        }
+      }
+      else {
+        printf("Response was not a map.");
+      }
+    }
 
     // Add token to removal list if revoked, or free its temp memory if not.
     if(token_was_revoked) {
