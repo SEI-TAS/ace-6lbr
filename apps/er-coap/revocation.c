@@ -109,18 +109,18 @@ void check_revoked_tokens(authz_entry* as_pairing_entry) {
     printf("Curr entry kid: ");
     HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
 
-    int token_was_revoked = 0;
     // 2. CoAP client to send request.
     unsigned char* cbor_result = 0;
-    int cbor_bytes_len = 0; //get_introspection_result(request, cbor_result);
+    int cbor_result_len = 0; //get_introspection_result(request, cbor_result);
 
     // Parse revocation response. We assume we have a simple map as response (as specified in the standard), and the
     // only key-pair is "active" with a CBOR value of TRUE or FALSE.
+    int token_was_revoked = 0;
     if(cbor_bytes_len > 0) {
-      cn_cbor* cbor_object = cn_cbor_decode(cbor_bytes, cbor_bytes_len CBOR_CONTEXT_PARAM, 0);
+      cn_cbor* cbor_object = cn_cbor_decode(cbor_result, cbor_result_len CBOR_CONTEXT_PARAM, 0);
       if(cbor_object->type == CN_CBOR_MAP) {
         cn_cbor* pair_key = cbor_object->first_child;
-        if(pair_key->type == CN_CBOR_TEXT && memcmp(pair_key->->v.str, INTROSPECTION_ACTIVE_KEY, strlen(INTROSPECTION_ACTIVE_KEY))) {
+        if(pair_key->type == CN_CBOR_TEXT && memcmp(pair_key->v.str, INTROSPECTION_ACTIVE_KEY, strlen(INTROSPECTION_ACTIVE_KEY))) {
           cn_cbor* active_value = cbor_object->next;
 
           if(active_value->type == CN_CBOR_FALSE) {
@@ -128,7 +128,7 @@ void check_revoked_tokens(authz_entry* as_pairing_entry) {
           }
         }
         else {
-          printf("Response did not have 'active' key first".);
+          printf("Response did not have 'active' key first.");
         }
       }
       else {
