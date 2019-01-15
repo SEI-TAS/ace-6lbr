@@ -45,8 +45,8 @@ DM18-1273
 #define HEX_PRINTF_INL(byte_array, length)
 #endif
 
-// Parses the unencrypted CBOR bytes of a CWT token, and loads all claims into a cwt C struct object.
-static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbor_object) {
+// Creates a CWT struct from a cb_cbor generic CBOR object.
+static void load_cwt_object(signed long *curr_claim, cwt *token, const cn_cbor* cbor_object) {
   if (!cbor_object) {
     return;
   }
@@ -60,7 +60,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
       PRINTF("Will analyze children objects\n");
       cn_cbor* current;
       for (current = cbor_object->first_child; current; current = current->next) {
-        parse_claims(curr_claim, token, current);
+        load_cwt_object(curr_claim, token, current);
       }
       PRINTF("Finished analyzing children objects\n");
       break;
@@ -71,6 +71,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
       switch(*curr_claim){
         case CTI:
           token->cti = (char *) malloc(cbor_object->length);
+          token->cti_len = cbor_object->length;
           memcpy(token->cti, cbor_object->v.str, cbor_object->length);
           PRINTF("cti found\n");
           break;
@@ -259,14 +260,12 @@ cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len) {
     return 0;
   }
 
-  PRINTF("Parsing claims into cwt object.\n");
+  PRINTF("Loading CBOR claims into cwt object.\n");
   cwt* token_info = (cwt*) malloc(sizeof(cwt));
-  token_info->sco = 0;
-  token_info->aud = 0;
-  token_info->exp = 0;
-  token_info->exi = 0;
+  memset(cwt, 0, sizeof(cwt));
+
   long curr_claim = 0;
-  parse_claims(&curr_claim, token_info, cbor_claims);
+  load_cwt_object(&curr_claim, token_info, cbor_claims);
   PRINTF("Finished parsing claims into cwt object.\n");
 
   return token_info;

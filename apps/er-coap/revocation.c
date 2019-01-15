@@ -41,10 +41,15 @@ DM18-1273
 #define CBOR_CONTEXT_PARAM
 #endif
 
+#define IPV6_ADDRESS_LENGTH_BYTES 16
 #define CHECK_WAIT_TIME_SECS 20
+#define INTROSPECTION_ENDPOINT "introspect"
 #define INTROSPECTION_ACTIVE_KEY "active"
 
 void check_revoked_tokens();
+int send_introspection_request(const unsigned char as_ip[], const unsigned char* token_cti, int token_cti_len,
+                                          unsigned char** result);
+int was_token_revoked(const unsigned char* cbor_result, cbor_result_len);
 
 /*---------------------------------------------------------------------------*/
 PROCESS(revocation_check, "Revoked Tokens Checker");
@@ -110,31 +115,12 @@ void check_revoked_tokens(authz_entry* as_pairing_entry) {
     HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
 
     // 2. CoAP client to send request.
+    cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
     unsigned char* cbor_result = 0;
-    int cbor_result_len = 0; //get_introspection_result(request, cbor_result);
+    int cbor_result_len = send_introspection_request(as_pairing_entry.claims, token_info->cti, token_in->cti_len, &cbor_result);
 
-    // Parse revocation response. We assume we have a simple map as response (as specified in the standard), and the
-    // only key-pair is "active" with a CBOR value of TRUE or FALSE.
-    int token_was_revoked = 0;
-    if(cbor_result_len > 0) {
-      cn_cbor* cbor_object = cn_cbor_decode(cbor_result, cbor_result_len CBOR_CONTEXT_PARAM, 0);
-      if(cbor_object->type == CN_CBOR_MAP) {
-        cn_cbor* pair_key = cbor_object->first_child;
-        if(pair_key->type == CN_CBOR_TEXT && memcmp(pair_key->v.str, INTROSPECTION_ACTIVE_KEY, strlen(INTROSPECTION_ACTIVE_KEY))) {
-          cn_cbor* active_value = cbor_object->next;
-
-          if(active_value->type == CN_CBOR_FALSE) {
-            token_was_revoked = 1;
-          }
-        }
-        else {
-          printf("Response did not have 'active' key first.");
-        }
-      }
-      else {
-        printf("Response was not a map.");
-      }
-    }
+    // Check the response.
+    int token_was_revoked = was_token_revoked(cbor_result, cbor_result_len);
 
     // Add token to removal list if revoked, or free its temp memory if not.
     if(token_was_revoked) {
@@ -171,3 +157,44 @@ void check_revoked_tokens(authz_entry* as_pairing_entry) {
   printf("Finished executing check iteration.\n");
 }
 
+// Parse revocation response. We assume we have a simple map as response (as specified in the standard), and the
+// only key-pair is "active" with a CBOR value of TRUE or FALSE.
+int was_token_revoked(const unsigned char* cbor_result, cbor_result_len) {
+  int token_was_revoked = 0;
+  if(cbor_result_len > 0) {
+    cn_cbor* cbor_object = cn_cbor_decode(cbor_result, cbor_result_len CBOR_CONTEXT_PARAM, 0);
+    if(cbor_object->type == CN_CBOR_MAP) {
+      cn_cbor* pair_key = cbor_object->first_child;
+      if((pair_key->type == CN_CBOR_TEXT) && (memcmp(pair_key->v.str, INTROSPECTION_ACTIVE_KEY, strlen(INTROSPECTION_ACTIVE_KEY)) == 0)) {
+        cn_cbor* active_value = cbor_object->next;
+
+        if(active_value->type == CN_CBOR_FALSE) {
+          printf("Token has been marked as not active.");
+          token_was_revoked = 1;
+        }
+      }
+      else {
+        printf("Response did not have 'active' key first.");
+      }
+    }
+    else {
+      printf("Response was not a map.");
+    }
+
+    free(cbor_object);
+  }
+
+  return token_was_revoked;
+}
+
+// Sends an introspection request, and returns the result.
+int send_introspection_request(const unsigned char as_ip[], const unsigned char* token_cti, int token_cti_len,
+                                          unsigned char** result) {
+  unsigned char* payload;
+  int payload_len = encode_single_pair_to_cbor_map(TOKEN_KEY, token_cti, token_cti_len, &payload);
+
+  int result_len = 0; // send_coap(as_ip, INTROSPECTION_ENDPOINT, payload, payload_len, &result);
+  free(payload);
+
+  return result_len;
+}

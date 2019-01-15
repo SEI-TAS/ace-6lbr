@@ -32,6 +32,8 @@ DM18-1273
 #define CNF_KID 2
 #define CNK_KEY -1
 
+#define TOKEN_KEY 27
+
 typedef struct cwt {
   char* iss;
   char* sub;
@@ -41,6 +43,7 @@ typedef struct cwt {
   time_t nbf;
   time_t iat;
   char* cti;
+  int cti_len;
   char* sco;
   char* cnf;
   unsigned char* kid;

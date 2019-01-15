@@ -61,7 +61,7 @@ int encode_single_pair_to_cbor_map(int key, const unsigned char* value, int valu
   unsigned char cbor_map_header = CBOR_PREFIX_MAP | number_of_pairs;
 
   unsigned char* pair1_cbor = 0;
-  int pair1_len = encode_pair_to_cbor(key, 0, value, value_len, &pair1_cbor);
+  int pair1_len = encode_pair_to_cbor(key, 0, (const unsigned char*) value, value_len, &pair1_cbor);
 
   int cbor_bytes_len = sizeof(cbor_map_header) + pair1_len;
   PRINTF("Encoding pair in map, total length %d.\n", cbor_bytes_len);
