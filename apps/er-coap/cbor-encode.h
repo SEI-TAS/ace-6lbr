@@ -29,5 +29,5 @@ DM18-1273
 int encode_map_to_cbor(int key1, int int_value1, const char* str_value1,
                        int key2, int int_value2, const char* str_value2, unsigned char** cbor_result);
 int encode_single_pair_to_cbor_map(int key, const unsigned char* value, int value_len, unsigned char** cbor_result);
-int encode_bytes_to_cbor(const char* input_array, int input_array_len, unsigned char** cbor_result);
+int encode_bytes_to_cbor(const unsigned char* input_array, int input_array_len, unsigned char** cbor_result);
 int encode_int_to_cbor(int int_value, unsigned char** cbor_result);

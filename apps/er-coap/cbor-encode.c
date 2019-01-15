@@ -35,9 +35,9 @@ int encode_map_to_cbor(int key1, int int_value1, const char* str_value1,
   int number_of_pairs = 2;
   unsigned char cbor_map_header = CBOR_PREFIX_MAP | number_of_pairs;
   unsigned char* pair1_cbor = 0;
-  int pair1_len = encode_pair_to_cbor(key1, int_value1, str_value1, strlen(str_value1), &pair1_cbor);
+  int pair1_len = encode_pair_to_cbor(key1, int_value1, (const unsigned char*) str_value1, strlen(str_value1), &pair1_cbor);
   unsigned char* pair2_cbor = 0;
-  int pair2_len = encode_pair_to_cbor(key2, int_value2, str_value2, strlen(str_value2), &pair2_cbor);
+  int pair2_len = encode_pair_to_cbor(key2, int_value2, (const unsigned char*) str_value2, strlen(str_value2), &pair2_cbor);
 
   // Move both encoded bytes into a unified buffer.
   int cbor_bytes_len = sizeof(cbor_map_header) + pair1_len + pair2_len;
@@ -124,7 +124,7 @@ int encode_int_to_cbor(int int_value, unsigned char** cbor_result) {
 
 // Takes a byte array and coverts it to CBOR bytes, returning the CBOR length in bytes.
 // NOTE: We are not supporting byte arrays longer than 255 chars here (though it would be simple to extend).
-int encode_bytes_to_cbor(const char* input_array, int input_array_len, unsigned char** cbor_result) {
+int encode_bytes_to_cbor(const unsigned char* input_array, int input_array_len, unsigned char** cbor_result) {
   // Encoded byte arrays will use 1 byte header, and maybe 1 more for length if 23 < length < 255.
   int encoded_len = 1;
   if(input_array_len >= CBOR_ONE_BYTE_LIMIT) {
