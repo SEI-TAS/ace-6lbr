@@ -26,11 +26,11 @@ DM18-1273
 #define HEX_PRINTF_INL(byte_array, length)
 #endif
 
-int encode_pair_to_cbor(int key, int int_value, const char* bytes_value, int bytes_value_len, unsigned char** cbor_result);
+int encode_pair_to_cbor(int key, int int_value, const unsigned char* bytes_value, int bytes_value_len, unsigned char** cbor_result);
 
 // Encodes a map of 2 key-value pairs into CBOR. Keys are ints, values can be ints or strs.
-int encode_map_to_cbor(int key1, int int_value1, const char* str_value1,
-                       int key2, int int_value2, const char* str_value2, unsigned char** cbor_result) {
+int encode_map_to_cbor(int key1, int int_value1, const unsigned char* str_value1,
+                       int key2, int int_value2, const unsigned char* str_value2, unsigned char** cbor_result) {
   // Map will have 2 pairs.
   int number_of_pairs = 2;
   unsigned char cbor_map_header = CBOR_PREFIX_MAP | number_of_pairs;
@@ -76,7 +76,7 @@ int encode_single_pair_to_cbor_map(int key, const unsigned char* value, int valu
 }
 
 // NOTE: We assume all ints, keys or values, will be less than 24, to simplify encoding.
-int encode_pair_to_cbor(int key, int int_value, const char* bytes_value, int bytes_value_len, unsigned char** cbor_result) {
+int encode_pair_to_cbor(int key, int int_value, const unsigned char* bytes_value, int bytes_value_len, unsigned char** cbor_result) {
   PRINTF("Encoding pair to CBOR, with key %d, int value %d.\n", key, int_value);
 
   // Encode using the CBOR RFC rules. First key.

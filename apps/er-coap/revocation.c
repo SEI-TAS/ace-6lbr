@@ -49,7 +49,7 @@ DM18-1273
 void check_revoked_tokens();
 int send_introspection_request(const unsigned char as_ip[], const unsigned char* token_cti, int token_cti_len,
                                           unsigned char** result);
-int was_token_revoked(const unsigned char* cbor_result, cbor_result_len);
+int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len);
 
 /*---------------------------------------------------------------------------*/
 PROCESS(revocation_check, "Revoked Tokens Checker");
@@ -117,7 +117,8 @@ void check_revoked_tokens(authz_entry* as_pairing_entry) {
     // 2. CoAP client to send request.
     cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
     unsigned char* cbor_result = 0;
-    int cbor_result_len = send_introspection_request(as_pairing_entry.claims, token_info->cti, token_in->cti_len, &cbor_result);
+    int cbor_result_len = send_introspection_request(as_pairing_entry->claims, (const unsigned char *) token_info->cti,
+                                                     token_info->cti_len, &cbor_result);
 
     // Check the response.
     int token_was_revoked = was_token_revoked(cbor_result, cbor_result_len);
@@ -159,7 +160,7 @@ void check_revoked_tokens(authz_entry* as_pairing_entry) {
 
 // Parse revocation response. We assume we have a simple map as response (as specified in the standard), and the
 // only key-pair is "active" with a CBOR value of TRUE or FALSE.
-int was_token_revoked(const unsigned char* cbor_result, cbor_result_len) {
+int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len) {
   int token_was_revoked = 0;
   if(cbor_result_len > 0) {
     cn_cbor* cbor_object = cn_cbor_decode(cbor_result, cbor_result_len CBOR_CONTEXT_PARAM, 0);
