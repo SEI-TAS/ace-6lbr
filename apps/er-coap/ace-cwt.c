@@ -262,7 +262,7 @@ cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len) {
 
   PRINTF("Loading CBOR claims into cwt object.\n");
   cwt* token_info = (cwt*) malloc(sizeof(cwt));
-  memset(cwt, 0, sizeof(cwt));
+  memset(token_info, 0, sizeof(cwt));
 
   long curr_claim = 0;
   load_cwt_object(&curr_claim, token_info, cbor_claims);
