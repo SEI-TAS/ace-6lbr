@@ -66,7 +66,7 @@ void return_lock_value(void* response) {
   char lock_as_string[2];
   snprintf(lock_as_string, 2, "%d", lock_status);
   unsigned char* encoded_result;
-  int encoded_len = encode_string_to_cbor(lock_as_string, &encoded_result);
+  int encoded_len = encode_bytes_to_cbor(lock_as_string, strlen(lock_as_string), &encoded_result);
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
   REST.set_response_payload(response, encoded_result, encoded_len);
