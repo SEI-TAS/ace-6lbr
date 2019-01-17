@@ -86,6 +86,7 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
       return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
     }
 
+    // TODO: we'll need to change this to get the actual credentials set up after pairing.
     memcpy(result, psk[0].id, psk[0].id_length);
     return psk[0].id_length;
   } else if (type == DTLS_PSK_KEY) {
@@ -134,7 +135,10 @@ coap_init_communication_layer_dtls(uint16_t port)
   struct dtls_context_t * ctx;
 
   struct uip_udp_conn *server_conn = udp_new(NULL, 0, NULL);
-  udp_bind(server_conn, port);
+
+  if(port != 0) {
+    udp_bind(server_conn, port);
+  }
 
   dtls_set_log_level(DTLS_LOG_DEBUG);
 
@@ -142,8 +146,15 @@ coap_init_communication_layer_dtls(uint16_t port)
   if(ctx) {
     dtls_set_handler(ctx, &cb);
   }
-  /* new connection with remote host */
-  printf("COAP-DTLS listening on port %u\n", uip_ntohs(server_conn->lport));
+
+  if(port != 0) {
+    /* new connection with remote host */
+    printf("COAP-DTLS listening on port %u\n", uip_ntohs(server_conn->lport));
+  }
+  else {
+    printf("COAP-DTLS client connection set up.\n");
+  }
+
   return ctx;
 }
 /*-----------------------------------------------------------------------------------*/

@@ -178,6 +178,7 @@ coap_receive(void* ctx, int dtls)
               access_error_found = check_access_error(ctx, (void*) message, (void*) response);
             }
 
+            // TODO: somehow register the handler for introspection responses as services in the REST framework?
             /* call REST framework and check if found and allowed */
             if(access_error_found || service_cbk
                  (message, response, transaction->packet + COAP_MAX_HEADER_SIZE,
@@ -411,7 +412,9 @@ extern resource_t res_authz_info;
      PROCESS_YIELD();
 
      if(ev == tcpip_event) {
-       coap_handle_receive(coap_default_context);
+       if(UIP_UDP_BUF->destport == COAP_DEFAULT_PORT) {
+         coap_handle_receive(coap_default_context);
+       }
      } else if(ev == PROCESS_EVENT_TIMER) {
        /* retransmissions are handled here */
        coap_check_transactions(0);
@@ -441,7 +444,9 @@ PROCESS_THREAD(coaps_engine, ev, data)
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      coap_handle_receive_dtls(coap_default_context_dtls);
+      if(UIP_UDP_BUF->destport == COAPS_DEFAULT_PORT) {
+        coap_handle_receive_dtls(coap_default_context_dtls);
+      }
     } else if(ev == PROCESS_EVENT_TIMER) {
       /* retransmissions are handled here */
       coap_check_transactions(1);

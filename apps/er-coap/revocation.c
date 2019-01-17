@@ -46,6 +46,7 @@ DM18-1273
 #define CHECK_WAIT_TIME_SECS 20
 #define INTROSPECTION_ENDPOINT "introspect"
 #define INTROSPECTION_ACTIVE_KEY "active"
+#define AS_INTROSPECTION_PORT 5684
 
 void check_revoked_tokens();
 int send_introspection_request(const unsigned char as_ip[], const unsigned char* token_cti, int token_cti_len,
@@ -66,6 +67,8 @@ PROCESS_THREAD(revocation_check, ev, data)
   static struct etimer et;
   int timer_started = 0;
 
+  struct dtls_context* ctx = coap_init_communication_layer_dtls(0);
+
   // First get the AS IP.
   authz_entry as_pairing_entry = { 0 };
   int result = find_authz_entry((unsigned char*) RS_ID, strlen(RS_ID), &as_pairing_entry);
@@ -78,7 +81,7 @@ PROCESS_THREAD(revocation_check, ev, data)
     printf("\n");
 
     while(1) {
-      check_revoked_tokens(&as_pairing_entry);
+      check_revoked_tokens(ctx, &as_pairing_entry);
 
        // Set or reset timer and check again in a while.
       if(timer_started == 0) {
@@ -101,7 +104,7 @@ void start_revocation_checker() {
 }
 
 // Main function to check for revoked tokens.
-void check_revoked_tokens(authz_entry* as_pairing_entry) {
+void check_revoked_tokens(context_t* ctx, authz_entry* as_pairing_entry) {
   printf("Executing check iteration.\n");
 
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
@@ -118,7 +121,7 @@ void check_revoked_tokens(authz_entry* as_pairing_entry) {
     // 2. CoAP client to send request.
     cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
     unsigned char* cbor_result = 0;
-    int cbor_result_len = send_introspection_request(as_pairing_entry->claims, (const unsigned char *) token_info->cti,
+    int cbor_result_len = send_introspection_request(ctx, as_pairing_entry->claims, (const unsigned char *) token_info->cti,
                                                      token_info->cti_len, &cbor_result);
 
     // Check the response.
@@ -190,13 +193,31 @@ int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len) {
 }
 
 // Sends an introspection request, and returns the result.
-int send_introspection_request(const unsigned char as_ip[], const unsigned char* token_cti, int token_cti_len,
-                                          unsigned char** result) {
+int send_introspection_request(struct dtls_context_t* ctx, const unsigned char as_ip[],
+                               const unsigned char* token_cti, int token_cti_len,
+                               unsigned char** result) {
+  // Init message.
+  // TODO: should the type be CON or not?
+  static coap_packet_t message[1];
+  coap_init_message(message, COAP_TYPE_CON, COAP_POST, coap_get_mid());
+
+  // Prepare payload.
   unsigned char* payload;
   int payload_len = encode_single_pair_to_cbor_map(TOKEN_KEY, token_cti, token_cti_len, &payload);
+  coap_set_payload(message, payload, payload_len);
 
-  int result_len = 0; // send_coap(as_ip, INTROSPECTION_ENDPOINT, payload, payload_len, &result);
+  // Serialize the message.
+  uint8_t serialized_message[MAX_PAYLOAD_LEN];
+  memset(serialized_message, 0, MAX_PAYLOAD_LEN);
+  int serialized_message_len = coap_serialize_message(message, serialized_message);
+
+  // Send the message.
+  coap_send_message_dtls(ctx, as_ip, AS_INTROSPECTION_PORT, serialized_message, serialized_message_len);
   free(payload);
+
+  // TODO: 1) Register handler for handling result as resource in REST engine.
+  // TODO: 2) Modify get_psk so that when asking for ID, it returns the paired key ID.
+  int result_len = 0;
 
   return result_len;
 }
