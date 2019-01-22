@@ -158,16 +158,19 @@ coap_init_communication_layer_dtls(uint16_t port)
   return ctx;
 }
 /*-----------------------------------------------------------------------------------*/
+// Callback called by TinyDTLS context handler when sending a message. Does the actual
+// UDP sending, data here is already DTLS encrypted.
 static int
 send_to_peer(struct dtls_context_t *ctx,
              session_t *session, uint8 *data, size_t len)
 {
-
+  // Get the connection structure from the context (why?), an fill it with the destination
+  // data from the session object.
   struct uip_udp_conn *conn = (struct uip_udp_conn *)dtls_get_app_data(ctx);
-
   uip_ipaddr_copy(&conn->ripaddr, &session->addr);
   conn->rport = session->port;
 
+  // Actually send the UDP data to the destination.
   uip_udp_packet_send(conn, data, len);
 
   /* Restore server connection to allow data from any node */
@@ -177,38 +180,49 @@ send_to_peer(struct dtls_context_t *ctx,
   return len;
 }
 /*-----------------------------------------------------------------------------------*/
+// Function called directly when we want to send a message through COAPS.
 void
 coap_send_message_dtls(struct dtls_context_t * ctx, uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length)
 {
+  // Store the destination IP and port in a session object.
   session_t session;
-
   dtls_session_init(&session);
   uip_ipaddr_copy(&session.addr, addr);
   session.port = port;
 
+  // Call the TinyDTLS function to send message through DTLS.
   dtls_write(ctx, &session, data, length);
 }
 /*-----------------------------------------------------------------------------------*/
+// Callback called by TinyDTLS once it has finished decrypting data. Data is now plain.
 static int
 read_from_peer(struct dtls_context_t *ctx,
                session_t *session, uint8 *data, size_t len)
 {
+  // Overwrite the global data buffers with the now unencrypted data and length, so DTLS will
+  // be transparent to the handler function.
   uip_len = len;
   memmove(uip_appdata, data, len);
+
+  // Call a function to parse COAP and handle the actual message.
   coap_receive(ctx, 1);
   return 0;
 }
 /*-----------------------------------------------------------------------------------*/
+// Function called when a new TCP/IP event is received, with new COAPS data.
 void
 coap_handle_receive_dtls(struct dtls_context_t *ctx)
 {
   session_t session;
 
+  // We use the "uip_newdata()" to check if there is actually data, and ignore orther TCP/IP events.
   if(uip_newdata()) {
+    // Get connection info into a session object.
     dtls_session_init(&session);
     uip_ipaddr_copy(&session.addr, &UIP_IP_BUF->srcipaddr);
     session.port = UIP_UDP_BUF->srcport;
 
+    // New data is waiting for us at the uip_appdata buffer. Give it to TinyDTLS to process.
     dtls_handle_message(ctx, &session, uip_appdata, uip_datalen());
   }
 }
