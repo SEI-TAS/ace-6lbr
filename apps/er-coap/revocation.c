@@ -21,6 +21,7 @@ DM18-1273
 
 #include "cfs/cfs.h"
 #include "sys/etimer.h"
+#include "er-coap-transactions.h"
 
 #include "cn-cbor/cn-cbor/cn-cbor.h"
 #include "cbor-encode.h"
@@ -121,9 +122,8 @@ static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pai
 
     // Send introspection request; responses will be handled asynch.
     cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
-    unsigned char* cbor_result = 0;
     send_introspection_request(ctx, as_pairing_entry->claims, (const unsigned char *) token_info->cti,
-                               token_info->cti_len, &cbor_result, curr_entry);
+                               token_info->cti_len, curr_entry);
 
     curr_entry = authz_entry_iterator_get_next(&iterator);
   }
