@@ -134,7 +134,7 @@ static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pai
     cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
     uip_ipaddr_t as_ip;
     bytes_to_addr(curr_entry->claims, &as_ip);
-    send_introspection_request(ctx, as_ip, (const unsigned char *) token_info->cti,
+    send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
                                token_info->cti_len, curr_entry);
 
     curr_entry = authz_entry_iterator_get_next(&iterator);
@@ -160,7 +160,7 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
 
   // Set up a transaction so we can process the result when returned.
   static coap_transaction_t *transaction = NULL;
-  transaction = coap_new_transaction(message->mid, as_ip, AS_INTROSPECTION_PORT, 1))) {
+  transaction = coap_new_transaction(message->mid, as_ip, AS_INTROSPECTION_PORT, 1);
   coap_set_transaction_context_dtls(transaction, ctx);
   t->callback = check_introspection_response;
   t->callback_data = curr_entry;
