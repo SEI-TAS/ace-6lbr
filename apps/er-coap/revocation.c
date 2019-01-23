@@ -68,7 +68,7 @@ PROCESS_THREAD(revocation_check, ev, data)
   static struct etimer et;
   int timer_started = 0;
 
-  struct dtls_context* ctx = coap_init_communication_layer_dtls(0);
+  struct dtls_context_t* ctx = coap_init_communication_layer_dtls(0);
 
   // First get the AS IP.
   authz_entry as_pairing_entry = { 0 };
