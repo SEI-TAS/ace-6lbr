@@ -50,10 +50,20 @@ DM18-1273
 #define AS_INTROSPECTION_PORT 5684
 
 static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pairing_entry);
-static void send_introspection_request(struct dtls_context_t* ctx, const unsigned char as_ip[],
+static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry);
 static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len);
 void check_introspection_response(void* data, void* response);
+
+/*-----------------------------------------------------------------------------------*/
+static void
+bytes_to_addr(unsigned char* bytes, uip_ipaddr_t* addr)
+{
+  int i = 0;
+  for(i = 0; i < IPV6_ADDRESS_LENGTH_BYTES; i++) {
+    ((uint8_t*)addr)[i] = bytes[i];
+  }
+}
 
 /*---------------------------------------------------------------------------*/
 PROCESS(revocation_check, "Revoked Tokens Checker");
@@ -122,7 +132,9 @@ static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pai
 
     // Send introspection request; responses will be handled asynch.
     cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
-    send_introspection_request(ctx, as_pairing_entry->claims, (const unsigned char *) token_info->cti,
+    uip_ipaddr_t as_ip;
+    bytes_to_addr(curr_entry->claims, &as_ip);
+    send_introspection_request(ctx, as_ip, (const unsigned char *) token_info->cti,
                                token_info->cti_len, curr_entry);
 
     curr_entry = authz_entry_iterator_get_next(&iterator);
@@ -135,7 +147,7 @@ static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pai
 
 /*---------------------------------------------------------------------------*/
 // Sends an introspection request, and returns the result.
-static void send_introspection_request(struct dtls_context_t* ctx, const unsigned char as_ip[],
+static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry) {
   // Init message.
   static coap_packet_t message[1];
