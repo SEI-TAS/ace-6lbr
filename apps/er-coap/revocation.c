@@ -48,6 +48,7 @@ DM18-1273
 #define INTROSPECTION_ENDPOINT "introspect"
 #define INTROSPECTION_ACTIVE_KEY "active"
 #define AS_INTROSPECTION_PORT 5684
+#define MAX_PAYLOAD_LEN 300
 
 static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pairing_entry);
 static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
@@ -149,9 +150,13 @@ static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pai
 // Sends an introspection request, and returns the result.
 static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry) {
+
+  printf("Sending introspection request message.\n");
+
   // Init message.
   static coap_packet_t message[1];
   coap_init_message(message, COAP_TYPE_CON, COAP_POST, coap_get_mid());
+  coap_set_header_uri_path(message, INTROSPECTION_ENDPOINT);
 
   // Prepare payload.
   unsigned char* payload;
@@ -159,19 +164,22 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
   coap_set_payload(message, payload, payload_len);
 
   // Set up a transaction so we can process the result when returned.
+  printf("Preparing transaction.\n");
   static coap_transaction_t *transaction = NULL;
   transaction = coap_new_transaction(message->mid, as_ip, AS_INTROSPECTION_PORT, 1);
   coap_set_transaction_context_dtls(transaction, ctx);
-  t->callback = check_introspection_response;
-  t->callback_data = curr_entry;
+  transaction->callback = check_introspection_response;
+  transaction->callback_data = curr_entry;
 
   // Serialize the message.
+  printf("Serializing message.\n");
   uint8_t serialized_message[MAX_PAYLOAD_LEN];
   memset(serialized_message, 0, MAX_PAYLOAD_LEN);
   int serialized_message_len = coap_serialize_message(message, serialized_message);
 
   // Send the message.
   coap_send_message_dtls(ctx, as_ip, AS_INTROSPECTION_PORT, serialized_message, serialized_message_len);
+  printf("Introspection request sent.\n");
   free(payload);
 }
 
@@ -179,8 +187,8 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
 void check_introspection_response(void* data, void* response) {
   // Cast the original data we need to process this, and the CBOR in the response.
   authz_entry* curr_entry = (authz_entry*) data;
-  unsigned char* cbor_result = ((coap_packet_t) response)->payload;
-  int cbor_result_len = ((coap_packet_t) response)->payload_len;
+  unsigned char* cbor_result = ((coap_packet_t*) response)->payload;
+  int cbor_result_len = ((coap_packet_t*) response)->payload_len;
 
   // Check the response.
   int token_was_revoked = was_token_revoked(cbor_result, cbor_result_len);
@@ -194,7 +202,7 @@ void check_introspection_response(void* data, void* response) {
     authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
 
     tokens_to_remove[num_tokens_to_remove++] = curr_entry;
-    int num_removed = remove_authz_entries(tokens_to_remove, num_tokens_to_remove);
+    remove_authz_entries(tokens_to_remove, num_tokens_to_remove);
   }
   else {
     free_authz_entry(curr_entry);
