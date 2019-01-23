@@ -48,7 +48,7 @@ DM18-1273
 #define INTROSPECTION_ACTIVE_KEY "active"
 #define AS_INTROSPECTION_PORT 5684
 
-static void check_revoked_tokens(context_t* ctx, authz_entry* as_pairing_entry);
+static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pairing_entry);
 static void send_introspection_request(struct dtls_context_t* ctx, const unsigned char as_ip[],
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry);
 static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len);
@@ -107,7 +107,7 @@ void start_revocation_checker() {
 
 /*---------------------------------------------------------------------------*/
 // Main function to check for revoked tokens.
-static void check_revoked_tokens(context_t* ctx, authz_entry* as_pairing_entry) {
+static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pairing_entry) {
   printf("Executing check iteration.\n");
 
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
