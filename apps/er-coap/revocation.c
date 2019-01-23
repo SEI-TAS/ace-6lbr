@@ -161,8 +161,6 @@ static void send_introspection_request(struct dtls_context_t* ctx, const unsigne
   // Send the message.
   coap_send_message_dtls(ctx, as_ip, AS_INTROSPECTION_PORT, serialized_message, serialized_message_len);
   free(payload);
-
-  // TODO: 2) Modify get_psk so that when asking for ID, it returns the paired key ID.
 }
 
 /*---------------------------------------------------------------------------*/

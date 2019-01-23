@@ -22,30 +22,12 @@ DM18-1273
 #include "utils.h"
 #include "cwt.h"
 #include "dtls_helpers.h"
+#include "resources.h"
 
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
 #include "dtls_debug.h"
-
-/*---------------------------------------------------------------------------*/
-
-#if defined DTLS_CONF_IDENTITY_HINT && defined DTLS_CONF_IDENTITY_HINT_LENGTH
-#define DTLS_IDENTITY_HINT DTLS_CONF_IDENTITY_HINT
-#define DTLS_IDENTITY_HINT_LENGTH DTLS_CONF_IDENTITY_HINT_LENGTH
-#else
-#define DTLS_IDENTITY_HINT "Client_identity"
-#define DTLS_IDENTITY_HINT_LENGTH 15
-#endif
-
-#if defined DTLS_CONF_PSK_KEY && defined DTLS_CONF_PSK_KEY_LENGTH
-#define DTLS_PSK_KEY_VALUE DTLS_CONF_PSK_KEY
-#define DTLS_PSK_KEY_VALUE_LENGTH DTLS_CONF_PSK_KEY_LENGTH
-#else
-//#warning "DTLS: Using default secret key !"
-#define DTLS_PSK_KEY_VALUE "secretPSK"
-#define DTLS_PSK_KEY_VALUE_LENGTH 9
-#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -67,30 +49,25 @@ get_psk_info(struct dtls_context_t *ctx, const session_t *session,
          dtls_credentials_type_t type,
          const unsigned char *id, size_t id_len,
          unsigned char *result, size_t result_length) {
-  struct keymap_t {
-    unsigned char *id;
-    size_t id_length;
-    unsigned char *key;
-    size_t key_length;
-  } psk[1] = {
-    { (unsigned char *)DTLS_IDENTITY_HINT, DTLS_IDENTITY_HINT_LENGTH, (unsigned char *)DTLS_PSK_KEY_VALUE, DTLS_PSK_KEY_VALUE_LENGTH },
-  };
-    printf("Checking key type request\n");
+
+  printf("Checking key type request\n");
   if (type ==  DTLS_PSK_IDENTITY) {
+    printf("PSK Key ID was requested\n");
     if (id_len) {
+      // Not sure what is the purpose of the identity hint... return a different key id depending on the hint?
       dtls_debug("got psk_identity_hint: '%.*s'\n", id_len, id);
     }
 
-    if (result_length < psk[0].id_length) {
+    if (result_length < strlen(RS_ID)) {
       dtls_warn("cannot set psk_identity -- buffer too small\n");
       return dtls_alert_fatal_create(DTLS_ALERT_INTERNAL_ERROR);
     }
 
-    // TODO: we'll need to change this to get the actual credentials set up after pairing.
-    memcpy(result, psk[0].id, psk[0].id_length);
-    return psk[0].id_length;
+    // We return our identity.
+    memcpy(result, RS_ID, strlen(RS_ID));
+    return strlen(RS_ID);
   } else if (type == DTLS_PSK_KEY) {
-    printf("Requesting psk key\n");
+    printf("PSK Key was requested, given key id\n");
     if (id) {
       printf("Id length is %u\n", (unsigned int) id_len);
       printf("Looking up id: ");
