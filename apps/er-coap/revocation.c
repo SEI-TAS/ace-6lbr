@@ -48,10 +48,11 @@ DM18-1273
 #define INTROSPECTION_ACTIVE_KEY "active"
 #define AS_INTROSPECTION_PORT 5684
 
-void check_revoked_tokens();
-int send_introspection_request(const unsigned char as_ip[], const unsigned char* token_cti, int token_cti_len,
-                                          unsigned char** result);
-int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len);
+static void check_revoked_tokens(context_t* ctx, authz_entry* as_pairing_entry);
+static void send_introspection_request(struct dtls_context_t* ctx, const unsigned char as_ip[],
+                                       const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry);
+static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len);
+void check_introspection_response(void* data, void* response);
 
 /*---------------------------------------------------------------------------*/
 PROCESS(revocation_check, "Revoked Tokens Checker");
@@ -106,7 +107,7 @@ void start_revocation_checker() {
 
 /*---------------------------------------------------------------------------*/
 // Main function to check for revoked tokens.
-void check_revoked_tokens(context_t* ctx, authz_entry* as_pairing_entry) {
+static void check_revoked_tokens(context_t* ctx, authz_entry* as_pairing_entry) {
   printf("Executing check iteration.\n");
 
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
@@ -134,8 +135,8 @@ void check_revoked_tokens(context_t* ctx, authz_entry* as_pairing_entry) {
 
 /*---------------------------------------------------------------------------*/
 // Sends an introspection request, and returns the result.
-void send_introspection_request(struct dtls_context_t* ctx, const unsigned char as_ip[],
-                                const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry) {
+static void send_introspection_request(struct dtls_context_t* ctx, const unsigned char as_ip[],
+                                       const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry) {
   // Init message.
   static coap_packet_t message[1];
   coap_init_message(message, COAP_TYPE_CON, COAP_POST, coap_get_mid());
@@ -166,10 +167,8 @@ void send_introspection_request(struct dtls_context_t* ctx, const unsigned char 
 
 /*---------------------------------------------------------------------------*/
 void check_introspection_response(void* data, void* response) {
-  // Get the original data we need to process this.
-  curr_entry = (authz_entry*) data;
-
-  // Get the response.
+  // Cast the original data we need to process this, and the CBOR in the response.
+  authz_entry* curr_entry = (authz_entry*) data;
   unsigned char* cbor_result = ((coap_packet_t) response)->payload;
   int cbor_result_len = ((coap_packet_t) response)->payload_len;
 
@@ -178,8 +177,14 @@ void check_introspection_response(void* data, void* response) {
 
   // Add token to removal list if revoked, or free its temp memory if not.
   if(token_was_revoked) {
-    printf("Adding token to removal list.\n");
+    /*printf("Adding token to removal list.\n");
+    tokens_to_remove[num_tokens_to_remove++] = curr_entry;*/
+
+    int num_tokens_to_remove = 0;
+    authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
+
     tokens_to_remove[num_tokens_to_remove++] = curr_entry;
+    int num_removed = remove_authz_entries(tokens_to_remove, num_tokens_to_remove);
   }
   else {
     free_authz_entry(curr_entry);
@@ -187,12 +192,13 @@ void check_introspection_response(void* data, void* response) {
   }
 }
 
+/*
 int num_tokens_to_remove = 0;
-authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
+authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};*/
 
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
 void delete_revoked_tokens()
-  // TODO: have another process deleting tokens? Or delete them one by one?
+  // TODO: method to delete several at once, may be used later.
 
   // Remove all revoked tokens, and then free the memory for their temp structs.
   printf("Total tokens to remove: %d\n", num_tokens_to_remove);
@@ -213,12 +219,12 @@ void delete_revoked_tokens()
     printf("No tokens to remove.\n");
   }
 
-}
+}*/
 
 /*---------------------------------------------------------------------------*/
 // Parse revocation response. We assume we have a simple map as response (as specified in the standard), and the
 // only key-pair is "active" with a CBOR value of TRUE or FALSE.
-int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len) {
+static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len) {
   int token_was_revoked = 0;
   if(cbor_result_len > 0) {
     cn_cbor* cbor_object = cn_cbor_decode(cbor_result, cbor_result_len CBOR_CONTEXT_PARAM, 0);
