@@ -109,16 +109,19 @@ coap_init_communication_layer_dtls(uint16_t port)
     .verify_ecdsa_key = NULL,
 #endif
   };
-  struct dtls_context_t * ctx;
 
+  printf("Creating default connection.\n");
   struct uip_udp_conn *server_conn = udp_new(NULL, 0, NULL);
 
   if(port != 0) {
+    printf("Binding to specific port %d.\n", port);
     udp_bind(server_conn, port);
   }
 
   dtls_set_log_level(DTLS_LOG_DEBUG);
 
+  printf("Creating context and setting handler.\n");
+  struct dtls_context_t * ctx;
   ctx = dtls_new_context(server_conn);
   if(ctx) {
     dtls_set_handler(ctx, &cb);
