@@ -133,12 +133,14 @@ static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pai
     printf("Curr entry kid: ");
     HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
 
-    // Send introspection request; responses will be handled asynch.
-    cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
-    uip_ipaddr_t as_ip;
-    bytes_to_addr(curr_entry->claims, &as_ip);
-    send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
-                               token_info->cti_len, curr_entry);
+    if(curr_entry->claims_len > 0) {
+      // Send introspection request; responses will be handled asynch.
+      cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
+      uip_ipaddr_t as_ip;
+      bytes_to_addr(curr_entry->claims, &as_ip);
+      send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
+                                 token_info->cti_len, curr_entry);
+    }
 
     curr_entry = authz_entry_iterator_get_next(&iterator);
   }

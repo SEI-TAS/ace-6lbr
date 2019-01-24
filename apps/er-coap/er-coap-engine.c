@@ -410,7 +410,7 @@ extern resource_t res_authz_info;
 
    coap_register_as_transaction_handler();
    coap_init_connection(SERVER_LISTEN_PORT);
-   printf("CoAPs server listening on port %d\n", COAP_DEFAULT_PORT);
+   printf("CoAP server listening on port %d\n", COAP_DEFAULT_PORT);
 
    while(1) {
      PROCESS_YIELD();
@@ -441,7 +441,7 @@ PROCESS_THREAD(coaps_engine, ev, data)
   rest_activate_resource(&res_lock, "ace/lock");
 
   coap_register_as_transaction_handler_dtls();
-  coap_init_connection_dtls(SERVER_DTLS_LISTEN_PORT);
+  coap_init_connection_dtls(COAPS_DEFAULT_PORT);
   printf("CoAPs server listening on port %d\n", COAPS_DEFAULT_PORT);
 
   while(1) {
