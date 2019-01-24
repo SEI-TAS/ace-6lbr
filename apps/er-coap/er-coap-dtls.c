@@ -120,9 +120,10 @@ coap_init_communication_layer_dtls(uint16_t port)
 
   dtls_set_log_level(DTLS_LOG_DEBUG);
 
-  printf("Creating context and setting handler.\n");
+  printf("Creating context.\n");
   struct dtls_context_t * ctx;
   ctx = dtls_new_context(server_conn);
+  printf("Setting context handler.\n");
   if(ctx) {
     dtls_set_handler(ctx, &cb);
   }
