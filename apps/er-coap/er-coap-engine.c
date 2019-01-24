@@ -89,6 +89,10 @@ struct dtls_context_t * coap_default_context_dtls = NULL;
 /*---------------------------------------------------------------------------*/
 /*- Internal API ------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
+struct dtls_context_t* get_default_context_dtls() {
+  return coap_default_context_dtls;
+}
+
 int
 coap_receive(void* ctx, int dtls)
 {

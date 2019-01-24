@@ -50,6 +50,8 @@ DM18-1273
 #define AS_INTROSPECTION_PORT 5684
 #define MAX_PAYLOAD_LEN 300
 
+extern struct dtls_context_t* get_default_context_dtls();
+
 static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pairing_entry);
 static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry);
@@ -80,7 +82,7 @@ PROCESS_THREAD(revocation_check, ev, data)
   static struct etimer et;
   int timer_started = 0;
 
-  struct dtls_context_t* ctx = coap_init_communication_layer_dtls(0);
+  struct dtls_context_t* ctx = get_default_context_dtls();
 
   // First get the AS IP.
   authz_entry as_pairing_entry = { 0 };
