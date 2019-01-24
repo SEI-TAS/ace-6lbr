@@ -52,7 +52,7 @@ DM18-1273
 
 extern struct dtls_context_t* get_default_context_dtls();
 
-static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pairing_entry);
+static void check_revoked_tokens(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip);
 static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry);
 static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len);
@@ -95,8 +95,11 @@ PROCESS_THREAD(revocation_check, ev, data)
     PRINTIP6ADDR(as_pairing_entry.claims);
     printf("\n");
 
+    uip_ipaddr_t as_ip;
+    bytes_to_addr(as_pairing_entry.claims, &as_ip);
+
     while(1) {
-      check_revoked_tokens(ctx, &as_pairing_entry);
+      check_revoked_tokens(ctx, &as_ip);
 
        // Set or reset timer and check again in a while.
       if(timer_started == 0) {
@@ -121,7 +124,7 @@ void start_revocation_checker() {
 
 /*---------------------------------------------------------------------------*/
 // Main function to check for revoked tokens.
-static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pairing_entry) {
+static void check_revoked_tokens(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip) {
   printf("Executing check iteration.\n");
 
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
@@ -133,13 +136,17 @@ static void check_revoked_tokens(struct dtls_context_t* ctx, authz_entry* as_pai
     printf("Curr entry kid: ");
     HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
 
+    printf("Curr entry claims len: %d", curr_entry->claims_len);
     if(curr_entry->claims_len > 0) {
       // Send introspection request; responses will be handled asynch.
       cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
-      uip_ipaddr_t as_ip;
-      bytes_to_addr(curr_entry->claims, &as_ip);
-      send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
+      if(!token_info) {
+        printf("Entry does not have valid CBOR claims; ignoring it.\n");
+      }
+      else {
+        send_introspection_request(ctx, as_ip, (const unsigned char *) token_info->cti,
                                  token_info->cti_len, curr_entry);
+      }
     }
 
     curr_entry = authz_entry_iterator_get_next(&iterator);
