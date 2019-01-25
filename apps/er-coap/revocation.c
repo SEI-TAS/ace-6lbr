@@ -136,9 +136,9 @@ static void check_revoked_tokens(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip
     printf("Curr entry kid: ");
     HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
 
-    printf("Curr entry claims len: %d", curr_entry->claims_len);
+    printf("Curr entry claims len: %d\n", curr_entry->claims_len);
     if(curr_entry->claims_len > 0) {
-      // Send introspection request; responses will be handled asynch.
+      // Send introspection request; responses will be handled asynchronously.
       cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
       if(!token_info) {
         printf("Entry does not have valid CBOR claims; ignoring it.\n");
