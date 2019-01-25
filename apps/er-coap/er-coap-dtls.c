@@ -115,7 +115,7 @@ coap_init_communication_layer_dtls(uint16_t port)
 
   if(port != 0) {
     printf("Binding to specific port %d.\n", port);
-    udp_bind(server_conn, port);
+    udp_bind(server_conn, UIP_HTONS(port));
   }
 
   dtls_set_log_level(DTLS_LOG_DEBUG);

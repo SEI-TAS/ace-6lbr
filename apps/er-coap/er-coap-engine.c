@@ -449,7 +449,7 @@ PROCESS_THREAD(coaps_engine, ev, data)
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      printf("COAPs: TCP/IP event recived; dest port is: %d, source port is: %d\n", UIP_UDP_BUF->destport, UIP_UDP_BUF->srcport);
+      printf("COAPs: TCP/IP event recived; dest port is: %d, source port is: %d\n", uip_ntohs(UIP_UDP_BUF->destport), uip_ntohs(UIP_UDP_BUF->srcport));
       if(UIP_UDP_BUF->destport == COAPS_DEFAULT_PORT) {
         coap_handle_receive_dtls(coap_default_context_dtls);
       }
