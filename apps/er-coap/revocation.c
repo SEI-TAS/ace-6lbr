@@ -181,7 +181,7 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
   // Set up a transaction so we can process the result when returned.
   printf("Preparing transaction.\n");
   static coap_transaction_t *transaction = NULL;
-  transaction = coap_new_transaction(message->mid, as_ip, AS_INTROSPECTION_PORT, 1);
+  transaction = coap_new_transaction(message->mid, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT), 1);
   coap_set_transaction_context_dtls(transaction, ctx);
   transaction->callback = check_introspection_response;
   transaction->callback_data = curr_entry;
@@ -202,6 +202,7 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
 /*---------------------------------------------------------------------------*/
 void check_introspection_response(void* data, void* response) {
   // Cast the original data we need to process this, and the CBOR in the response.
+  printf("Received introspection response!\n");
   authz_entry* curr_entry = (authz_entry*) data;
   unsigned char* cbor_result = ((coap_packet_t*) response)->payload;
   int cbor_result_len = ((coap_packet_t*) response)->payload_len;
