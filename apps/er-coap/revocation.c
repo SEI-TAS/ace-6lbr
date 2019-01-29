@@ -186,9 +186,10 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
   printf("Serializing message.\n");
   uint8_t serialized_message[MAX_PAYLOAD_LEN];
   memset(serialized_message, 0, MAX_PAYLOAD_LEN);
-  int serialized_message_len = coap_serialize_message(message, serialized_message);
+  int serialized_message_len = coap_serialize_message(message, &serialized_message);
 
   // Send the message.
+  printf("Sending message.\n");
   coap_send_message_dtls(ctx, as_ip, AS_INTROSPECTION_PORT, serialized_message, serialized_message_len);
   printf("Introspection request sent.\n");
   free(payload);
