@@ -416,7 +416,7 @@ extern resource_t res_authz_info;
      PROCESS_YIELD();
 
      if(ev == tcpip_event) {
-       printf("COAP: TCP/IP event recived; dest port is: %d\n", UIP_HTONS(UIP_UDP_BUF->destport));
+       printf("CoAP: TCP/IP event received; dest port is: %d\n", UIP_HTONS(UIP_UDP_BUF->destport));
        if(UIP_HTONS(UIP_UDP_BUF->destport) == COAP_DEFAULT_PORT) {
          coap_handle_receive(coap_default_context);
        }
@@ -449,7 +449,7 @@ PROCESS_THREAD(coaps_engine, ev, data)
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      printf("COAPs: TCP/IP event recived; dest port is: %d\n", UIP_HTONS(UIP_UDP_BUF->destport));
+      printf("CoAPs: TCP/IP event received; dest port is: %d\n", UIP_HTONS(UIP_UDP_BUF->destport));
       if(UIP_HTONS(UIP_UDP_BUF->destport) == COAPS_DEFAULT_PORT) {
         coap_handle_receive_dtls(coap_default_context_dtls);
       }
