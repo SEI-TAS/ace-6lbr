@@ -194,7 +194,7 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
 
   // Send the message.
   printf("Sending message.\n");
-  coap_send_message_dtls(ctx, as_ip, AS_INTROSPECTION_PORT, serialized_message, serialized_message_len);
+  coap_send_message_dtls(ctx, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT), serialized_message, serialized_message_len);
   printf("Introspection request sent.\n");
   free(payload);
 }
