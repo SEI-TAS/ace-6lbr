@@ -745,11 +745,10 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   platform_finalize();
   platform_load_config(CONFIG_LEVEL_APP);
 
+  LOG6LBR_INFO("CETIC 6LBR Started\n");
+
   printf("Starting revocation check process.\n");
   start_revocation_checker();
-
-
-  LOG6LBR_INFO("CETIC 6LBR Started\n");
 
   PROCESS_WAIT_EVENT_UNTIL(ev == cetic_6lbr_restart_event);
 
