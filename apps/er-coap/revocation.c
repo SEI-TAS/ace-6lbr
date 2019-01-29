@@ -103,12 +103,16 @@ PROCESS_THREAD(revocation_check, ev, data)
 
        // Set or reset timer and check again in a while.
       if(timer_started == 0) {
+        print("Initial timer setup\n");
         etimer_set(&et, CHECK_WAIT_TIME_SECS * CLOCK_SECOND);
         timer_started = 1;
       }
       else {
+        print("Timer reset.\n");
         etimer_reset(&et);
       }
+
+      print("Waiting till next cycle...\n");
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     }
   }
