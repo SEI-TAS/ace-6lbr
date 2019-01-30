@@ -152,7 +152,7 @@ send_to_peer(struct dtls_context_t *ctx,
   conn->rport = session->port;
 
   // Actually send the UDP data to the destination.
-  printf("Sending encrypted UDP message for port %d to TinyDTLS.\nDest address: ", uip_ntohs(conn->rport));
+  printf("TinyDTLS called us: sending UDP message for port %d.\nDest address: ", uip_ntohs(conn->rport));
   PRINTIP6ADDR(&conn->ripaddr);
   printf("\n");
   uip_udp_packet_send(conn, data, len);
@@ -204,6 +204,7 @@ coap_handle_receive_dtls(struct dtls_context_t *ctx)
 
   // We use the "uip_newdata()" to check if there is actually data, and ignore orther TCP/IP events.
   if(uip_newdata()) {
+    printf("We recieved new data!\n");
     // Get connection info into a session object.
     dtls_session_init(&session);
     uip_ipaddr_copy(&session.addr, &UIP_IP_BUF->srcipaddr);
