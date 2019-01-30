@@ -152,7 +152,7 @@ send_to_peer(struct dtls_context_t *ctx,
   conn->rport = session->port;
 
   // Actually send the UDP data to the destination.
-  printf("Sending encrypted UDP message for port %d to TinyDTLS.\nDest address: ", uip_ntohs(conn->port));
+  printf("Sending encrypted UDP message for port %d to TinyDTLS.\nDest address: ", uip_ntohs(conn->rport));
   PRINTIP6ADDR(&conn->ripaddr);
   printf("\n");
   uip_udp_packet_send(conn, data, len);
