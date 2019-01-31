@@ -260,6 +260,8 @@ int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
   if((level == 0) && (code == DTLS_EVENT_CONNECT)) {
     send_queued_dtls_message();
   }
+
+  return 0;
 }
 
 /*---------------------------------------------------------------------------*/
