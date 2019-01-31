@@ -31,6 +31,8 @@ DM18-1273
 
 #define MAX_PAYLOAD_LEN 300
 
+int client_connected = 0;
+
 /*---------------------------------------------------------------------------*/
 
 static int
@@ -40,6 +42,9 @@ send_to_peer(struct dtls_context_t *ctx,
 static int
 read_from_peer(struct dtls_context_t *ctx,
                session_t *session, uint8 *data, size_t len);
+
+static int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
+         	                dtls_alert_level_t level, unsigned short code);
 
 /*-----------------------------------------------------------------------------------*/
 #ifdef DTLS_PSK
@@ -102,7 +107,7 @@ coap_init_communication_layer_dtls(uint16_t port)
   static dtls_handler_t cb = {
     .write = send_to_peer,
     .read  = read_from_peer,
-    .event = NULL,
+    .event = dtls_event_check,
 #ifdef DTLS_PSK
     .get_psk_info = get_psk_info,
 #endif
@@ -218,11 +223,64 @@ coap_handle_receive_dtls(struct dtls_context_t *ctx)
 }
 
 /*---------------------------------------------------------------------------*/
+// DTLS client-specific functions.
+/*---------------------------------------------------------------------------*/
+
+// Used to store a message that is waiting for a DTLS handshake to happen.
+typedef struct dtls_queued_message_t {
+  struct dtls_context_t* ctx;
+  uip_ipaddr_t* ip_addr;
+  int no_port;
+  unsigned char* serialized_message;
+  int serialized_message_len;
+} dtls_queued_message_t;
+
+// Message queue (of 1 for now).
+dtls_queued_message_t* queued_message;
+
+/*---------------------------------------------------------------------------*/
+// Called when a DTLS event is sent, used to detect end of DTLS handshake.
+static
+int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
+		             dtls_alert_level_t level, unsigned short code) {
+
+  if((level == 0) && (code == DTLS_EVENT_CONNECT)) {
+    send_queued_dtls_message()
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+// Set up a DTLS connection.
+static
+void start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port) {
+  printf("Starting DTLS handshake\n".);
+  session_t session;
+  dtls_session_init(&session);
+  uip_ipaddr_copy(&session.addr, ip_addr);
+  session.port = no_port;
+  int result = dtls_connect(ctx, &session);
+  printf("Result of first DTLS handshake message: %d\n", result);
+}
+
+/*---------------------------------------------------------------------------*/
+// Sends an queued message that was waiting for a DTLS connection to be set up.
+static
+void send_queued_dtls_message() {
+  // Send the message.
+  printf("Sending message.\n");
+  coap_send_message_dtls(ctx, ip_addr, no_port, serialized_message, serialized_message_len);
+  free(serialized_message);
+  free(queued_message);
+  printf("Message sent.\n");
+}
+
+/*---------------------------------------------------------------------------*/
 // Sends an message starting a new DTLS connection.
 void send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port, char* url,
-                                  const unsigned char* payload, int payload_len,
-                                  restful_response_handler callback, void* callback_data) {
+                           const unsigned char* payload, int payload_len,
+                           restful_response_handler callback, void* callback_data) {
   printf("Sending message.\n");
+  client_connected = 0;
 
   // Init message.
   static coap_packet_t message[1];
@@ -240,20 +298,17 @@ void send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, in
 
   // Serialize the message.
   printf("Serializing message.\n");
-  uint8_t serialized_message[MAX_PAYLOAD_LEN];
+  uint8_t* serialized_message = (uint8_t*) malloc(MAX_PAYLOAD_LEN];
   memset(serialized_message, 0, MAX_PAYLOAD_LEN);
   int serialized_message_len = coap_serialize_message(message, serialized_message);
 
-  // Set up a DTLS connection.
-  session_t session;
-  dtls_session_init(&session);
-  uip_ipaddr_copy(&session.addr, ip_addr);
-  session.port = no_port;
-  int result = dtls_connect(ctx, &session);
-  printf("DTLS connection result: %d\n", result);
+  printf("Queueing message.\n");
+  queued_message = (dtls_queued_message_t*) malloc(sizeof(dtls_queued_message_t));
+  queued_message->ctx = ctx;
+  queued_message->ip_addr = ip_addr;
+  queued_message->no_port = no_port;
+  queued_message->serialized_message = serialized_message;
+  queued_message->serialized_message_len = serialized_message_len;
 
-  // Send the message.
-  printf("Sending message.\n");
-  coap_send_message_dtls(ctx, ip_addr, no_port, serialized_message, serialized_message_len);
-  printf("Request sent.\n");
+  start_dtls_connection();
 }
