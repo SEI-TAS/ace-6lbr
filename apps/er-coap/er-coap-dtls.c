@@ -183,7 +183,8 @@ coap_send_message_dtls(struct dtls_context_t * ctx, uip_ipaddr_t *addr, uint16_t
   printf("Passing message for port %d to TinyDTLS.\n Dest address: ", uip_ntohs(port));
   PRINTIP6ADDR(addr);
   printf("\n");
-  dtls_write(ctx, &session, data, length);
+  int result = dtls_write(ctx, &session, data, length);
+  printf("Result from dtls_write: %d\n", result);
 }
 /*-----------------------------------------------------------------------------------*/
 // Callback called by TinyDTLS once it has finished decrypting data. Data is now plain.
