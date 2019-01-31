@@ -113,6 +113,7 @@ PROCESS_THREAD(revocation_check, ev, data)
       }
 
       printf("Waiting till next cycle...\n");
+      break; // test for now
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     }
   }
@@ -150,6 +151,7 @@ static void check_revoked_tokens(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip
       else {
         send_introspection_request(ctx, as_ip, (const unsigned char *) token_info->cti,
                                  token_info->cti_len, curr_entry);
+        break; // only 1 for now for tests.
       }
     }
 
