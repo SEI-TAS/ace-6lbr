@@ -249,6 +249,9 @@ void send_queued_dtls_message() {
 
   // Send the message.
   printf("Sending message from queue on an established DTLS connection.\n");
+  printf("Message to send: ");
+  HEX_PRINTF(queued_message->serialized_message, queued_message->serialized_message_len);
+  printf("\n");
   coap_send_message_dtls(queued_message->ctx, queued_message->ip_addr, queued_message->no_port,
                          queued_message->serialized_message, queued_message->serialized_message_len);
   free(queued_message->serialized_message);
@@ -290,7 +293,7 @@ void start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, in
 void send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port, char* url,
                            const unsigned char* payload, int payload_len,
                            restful_response_handler callback, void* callback_data) {
-  printf("Sending (queuing) message.\n");
+  printf("Sending (queueing) message.\n");
 
   // Init message.
   static coap_packet_t message[1];

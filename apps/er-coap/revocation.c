@@ -173,6 +173,9 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
   printf("Encoding payload.\n");
   unsigned char* payload;
   int payload_len = encode_single_pair_to_cbor_map(TOKEN_KEY, token_cti, token_cti_len, &payload);
+  printf("Encoded payload: ");
+  HEX_PRINTF(payload, payload_len);
+  printf("\n");
 
   printf("Sending (queuing) introspection request message.\n");
   send_new_dtls_message(ctx, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT), INTROSPECTION_ENDPOINT,
