@@ -29,6 +29,8 @@ DM18-1273
 #define DEBUG DEBUG_NONE
 #include "dtls_debug.h"
 
+#define MAX_PAYLOAD_LEN 300
+
 /*---------------------------------------------------------------------------*/
 
 static int
@@ -213,4 +215,45 @@ coap_handle_receive_dtls(struct dtls_context_t *ctx)
     // New data is waiting for us at the uip_appdata buffer. Give it to TinyDTLS to process.
     dtls_handle_message(ctx, &session, uip_appdata, uip_datalen());
   }
+}
+
+/*---------------------------------------------------------------------------*/
+// Sends an message starting a new DTLS connection.
+static void send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port, unsigned char* url,
+                                  const unsigned char* payload, int payload_len,
+                                  restful_response_handler callback, void* callback_data) {
+  printf("Sending message.\n");
+
+  // Init message.
+  static coap_packet_t message[1];
+  coap_init_message(message, COAP_TYPE_CON, COAP_POST, coap_get_mid());
+  coap_set_header_uri_path(message, url);
+  coap_set_payload(message, payload, payload_len);
+
+  // Set up a transaction so we can process the result when returned.
+  printf("Preparing transaction.\n");
+  static coap_transaction_t *transaction = NULL;
+  transaction = coap_new_transaction(message->mid, ip_addr, no_port, 1);
+  coap_set_transaction_context_dtls(transaction, ctx);
+  transaction->callback = callback;
+  transaction->callback_data = callback_data;
+
+  // Serialize the message.
+  printf("Serializing message.\n");
+  uint8_t serialized_message[MAX_PAYLOAD_LEN];
+  memset(serialized_message, 0, MAX_PAYLOAD_LEN);
+  int serialized_message_len = coap_serialize_message(message, serialized_message);
+
+  // Set up a DTLS connection.
+  session_t session;
+  dtls_session_init(&session);
+  uip_ipaddr_copy(&session.addr, ip_addr);
+  session.port = no_port;
+  int result = dtls_connect(ctx, session);
+  printf("DTLS connection result: %d\n", result);
+
+  // Send the message.
+  printf("Sending message.\n");
+  coap_send_message_dtls(ctx, ip_addr, no_port, serialized_message, serialized_message_len);
+  printf("Request sent.\n");
 }

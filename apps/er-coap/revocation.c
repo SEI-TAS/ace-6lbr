@@ -23,8 +23,6 @@ DM18-1273
 #include "sys/etimer.h"
 #include "er-coap-transactions.h"
 
-#include "dtls.h"
-
 #include "cn-cbor/cn-cbor/cn-cbor.h"
 #include "cbor-encode.h"
 #include "key-token-store.h"
@@ -50,7 +48,6 @@ DM18-1273
 #define INTROSPECTION_ENDPOINT "introspect"
 #define INTROSPECTION_ACTIVE_KEY "active"
 #define AS_INTROSPECTION_PORT 5684
-#define MAX_PAYLOAD_LEN 300
 
 extern struct dtls_context_t* get_default_context_dtls();
 
@@ -167,44 +164,15 @@ static void check_revoked_tokens(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip
 // Sends an introspection request, and returns the result.
 static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry) {
-
-  printf("Sending introspection request message.\n");
-
-  // Init message.
-  static coap_packet_t message[1];
-  coap_init_message(message, COAP_TYPE_CON, COAP_POST, coap_get_mid());
-  coap_set_header_uri_path(message, INTROSPECTION_ENDPOINT);
-
   // Prepare payload.
+  printf("Encoding payload.\n");
   unsigned char* payload;
   int payload_len = encode_single_pair_to_cbor_map(TOKEN_KEY, token_cti, token_cti_len, &payload);
-  coap_set_payload(message, payload, payload_len);
 
-  // Set up a transaction so we can process the result when returned.
-  printf("Preparing transaction.\n");
-  static coap_transaction_t *transaction = NULL;
-  transaction = coap_new_transaction(message->mid, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT), 1);
-  coap_set_transaction_context_dtls(transaction, ctx);
-  transaction->callback = check_introspection_response;
-  transaction->callback_data = curr_entry;
+  printf("Sending introspection request message.\n");
+  send_new_dtls_message(ctx, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT), INTROSPECTION_ENDPOINT,
+                        payload, payload_len, check_introspection_response, curr_entry);
 
-  // Serialize the message.
-  printf("Serializing message.\n");
-  uint8_t serialized_message[MAX_PAYLOAD_LEN];
-  memset(serialized_message, 0, MAX_PAYLOAD_LEN);
-  int serialized_message_len = coap_serialize_message(message, serialized_message);
-
-  // Set up a DTLS connection.
-  session_t session;
-  dtls_session_init(&session);
-  uip_ipaddr_copy(&session.addr, as_ip);
-  session.port = UIP_HTONS(AS_INTROSPECTION_PORT);
-  int result = dtls_connect(ctx, session);
-  printf("DTLS connection result: %d\n", result);
-
-  // Send the message.
-  printf("Sending message.\n");
-  coap_send_message_dtls(ctx, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT), serialized_message, serialized_message_len);
   printf("Introspection request sent.\n");
   free(payload);
 }
