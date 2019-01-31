@@ -298,7 +298,7 @@ void send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, in
 
   // Serialize the message.
   printf("Serializing message.\n");
-  uint8_t* serialized_message = (uint8_t*) malloc(MAX_PAYLOAD_LEN];
+  uint8_t* serialized_message = (uint8_t*) malloc(MAX_PAYLOAD_LEN);
   memset(serialized_message, 0, MAX_PAYLOAD_LEN);
   int serialized_message_len = coap_serialize_message(message, serialized_message);
 
