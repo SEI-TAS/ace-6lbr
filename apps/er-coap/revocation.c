@@ -167,16 +167,18 @@ static void check_revoked_tokens(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip
 // Sends an introspection request, and returns the result.
 static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry) {
+  printf("Preparing introspection request.\n");
+
   // Prepare payload.
   printf("Encoding payload.\n");
   unsigned char* payload;
   int payload_len = encode_single_pair_to_cbor_map(TOKEN_KEY, token_cti, token_cti_len, &payload);
 
-  printf("Sending introspection request message.\n");
+  printf("Sending (queuing) introspection request message.\n");
   send_new_dtls_message(ctx, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT), INTROSPECTION_ENDPOINT,
                         payload, payload_len, check_introspection_response, curr_entry);
 
-  printf("Introspection request sent.\n");
+  printf("Introspection request queued.\n");
   free(payload);
 }
 

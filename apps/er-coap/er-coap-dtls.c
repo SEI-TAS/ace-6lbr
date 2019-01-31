@@ -31,8 +31,6 @@ DM18-1273
 
 #define MAX_PAYLOAD_LEN 300
 
-int client_connected = 0;
-
 /*---------------------------------------------------------------------------*/
 
 static int
@@ -243,7 +241,7 @@ dtls_queued_message_t* queued_message;
 static
 void send_queued_dtls_message() {
   // Send the message.
-  printf("Sending message.\n");
+  printf("Sending message on an established DTLS connection.\n");
   coap_send_message_dtls(queued_message->ctx, queued_message->ip_addr, queued_message->no_port,
                          queued_message->serialized_message, queued_message->serialized_message_len);
   free(queued_message->serialized_message);
@@ -257,6 +255,7 @@ static
 int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
 		             dtls_alert_level_t level, unsigned short code) {
 
+  printf("Received DTLS event code %d\n", code);
   if((level == 0) && (code == DTLS_EVENT_CONNECT)) {
     send_queued_dtls_message();
   }
@@ -282,8 +281,7 @@ void start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, in
 void send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port, char* url,
                            const unsigned char* payload, int payload_len,
                            restful_response_handler callback, void* callback_data) {
-  printf("Sending message.\n");
-  client_connected = 0;
+  printf("Sending (queuing) message.\n");
 
   // Init message.
   static coap_packet_t message[1];
@@ -312,6 +310,7 @@ void send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, in
   queued_message->no_port = no_port;
   queued_message->serialized_message = serialized_message;
   queued_message->serialized_message_len = serialized_message_len;
+    printf("Message queued.\n");
 
   start_dtls_connection(ctx, ip_addr, no_port);
 }
