@@ -258,7 +258,7 @@ int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
 		             dtls_alert_level_t level, unsigned short code) {
 
   if((level == 0) && (code == DTLS_EVENT_CONNECT)) {
-    send_queued_dtls_message()
+    send_queued_dtls_message();
   }
 }
 
