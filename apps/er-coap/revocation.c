@@ -22,6 +22,7 @@ DM18-1273
 #include "cfs/cfs.h"
 #include "sys/etimer.h"
 #include "er-coap-transactions.h"
+#include "er-coap-dtls.h"
 
 #include "cn-cbor/cn-cbor/cn-cbor.h"
 #include "cbor-encode.h"
