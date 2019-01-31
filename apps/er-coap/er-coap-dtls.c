@@ -255,8 +255,8 @@ static
 int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
 		             dtls_alert_level_t level, unsigned short code) {
 
-  printf("Received DTLS event code %d\n", code);
-  if((level == 0) && (code == DTLS_EVENT_CONNECT)) {
+  printf("Received DTLS event, level %d, code %d\n", level, code);
+  if((level == 0) && (code == DTLS_EVENT_CONNECTED)) {
     send_queued_dtls_message();
   }
 
