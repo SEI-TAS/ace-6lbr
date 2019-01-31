@@ -23,6 +23,8 @@ DM18-1273
 #include "sys/etimer.h"
 #include "er-coap-transactions.h"
 
+#include "dtls.h"
+
 #include "cn-cbor/cn-cbor/cn-cbor.h"
 #include "cbor-encode.h"
 #include "key-token-store.h"
