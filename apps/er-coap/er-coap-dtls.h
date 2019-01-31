@@ -15,6 +15,7 @@ DM18-1273
 #define _ER_COAP_DTLS_H_
 
 #include "er-coap.h"
+#include "rest-engine.h"
 
 struct dtls_context_t *
 coap_init_communication_layer_dtls(uint16_t port);
