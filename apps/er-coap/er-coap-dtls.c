@@ -197,6 +197,7 @@ read_from_peer(struct dtls_context_t *ctx,
   memmove(uip_appdata, data, len);
 
   // Call a function to parse COAP and handle the actual message.
+  printf("TinyDTLS called us, it received information. Calling coap parser and handler.");
   coap_receive(ctx, 1);
   return 0;
 }
@@ -240,12 +241,18 @@ dtls_queued_message_t* queued_message;
 // Sends an queued message that was waiting for a DTLS connection to be set up.
 static
 void send_queued_dtls_message() {
+  if(queued_message == 0) {
+    printf("Not sending queued message! No message in queue!\n");
+    return;
+  }
+
   // Send the message.
   printf("Sending message on an established DTLS connection.\n");
   coap_send_message_dtls(queued_message->ctx, queued_message->ip_addr, queued_message->no_port,
                          queued_message->serialized_message, queued_message->serialized_message_len);
   free(queued_message->serialized_message);
   free(queued_message);
+  queued_message = 0;
   printf("Message sent.\n");
 }
 
