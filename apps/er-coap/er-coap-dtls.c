@@ -239,6 +239,19 @@ typedef struct dtls_queued_message_t {
 dtls_queued_message_t* queued_message;
 
 /*---------------------------------------------------------------------------*/
+// Sends an queued message that was waiting for a DTLS connection to be set up.
+static
+void send_queued_dtls_message() {
+  // Send the message.
+  printf("Sending message.\n");
+  coap_send_message_dtls(queued_message->ctx, queued_message->ip_addr, queued_message->no_port,
+                         queued_message->serialized_message, queued_message->serialized_message_len);
+  free(queued_message->serialized_message);
+  free(queued_message);
+  printf("Message sent.\n");
+}
+
+/*---------------------------------------------------------------------------*/
 // Called when a DTLS event is sent, used to detect end of DTLS handshake.
 static
 int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
@@ -260,18 +273,6 @@ void start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, in
   session.port = no_port;
   int result = dtls_connect(ctx, &session);
   printf("Result of first DTLS handshake message: %d\n", result);
-}
-
-/*---------------------------------------------------------------------------*/
-// Sends an queued message that was waiting for a DTLS connection to be set up.
-static
-void send_queued_dtls_message() {
-  // Send the message.
-  printf("Sending message.\n");
-  coap_send_message_dtls(ctx, ip_addr, no_port, serialized_message, serialized_message_len);
-  free(serialized_message);
-  free(queued_message);
-  printf("Message sent.\n");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -310,5 +311,5 @@ void send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, in
   queued_message->serialized_message = serialized_message;
   queued_message->serialized_message_len = serialized_message_len;
 
-  start_dtls_connection();
+  start_dtls_connection(ctx, ip_addr, no_port);
 }
