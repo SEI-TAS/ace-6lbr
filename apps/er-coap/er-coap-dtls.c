@@ -266,7 +266,7 @@ int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
 // Set up a DTLS connection.
 static
 void start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port) {
-  printf("Starting DTLS handshake\n".);
+  printf("Starting DTLS handshake\n");
   session_t session;
   dtls_session_init(&session);
   uip_ipaddr_copy(&session.addr, ip_addr);
