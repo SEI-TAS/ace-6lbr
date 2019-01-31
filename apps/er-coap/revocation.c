@@ -192,6 +192,14 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
   memset(serialized_message, 0, MAX_PAYLOAD_LEN);
   int serialized_message_len = coap_serialize_message(message, serialized_message);
 
+  // Set up a DTLS connection.
+  session_t session;
+  dtls_session_init(&session);
+  uip_ipaddr_copy(&session.addr, as_ip);
+  session.port = UIP_HTONS(AS_INTROSPECTION_PORT);
+  int result = dtls_connect(ctx, session);
+  printf("DTLS connection result: %d\n", result);
+
   // Send the message.
   printf("Sending message.\n");
   coap_send_message_dtls(ctx, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT), serialized_message, serialized_message_len);
