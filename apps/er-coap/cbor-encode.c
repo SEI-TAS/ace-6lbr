@@ -43,10 +43,10 @@ int encode_pair_to_cbor(int key, int int_value, const unsigned char* bytes_value
   unsigned char* encoded_value;
   int encoded_value_len;
   if(bytes_value != 0) {
-    encoded_value_len = encode_string_to_cbor(bytes_value, value_len, &encoded_value);
+    encoded_value_len = encode_string_to_cbor(txt_value, value_len, &encoded_value);
   }
   else if(txt_value != 0) {
-    encoded_value_len = encode_bytes_to_cbor(txt_value, value_len, &encoded_value);
+    encoded_value_len = encode_bytes_to_cbor(bytes_value, value_len, &encoded_value);
   }
   else {
     encoded_value_len = encode_int_to_cbor(int_value, &encoded_value);
@@ -70,7 +70,7 @@ int encode_pair_to_cbor(int key, int int_value, const unsigned char* bytes_value
 //---------------------------------------------------------------------------------------------
 // NOTE: we assume we won't get more than 23 pairs.
 static
-int encode_map_to_cbor(unsigned char* pairs[], int pairs_lengths[], int number_of_pairs, unsigned char* cbor_result) {
+int encode_map_to_cbor(unsigned char* pairs[], int pairs_lengths[], int number_of_pairs, unsigned char** cbor_result) {
   // Header.
   unsigned char cbor_map_header = CBOR_PREFIX_MAP | number_of_pairs;
   int header_len = sizeof(cbor_map_header);
