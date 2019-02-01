@@ -186,7 +186,7 @@ int encode_bytes_or_string_to_cbor(const unsigned char* input_array, int input_a
   PRINTF("Encoded bytes will use %d bytes.\n", encoded_len);
 
   // Add more bytes for the byte string, since the header is already in cbor_result.
-  *cbor_result = (unsigned char*) realloc(cbor_result, encoded_len);
+  *cbor_result = (unsigned char*) realloc(*cbor_result, encoded_len);
 
   // Now copy the byte string to the result, after the header.
   memcpy((*cbor_result) + header_len, input_array, input_array_len);
