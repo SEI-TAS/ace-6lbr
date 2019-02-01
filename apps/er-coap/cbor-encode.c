@@ -131,7 +131,6 @@ int encode_single_pair_map_to_cbor(int key, const unsigned char* byte_value, int
   free(pairs[0]);
 
   return cbor_bytes_len;
-
 }
 
 //---------------------------------------------------------------------------------------------
@@ -157,6 +156,7 @@ int encode_num_to_cbor(int int_value, unsigned char** cbor_result, int prefix) {
     PRINTF("Encoding num to 2 bytes.\n");
     (*cbor_result)[pos++] = prefix | CBOR_ONE_BYTE_LIMIT;
     (*cbor_result)[pos++] = int_value;
+  }
 
   PRINTF("Encoded num: ");
   HEX_PRINTF_INL((*cbor_result), encoded_len);
