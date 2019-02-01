@@ -86,7 +86,7 @@ int encode_map_to_cbor(unsigned char* pairs[], int pairs_lengths[], int number_o
   PRINTF("Encoding pairs in map, total length %d.\n", cbor_bytes_len);
   *cbor_result = (unsigned char*) malloc(cbor_bytes_len);
   (*cbor_result)[0] = cbor_map_header;
-  int pos += header_len;
+  int pos = header_len;
   for(i = 0; i < number_of_pairs; i++) {
     memcpy((*cbor_result) + pos, pairs[i], pairs_lengths[i]);
     pos += pairs_lengths[i];
@@ -124,7 +124,7 @@ int encode_single_pair_map_to_cbor(int key, const unsigned char* byte_value, int
   int pairs_lengths[1] = {0};
 
   PRINTF("Encoding map with 1 pair:\n ");
-  pairs_lengths[0] = encode_pair_to_cbor(key1, 0, byte_value, 0, byte_value_len, &pairs[0]);
+  pairs_lengths[0] = encode_pair_to_cbor(key, 0, byte_value, 0, byte_value_len, &pairs[0]);
 
   int cbor_bytes_len = encode_map_to_cbor(pairs, pairs_lengths, 1, cbor_result);
 
