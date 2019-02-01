@@ -172,7 +172,7 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
   // Prepare payload.
   printf("Encoding payload.\n");
   unsigned char* payload;
-  int payload_len = encode_single_pair_to_cbor_map(TOKEN_KEY, token_cti, token_cti_len, &payload);
+  int payload_len = encode_single_pair_map_to_cbor(TOKEN_KEY, token_cti, token_cti_len, &payload);
   printf("Encoded payload: ");
   HEX_PRINTF(payload, payload_len);
   printf("\n");
