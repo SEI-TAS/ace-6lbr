@@ -43,10 +43,10 @@ int encode_pair_to_cbor(int key, int int_value, const unsigned char* bytes_value
   unsigned char* encoded_value;
   int encoded_value_len;
   if(bytes_value != 0) {
-    encoded_value_len = encode_string_to_cbor(txt_value, value_len, &encoded_value);
+    encoded_value_len = encode_bytes_to_cbor(bytes_value, value_len, &encoded_value);
   }
   else if(txt_value != 0) {
-    encoded_value_len = encode_bytes_to_cbor(bytes_value, value_len, &encoded_value);
+    encoded_value_len = encode_string_to_cbor(txt_value, value_len, &encoded_value);
   }
   else {
     encoded_value_len = encode_int_to_cbor(int_value, &encoded_value);
@@ -104,7 +104,7 @@ int encode_2_pair_map_to_cbor(int key1, int int_value1, const char* str_value1,
   unsigned char* pairs[2] = {0};
   int pairs_lengths[2] = {0};
 
-  PRINTF("Encoding map with 2 pairs:\n ");
+  PRINTF("Encoding map with 2 pairs.\n ");
   pairs_lengths[0] = encode_pair_to_cbor(key1, int_value1, 0, str_value1, strlen(str_value1), &pairs[0]);
   pairs_lengths[1] = encode_pair_to_cbor(key2, int_value2, 0, str_value2, strlen(str_value2), &pairs[1]);
 
@@ -123,7 +123,7 @@ int encode_single_pair_map_to_cbor(int key, const unsigned char* byte_value, int
   unsigned char* pairs[1] = {0};
   int pairs_lengths[1] = {0};
 
-  PRINTF("Encoding map with 1 pair:\n ");
+  PRINTF("Encoding map with 1 pair.\n");
   pairs_lengths[0] = encode_pair_to_cbor(key, 0, byte_value, 0, byte_value_len, &pairs[0]);
 
   int cbor_bytes_len = encode_map_to_cbor(pairs, pairs_lengths, 1, cbor_result);
