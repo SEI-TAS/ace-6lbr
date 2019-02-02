@@ -271,6 +271,9 @@ static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_l
           printf("Token has been marked as not active.\n");
           token_was_revoked = 1;
         }
+        else {
+          printf("Token is still active!\n");
+        }
       }
       else {
         printf("Response did not have 'active' key first.\n");

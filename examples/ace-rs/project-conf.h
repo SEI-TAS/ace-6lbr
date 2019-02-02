@@ -45,8 +45,6 @@
 
 #define RPL_CONF_WITH_DAO_ACK 1
 
-#define DTLS_CONF_CONN_TIMEOUT 30
-
 #endif /* PROJECT_CONF_H_ */
 
 /** @} */
