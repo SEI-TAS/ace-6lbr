@@ -197,6 +197,8 @@ void check_introspection_response(void* data, void* response) {
   authz_entry* curr_entry = (authz_entry*) data;
   unsigned char* cbor_result = ((coap_packet_t*) response)->payload;
   int cbor_result_len = ((coap_packet_t*) response)->payload_len;
+  printf("CBOR response, len %d: ", cbor_result_len);
+  HEX_PRINTF(cbor_result, cbor_result_len);
 
   // Check the response.
   int token_was_revoked = was_token_revoked(cbor_result, cbor_result_len);
@@ -260,16 +262,16 @@ static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_l
         cn_cbor* active_value = cbor_object->next;
 
         if(active_value->type == CN_CBOR_FALSE) {
-          printf("Token has been marked as not active.");
+          printf("Token has been marked as not active.\n");
           token_was_revoked = 1;
         }
       }
       else {
-        printf("Response did not have 'active' key first.");
+        printf("Response did not have 'active' key first.\n");
       }
     }
     else {
-      printf("Response was not a map.");
+      printf("Response was not a map.\n");
     }
 
     free(cbor_object);
