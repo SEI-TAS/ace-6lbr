@@ -31,7 +31,7 @@ DM18-1273
 // NOTE: We assume all ints (keys or values) will be less than 255, to simplify encoding.
 static
 int encode_pair_to_cbor(int key, int int_value, const unsigned char* bytes_value, const char* txt_value, int value_len, unsigned char** cbor_result) {
-  PRINTF("Encoding pair to CBOR, with key %d, int value %d.\n", key, int_value);
+  PRINTF("Encoding pair to CBOR, with key %d.\n", key);
 
   // Encode using the CBOR RFC rules. First key.
   PRINTF("Encoding key %d.\n", key);
@@ -43,12 +43,19 @@ int encode_pair_to_cbor(int key, int int_value, const unsigned char* bytes_value
   unsigned char* encoded_value;
   int encoded_value_len;
   if(bytes_value != 0) {
+    PRINTF("Encoding byte string value: ");
+    HEX_PRINTF_INL(bytes_value, value_len);
+    PRINTF("\n");
     encoded_value_len = encode_bytes_to_cbor(bytes_value, value_len, &encoded_value);
   }
   else if(txt_value != 0) {
+    PRINTF("Encoding text string value: ");
+    HEX_PRINTF_INL(txt_value, value_len);
+    PRINTF("\n");
     encoded_value_len = encode_string_to_cbor(txt_value, value_len, &encoded_value);
   }
   else {
+    PRINTF("Encoding int value %d.\n", int_value);
     encoded_value_len = encode_int_to_cbor(int_value, &encoded_value);
   }
 
