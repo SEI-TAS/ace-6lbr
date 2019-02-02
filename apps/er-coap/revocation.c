@@ -208,6 +208,7 @@ void check_introspection_response(void* data, void* response) {
     /*printf("Adding token to removal list.\n");
     tokens_to_remove[num_tokens_to_remove++] = curr_entry;*/
 
+    printf("Removing token.\n");
     int num_tokens_to_remove = 0;
     authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
 
