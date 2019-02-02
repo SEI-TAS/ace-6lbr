@@ -279,7 +279,7 @@ static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_l
       printf("Response was not a map.\n");
     }
 
-    free(cbor_object);
+    free(map_object);
   }
 
   return token_was_revoked;
