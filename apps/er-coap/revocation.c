@@ -257,13 +257,16 @@ static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_l
   if(cbor_result_len > 0) {
     cn_cbor* cbor_object = cn_cbor_decode(cbor_result, cbor_result_len CBOR_CONTEXT_PARAM, 0);
     if(cbor_object->type == CN_CBOR_MAP) {
-      printf("Map found in response!.\n");
+      printf("Map found in response!\n");
       cn_cbor* pair_key = cbor_object->first_child;
       if(pair_key->v.uint == INTROSPECTION_ACTIVE_KEY) {
-        printf("Active key found in response!.\n");
+        printf("Active key found in response!\n");
         cn_cbor* active_value = cbor_object->next;
 
-        if(active_value->type == CN_CBOR_FALSE) {
+        if(active_value == 0) {
+          printf("Value for key not found!");
+        }
+        else if(active_value->type == CN_CBOR_FALSE) {
           printf("Token has been marked as not active.\n");
           token_was_revoked = 1;
         }
