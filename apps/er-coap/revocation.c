@@ -261,10 +261,10 @@ static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_l
       cn_cbor* pair_key = cbor_object->first_child;
       if(pair_key->v.uint == INTROSPECTION_ACTIVE_KEY) {
         printf("Active key found in response!\n");
-        cn_cbor* active_value = cbor_object->next;
+        cn_cbor* active_value = pair_key->first_child;
 
         if(active_value == 0) {
-          printf("Value for key not found!");
+          printf("Value for key as child not found!");
         }
         else if(active_value->type == CN_CBOR_FALSE) {
           printf("Token has been marked as not active.\n");
