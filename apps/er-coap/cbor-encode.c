@@ -45,13 +45,12 @@ int encode_pair_to_cbor(int key, int int_value, const unsigned char* bytes_value
   if(bytes_value != 0) {
     PRINTF("Encoding byte string value: ");
     HEX_PRINTF_INL(bytes_value, value_len);
-    PRINTF("\n");
     encoded_value_len = encode_bytes_to_cbor(bytes_value, value_len, &encoded_value);
   }
   else if(txt_value != 0) {
     PRINTF("Encoding text string value: ");
     HEX_PRINTF_INL(txt_value, value_len);
-    PRINTF("\n");
+
     encoded_value_len = encode_string_to_cbor(txt_value, value_len, &encoded_value);
   }
   else {

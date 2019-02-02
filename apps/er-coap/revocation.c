@@ -173,6 +173,8 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
   printf("Encoding payload.\n");
   unsigned char* token_as_byte_string;
   int token_as_byte_string_len = encode_bytes_to_cbor(token_cti, token_cti_len, token_as_byte_string);
+  printf("Token as BS: ");
+  HEX_PRINTF(token_as_byte_string, token_as_byte_string_len);
   unsigned char* payload;
   int payload_len = encode_single_pair_map_to_cbor(TOKEN_KEY, token_as_byte_string, token_as_byte_string_len, &payload);
   printf("Encoded payload: ");
