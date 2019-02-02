@@ -47,7 +47,7 @@ DM18-1273
 #define IPV6_ADDRESS_LENGTH_BYTES 16
 #define CHECK_WAIT_TIME_SECS 20
 #define INTROSPECTION_ENDPOINT "introspect"
-#define INTROSPECTION_ACTIVE_KEY "active"
+#define INTROSPECTION_ACTIVE_KEY 29
 #define AS_INTROSPECTION_PORT 5684
 
 extern struct dtls_context_t* get_default_context_dtls();
@@ -258,7 +258,7 @@ static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_l
     cn_cbor* cbor_object = cn_cbor_decode(cbor_result, cbor_result_len CBOR_CONTEXT_PARAM, 0);
     if(cbor_object->type == CN_CBOR_MAP) {
       cn_cbor* pair_key = cbor_object->first_child;
-      if((pair_key->type == CN_CBOR_TEXT) && (memcmp(pair_key->v.str, INTROSPECTION_ACTIVE_KEY, strlen(INTROSPECTION_ACTIVE_KEY)) == 0)) {
+      if(pair_key->v.uint == INTROSPECTION_ACTIVE_KEY) {
         cn_cbor* active_value = cbor_object->next;
 
         if(active_value->type == CN_CBOR_FALSE) {
