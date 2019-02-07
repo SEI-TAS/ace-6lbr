@@ -276,7 +276,7 @@ int remove_authz_entries(authz_entry* key_id_list[], int key_id_list_len) {
   authz_entry* curr_entry = authz_entry_iterator_get_next(&iterator);
   while(curr_entry != 0) {
     if(total_entries == MAX_AUTHZ_ENTRIES) {
-      PRINTF("Max entries reached; removing rest of entries");
+      PRINTF("Max entries reached; removing rest of entries\n");
       break;
     }
 
@@ -302,7 +302,7 @@ int remove_authz_entries(authz_entry* key_id_list[], int key_id_list_len) {
   authz_entry_iterator_finish(iterator);
 
   // Now write them all but the removed one back to the file, removing what was in the file before.
-  PRINTF("Re-writing all entries but the deleted one to file.");
+  PRINTF("Re-writing all entries but the deleted one to file.\n");
   int fd_write = cfs_open(TOKENS_FILE_NAME, CFS_WRITE);
   int curr_entry_num = 0;
   while(curr_entry_num < total_entries) {
@@ -312,7 +312,7 @@ int remove_authz_entries(authz_entry* key_id_list[], int key_id_list_len) {
     free(curr_entry);
   }
   cfs_close(fd_write);
-  PRINTF("Finished re-writing all entries but the deleted one to file.");
+  PRINTF("Finished re-writing all entries but the deleted one to file.\n");
 
   return number_of_removed_tokens;
 }
