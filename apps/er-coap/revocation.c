@@ -45,14 +45,15 @@ DM18-1273
 #endif
 
 #define IPV6_ADDRESS_LENGTH_BYTES 16
-#define CHECK_WAIT_TIME_SECS 20
+#define CHECK_WAIT_TIME_SECS 60
+#define PROCESS_EVENT_INTRO_DONE 0x70
+
 #define INTROSPECTION_ENDPOINT "introspect"
 #define INTROSPECTION_ACTIVE_KEY 29
 #define AS_INTROSPECTION_PORT 5684
 
 extern struct dtls_context_t* get_default_context_dtls();
 
-static void check_revoked_tokens(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip);
 static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry);
 static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len);
@@ -76,12 +77,10 @@ PROCESS(revocation_check, "Revoked Tokens Checker");
 PROCESS_THREAD(revocation_check, ev, data)
 {
   PROCESS_BEGIN();
-
   printf("Executing revoked tokens checker!\n");
 
   static struct etimer et;
   int timer_started = 0;
-
   struct dtls_context_t* ctx = get_default_context_dtls();
 
   // First get the AS IP.
@@ -89,33 +88,65 @@ PROCESS_THREAD(revocation_check, ev, data)
   int result = find_authz_entry((unsigned char*) RS_ID, strlen(RS_ID), &as_pairing_entry);
   if(result == 0) {
     printf("Could not get AS IP from token file.\n");
+    PROCESS_END();
   }
-  else {
-    printf("Got AS IP from tokens file: ");
-    PRINTIP6ADDR(as_pairing_entry.claims);
-    printf("\n");
 
-    uip_ipaddr_t as_ip;
-    bytes_to_addr(as_pairing_entry.claims, &as_ip);
+  printf("Got AS IP from tokens file: ");
+  PRINTIP6ADDR(as_pairing_entry.claims);
+  printf("\n");
 
-    while(1) {
-      check_revoked_tokens(ctx, &as_ip);
+  uip_ipaddr_t as_ip;
+  bytes_to_addr(as_pairing_entry.claims, &as_ip);
 
-       // Set or reset timer and check again in a while.
-      if(timer_started == 0) {
-        printf("Initial timer setup\n");
-        etimer_set(&et, CHECK_WAIT_TIME_SECS * CLOCK_SECOND);
-        timer_started = 1;
+  while(1) {
+    printf("Executing check iteration.\n");
+    authz_entry_iterator iterator = authz_entry_iterator_initialize();
+
+    // Go over all tokens, ask if each is revoked, and remove it if so.
+    printf("Looping over all tokens to find revoked ones.\n");
+    authz_entry* curr_entry = authz_entry_iterator_get_next(&iterator);
+    while(curr_entry != 0) {
+      printf("Curr entry kid: ");
+      HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
+
+      printf("Curr entry claims len: %d\n", curr_entry->claims_len);
+      if(curr_entry->claims_len > 0) {
+        // Send introspection request; responses will be handled asynchronously.
+        cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
+        if(!token_info) {
+          printf("Entry does not have valid CBOR claims; ignoring it.\n");
+        }
+        else {
+          send_introspection_request(ctx, as_ip, (const unsigned char *) token_info->cti,
+                                     token_info->cti_len, curr_entry);
+        }
       }
       else {
-        printf("Timer reset.\n");
-        etimer_reset(&et);
+        printf("Entry does not have information; ignoring it.\n");
       }
 
-      printf("Waiting till next cycle...\n");
-      break; // test for now
-      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+      // Wait until response is processed for this token.
+      PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_INTRO_DONE);
+
+      curr_entry = authz_entry_iterator_get_next(&iterator);
     }
+
+    authz_entry_iterator_finish(iterator);
+    printf("Finished executing check iteration.\n");
+
+     // Set or reset timer and check again in a while.
+    if(timer_started == 0) {
+      printf("Initial timer setup\n");
+      etimer_set(&et, CHECK_WAIT_TIME_SECS * CLOCK_SECOND);
+      timer_started = 1;
+    }
+    else {
+      printf("Timer reset.\n");
+      etimer_reset(&et);
+    }
+
+    printf("Waiting till next cycle for %d seconds...\n", CHECK_WAIT_TIME_SECS);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
 
   PROCESS_END();
@@ -125,41 +156,6 @@ PROCESS_THREAD(revocation_check, ev, data)
 // Used to start the process.
 void start_revocation_checker() {
   process_start(&revocation_check, NULL);
-}
-
-/*---------------------------------------------------------------------------*/
-// Main function to check for revoked tokens.
-static void check_revoked_tokens(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip) {
-  printf("Executing check iteration.\n");
-
-  authz_entry_iterator iterator = authz_entry_iterator_initialize();
-
-  // Add all revoked tokens to a list (removing them all together later is more efficient).
-  printf("Looping over all tokens to find revoked ones.\n");
-  authz_entry* curr_entry = authz_entry_iterator_get_next(&iterator);
-  while(curr_entry != 0) {
-    printf("Curr entry kid: ");
-    HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
-
-    printf("Curr entry claims len: %d\n", curr_entry->claims_len);
-    if(curr_entry->claims_len > 0) {
-      // Send introspection request; responses will be handled asynchronously.
-      cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
-      if(!token_info) {
-        printf("Entry does not have valid CBOR claims; ignoring it.\n");
-      }
-      else {
-        send_introspection_request(ctx, as_ip, (const unsigned char *) token_info->cti,
-                                 token_info->cti_len, curr_entry);
-      }
-    }
-
-    curr_entry = authz_entry_iterator_get_next(&iterator);
-  }
-
-  authz_entry_iterator_finish(iterator);
-
-  printf("Finished executing check iteration.\n");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -190,6 +186,7 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
 }
 
 /*---------------------------------------------------------------------------*/
+// Callback that will be called from Erbium engine when processing transaction reply.
 void check_introspection_response(void* data, void* response) {
   // Cast the original data we need to process this, and the CBOR in the response.
   printf("Received introspection response!\n");
@@ -204,9 +201,6 @@ void check_introspection_response(void* data, void* response) {
 
   // Add token to removal list if revoked, or free its temp memory if not.
   if(token_was_revoked) {
-    /*printf("Adding token to removal list.\n");
-    tokens_to_remove[num_tokens_to_remove++] = curr_entry;*/
-
     printf("Removing token.\n");
     int num_tokens_to_remove = 0;
     authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
@@ -215,39 +209,14 @@ void check_introspection_response(void* data, void* response) {
     remove_authz_entries(tokens_to_remove, num_tokens_to_remove);
   }
   else {
+    printf("Token is active, not removing.\n");
     free_authz_entry(curr_entry);
     free(curr_entry);
   }
+
+  // Notify main checker process that it can move on into the next token.
+  process_post(&revocation_check, PROCESS_EVENT_INTRO_DONE);
 }
-
-/*
-int num_tokens_to_remove = 0;
-authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};*/
-
-/*---------------------------------------------------------------------------
-void delete_revoked_tokens()
-  // TODO: method to delete several at once, may be used later.
-
-  // Remove all revoked tokens, and then free the memory for their temp structs.
-  printf("Total tokens to remove: %d\n", num_tokens_to_remove);
-  if(num_tokens_to_remove > 0) {
-    int num_removed = remove_authz_entries(tokens_to_remove, num_tokens_to_remove);
-    printf("Removed %d tokens.\n", num_removed);
-
-    int i = 0;
-    for(i = 0; i < num_tokens_to_remove; i++) {
-      authz_entry* curr_entry = tokens_to_remove[i];
-      free_authz_entry(curr_entry);
-      free(curr_entry);
-    }
-
-    num_tokens_to_remove = 0
-  }
-  else {
-    printf("No tokens to remove.\n");
-  }
-
-}*/
 
 /*---------------------------------------------------------------------------*/
 // Parse revocation response. We assume we have a simple map as response (as specified in the standard), and the
