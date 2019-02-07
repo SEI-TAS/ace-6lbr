@@ -117,14 +117,14 @@ PROCESS_THREAD(revocation_check, ev, data)
           else {
             send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
                                        token_info->cti_len, curr_entry);
+
+            // Wait until response is processed for this token.
+            PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_INTRO_DONE);
           }
         }
         else {
           printf("Entry does not have information; ignoring it.\n");
         }
-
-        // Wait until response is processed for this token.
-       PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_INTRO_DONE);
 
         curr_entry = authz_entry_iterator_get_next(&iterator);
       }
