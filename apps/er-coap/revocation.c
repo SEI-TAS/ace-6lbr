@@ -231,7 +231,7 @@ void check_introspection_response(void* data, void* response) {
   }
 
   // Notify main checker process that it can move on into the next token.
-  process_post(&revocation_check, PROCESS_EVENT_INTRO_DONE);
+  process_post(&revocation_check, PROCESS_EVENT_INTRO_DONE, 0);
 }
 
 /*---------------------------------------------------------------------------*/
