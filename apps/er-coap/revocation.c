@@ -115,7 +115,7 @@ PROCESS_THREAD(revocation_check, ev, data)
             printf("Entry does not have valid CBOR claims; ignoring it.\n");
           }
           else {
-            send_introspection_request(ctx, as_ip, (const unsigned char *) token_info->cti,
+            send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
                                        token_info->cti_len, curr_entry);
           }
         }
