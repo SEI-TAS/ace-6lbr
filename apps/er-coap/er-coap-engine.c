@@ -122,7 +122,7 @@ coap_receive(void* ctx, int dtls)
 
       PRINTF("  Parsed: v %u, t %u, tkl %u, c %u, mid %u\n", message->version,
              message->type, message->token_len, message->code, message->mid);
-      PRINTF("  URL: %.*s\n", message->uri_path_len, message->uri_path);
+      PRINTF("  URL: %.*s\n", (int) message->uri_path_len, message->uri_path);
       PRINTF("  Payload: %.*s\n", message->payload_len, message->payload);
 
       /* handle requests */
@@ -168,7 +168,7 @@ coap_receive(void* ctx, int dtls)
           if(coap_get_header_block2
                (message, &block_num, NULL, &block_size, &block_offset)) {
             PRINTF("Blockwise: block request %lu (%u/%u) @ %lu bytes\n",
-                   block_num, block_size, COAP_MAX_BLOCK_SIZE, block_offset);
+                   (unsigned long int) block_num, block_size, COAP_MAX_BLOCK_SIZE, (unsigned long) block_offset);
             block_size = MIN(block_size, COAP_MAX_BLOCK_SIZE);
             new_offset = block_offset;
           }
@@ -229,7 +229,7 @@ coap_receive(void* ctx, int dtls)
                     /* resource provides chunk-wise data */
                   } else {
                     PRINTF("Blockwise: blockwise resource, new offset %ld\n",
-                           new_offset);
+                           (long int) new_offset);
                     coap_set_header_block2(response, block_num,
                                            new_offset != -1
                                            || response->payload_len >
@@ -513,7 +513,7 @@ PT_THREAD(coap_blocking_request
 
       // TODO: passing 0 here will make this not work if using DTLS. Should be fixed better.
       coap_send_transaction(state->transaction, 0);
-      PRINTF("Requested #%lu (MID %u)\n", state->block_num, request->mid);
+      PRINTF("Requested #%lu (MID %u)\n", (unsigned long int) state->block_num, request->mid);
 
       PT_YIELD_UNTIL(&state->pt, ev == PROCESS_EVENT_POLL);
 
@@ -524,14 +524,14 @@ PT_THREAD(coap_blocking_request
 
       coap_get_header_block2(state->response, &res_block, &more, NULL, NULL);
 
-      PRINTF("Received #%lu%s (%u bytes)\n", res_block, more ? "+" : "",
+      PRINTF("Received #%lu%s (%u bytes)\n", (unsigned long int) res_block, more ? "+" : "",
              state->response->payload_len);
 
       if(res_block == state->block_num) {
         request_callback(state->response);
         ++(state->block_num);
       } else {
-        PRINTF("WRONG BLOCK %lu/%lu\n", res_block, state->block_num);
+        PRINTF("WRONG BLOCK %lu/%lu\n", (unsigned long int) res_block, (unsigned long int) state->block_num);
         ++block_error;
       }
     } else {
