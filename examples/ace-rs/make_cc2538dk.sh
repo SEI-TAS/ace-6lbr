@@ -8,4 +8,4 @@
 #
 
 make TARGET=cc2538dk clean
-make
+make TARGET=cc2538dk

@@ -133,7 +133,7 @@ int read_entry_from_file(authz_entry** entry, int fd_tokens_file) {
     unsigned char* received_time = (unsigned char *) malloc(sizeof(uint64_t));
     bytes_read += cfs_read(fd_tokens_file, received_time, sizeof(uint64_t));
     time_received_seconds = bytes_to_uint64_t(received_time, sizeof(uint64_t));
-    PRINTF("Received time: %lu\n", time_received_seconds);
+    PRINTF("Received time: %lu\n", (unsigned long long) time_received_seconds);
     free(received_time);
   }
   else {

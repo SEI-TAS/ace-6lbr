@@ -8,4 +8,4 @@
 #
 
 make TARGET=native clean
-make
+make TARGET=native
