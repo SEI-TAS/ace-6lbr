@@ -45,7 +45,7 @@ DM18-1273
 #endif
 
 #define IPV6_ADDRESS_LENGTH_BYTES 16
-#define CHECK_WAIT_TIME_SECS 60
+#define CHECK_WAIT_TIME_SECS 30
 #define PROCESS_EVENT_INTRO_DONE 0x70
 
 #define INTROSPECTION_ENDPOINT "introspect"
@@ -54,6 +54,7 @@ DM18-1273
 
 extern struct dtls_context_t* get_default_context_dtls();
 
+static int get_as_ip_addr(uip_ipaddr_t* as_ip);
 static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry);
 static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len);
@@ -77,62 +78,60 @@ PROCESS(revocation_check, "Revoked Tokens Checker");
 PROCESS_THREAD(revocation_check, ev, data)
 {
   PROCESS_BEGIN();
-  printf("Executing revoked tokens checker!\n");
 
+  printf("Starting revoked tokens checker!\n");
   static struct etimer et;
   int timer_started = 0;
   struct dtls_context_t* ctx = get_default_context_dtls();
-
-  // First get the AS IP.
-  authz_entry as_pairing_entry = { 0 };
-  int result = find_authz_entry((unsigned char*) RS_ID, strlen(RS_ID), &as_pairing_entry);
-  if(result == 0) {
-    printf("Could not get AS IP from token file.\n");
-    PROCESS_END();
-  }
-
-  printf("Got AS IP from tokens file: ");
-  PRINTIP6ADDR(as_pairing_entry.claims);
-  printf("\n");
-
   uip_ipaddr_t as_ip;
-  bytes_to_addr(as_pairing_entry.claims, &as_ip);
+  int has_pairing_as_ip = 0;
 
   while(1) {
     printf("Executing check iteration.\n");
-    authz_entry_iterator iterator = authz_entry_iterator_initialize();
 
-    // Go over all tokens, ask if each is revoked, and remove it if so.
-    printf("Looping over all tokens to find revoked ones.\n");
-    authz_entry* curr_entry = authz_entry_iterator_get_next(&iterator);
-    while(curr_entry != 0) {
-      printf("Curr entry kid: ");
-      HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
-
-      printf("Curr entry claims len: %d\n", curr_entry->claims_len);
-      if(curr_entry->claims_len > 0) {
-        // Send introspection request; responses will be handled asynchronously.
-        cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
-        if(!token_info) {
-          printf("Entry does not have valid CBOR claims; ignoring it.\n");
-        }
-        else {
-          send_introspection_request(ctx, as_ip, (const unsigned char *) token_info->cti,
-                                     token_info->cti_len, curr_entry);
-        }
-      }
-      else {
-        printf("Entry does not have information; ignoring it.\n");
-      }
-
-      // Wait until response is processed for this token.
-      PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_INTRO_DONE);
-
-      curr_entry = authz_entry_iterator_get_next(&iterator);
+    if(has_pairing_as_ip == 0) {
+      // Attempt to get the AS IP address.
+      has_pairing_as_ip = get_as_ip_addr(&as_ip);
     }
 
-    authz_entry_iterator_finish(iterator);
-    printf("Finished executing check iteration.\n");
+    if(has_pairing_as_ip == 0) {
+      printf("RS not paired, skipping this check iteration.\n");
+    }
+    else {
+      authz_entry_iterator iterator = authz_entry_iterator_initialize();
+
+      // Go over all tokens, ask if each is revoked, and remove it if so.
+      printf("Looping over all tokens to find revoked ones.\n");
+      authz_entry* curr_entry = authz_entry_iterator_get_next(&iterator);
+      while(curr_entry != 0) {
+        printf("Curr entry kid: ");
+        HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
+
+        printf("Curr entry claims len: %d\n", curr_entry->claims_len);
+        if(curr_entry->claims_len > 0) {
+          // Send introspection request; responses will be handled asynchronously.
+          cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
+          if(!token_info) {
+            printf("Entry does not have valid CBOR claims; ignoring it.\n");
+          }
+          else {
+            send_introspection_request(ctx, as_ip, (const unsigned char *) token_info->cti,
+                                       token_info->cti_len, curr_entry);
+          }
+        }
+        else {
+          printf("Entry does not have information; ignoring it.\n");
+        }
+
+        // Wait until response is processed for this token.
+       PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_INTRO_DONE);
+
+        curr_entry = authz_entry_iterator_get_next(&iterator);
+      }
+
+      authz_entry_iterator_finish(iterator);
+      printf("Finished executing check iteration.\n");
+    }
 
      // Set or reset timer and check again in a while.
     if(timer_started == 0) {
@@ -156,6 +155,23 @@ PROCESS_THREAD(revocation_check, ev, data)
 // Used to start the process.
 void start_revocation_checker() {
   process_start(&revocation_check, NULL);
+}
+
+/*---------------------------------------------------------------------------*/
+static int get_as_ip_addr(uip_ipaddr_t* as_ip) {
+  authz_entry as_pairing_entry = { 0 };
+  int has_pairing_as_ip = find_authz_entry((unsigned char*) RS_ID, strlen(RS_ID), &as_pairing_entry);
+  if(has_pairing_as_ip == 0) {
+    printf("Did not find AS IP in token file.\n");
+    return 0;
+  }
+  else {
+    printf("Got AS IP from tokens file: ");
+    PRINTIP6ADDR(as_pairing_entry.claims);
+    printf("\n");
+    bytes_to_addr(as_pairing_entry.claims, as_ip);
+    return 1;
+  }
 }
 
 /*---------------------------------------------------------------------------*/
