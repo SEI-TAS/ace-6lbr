@@ -66,17 +66,15 @@ PROCESS_THREAD(acers, ev, data)
 
   printf("Starting ACE-RS (Contiki " CONTIKI_VERSION_STRING ")\n");
 
-  // Setup IPv6 address.
+  // Setup default IPv6 prefix.
   uint8_t default_prefix[16] = {0};
-  default_prefix[0] = 253; // 0xfd
-
+  default_prefix[0] = 0xfd;
+  uint8_t wsn_net_prefix_len = sizeof(default_prefix);
   uip_ip6addr_t wsn_net_prefix;
-  uint8_t wsn_net_prefix_len;
-  uip_ipaddr_t wsn_ip_addr;
+  memcpy(wsn_net_prefix.u8, &default_prefix, wsn_net_prefix_len);
 
-  memcpy(wsn_net_prefix.u8, &default_prefix,
-         sizeof(default_prefix));
-  wsn_net_prefix_len = sizeof(default_prefix);
+  // Build IPV6 address from default prefix and local link address.
+  uip_ipaddr_t wsn_ip_addr;
   uip_ipaddr_copy(&wsn_ip_addr, &wsn_net_prefix);
   uip_ds6_set_addr_iid(&wsn_ip_addr, &uip_lladdr);
   uip_ds6_addr_add(&wsn_ip_addr, 0, ADDR_AUTOCONF);
@@ -84,8 +82,8 @@ PROCESS_THREAD(acers, ev, data)
   // Initialize DTLS and both Erbium servers (CoAP and CoAPs).
   dtls_init();
   rest_init_engine();
-
   printf("CoAP servers started.\n");
+
   printf("Checking IP addresses.\n");
   print_local_addresses();
 
