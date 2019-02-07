@@ -27,8 +27,10 @@ DM18-1273
 #include <ctype.h>
 #include <stdlib.h>
 
-#include "rest-engine.h"
 #include "dtls.h"
+#include "rest-engine.h"
+
+#define IPV6_ADDRESS_SIZE 16
 
 extern void start_revocation_checker();
 
@@ -67,11 +69,10 @@ PROCESS_THREAD(acers, ev, data)
   printf("Starting ACE-RS (Contiki " CONTIKI_VERSION_STRING ")\n");
 
   // Setup default IPv6 prefix.
-  uint8_t default_prefix[16] = {0};
+  uint8_t default_prefix[IPV6_ADDRESS_SIZE] = {0};
   default_prefix[0] = 0xfd;
-  uint8_t wsn_net_prefix_len = sizeof(default_prefix);
   uip_ip6addr_t wsn_net_prefix;
-  memcpy(wsn_net_prefix.u8, &default_prefix, wsn_net_prefix_len);
+  memcpy(wsn_net_prefix.u8, &default_prefix, IPV6_ADDRESS_SIZE);
 
   // Build IPV6 address from default prefix and local link address.
   uip_ipaddr_t wsn_ip_addr;
@@ -79,13 +80,13 @@ PROCESS_THREAD(acers, ev, data)
   uip_ds6_set_addr_iid(&wsn_ip_addr, &uip_lladdr);
   uip_ds6_addr_add(&wsn_ip_addr, 0, ADDR_AUTOCONF);
 
+  printf("Checking IP addresses.\n");
+  print_local_addresses();
+
   // Initialize DTLS and both Erbium servers (CoAP and CoAPs).
   dtls_init();
   rest_init_engine();
   printf("CoAP servers started.\n");
-
-  printf("Checking IP addresses.\n");
-  print_local_addresses();
 
   printf("Starting revocation check process.\n");
   start_revocation_checker();
