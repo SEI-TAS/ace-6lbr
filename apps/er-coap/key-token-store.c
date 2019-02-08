@@ -109,6 +109,10 @@ int read_entry_from_file(authz_entry** entry, int fd_tokens_file) {
 
   unsigned char* kid = (unsigned char *) malloc(KEY_ID_LENGTH);
   bytes_read += cfs_read(fd_tokens_file, kid, KEY_ID_LENGTH);
+  if(bytes_read == -1) {
+    PRINTF("Error reading from file! No bytes read.\n");
+    return 0;
+  }
   PRINTF("Key id: ");
   HEX_PRINTF_DBG(kid, KEY_ID_LENGTH);
 
@@ -359,7 +363,12 @@ void authz_entry_iterator_finish(authz_entry_iterator iterator) {
 authz_entry* authz_entry_iterator_get_next(authz_entry_iterator* iterator) {
   if(iterator->curr_pos < iterator->file_size) {
     authz_entry* curr_entry;
-    iterator->curr_pos += read_entry_from_file(&curr_entry, iterator->entry_file_fd);
+    int bytes_read = read_entry_from_file(&curr_entry, iterator->entry_file_fd);
+    if(bytes_read <= 0) {
+      PRINTF("Could not read entry from file.\n");
+      return 0;
+    }
+    iterator->curr_pos += bytes_read;
     return curr_entry;
   }
   else {
