@@ -125,9 +125,15 @@ PROCESS_THREAD(revocation_check, ev, data)
             send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
                                        token_info->cti_len, curr_entry);
 
+            // Close file since it will be used by others.
+            authz_entry_iterator_finish(iterator);
+
             // Wait until response is processed for this token.
             printf("Checker process will wait until introspection request is responded and processed..\n");
             PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_INTRO_DONE);
+
+            // Reopen file access for iterator.
+            authz_entry_iterator_reopen(&iterator);
           }
         }
         else {

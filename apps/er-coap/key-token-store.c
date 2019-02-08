@@ -320,6 +320,18 @@ int remove_authz_entries(authz_entry* key_id_list[], int key_id_list_len) {
 /*--------------------------------------------------------------------*/
 // Authz entry iterator.
 
+// Reset iterator to reopen file when needed.
+void authz_entry_iterator_reopen(authz_entry_iterator* iterator) {
+  if(iterator->entry_file_fd == -1) {
+    iterator->entry_file_fd = cfs_open(TOKENS_FILE_NAME, CFS_READ);
+    if(iterator->entry_file_fd == -1) {
+      PRINTF("ERROR: could not reopen tokens file '%s' for reading\n", TOKENS_FILE_NAME);
+      return;
+    }
+    cfs_seek(iterator.entry_file_fd, iterator->curr_pos, CFS_SEEK_SET);
+  }
+}
+
 // Initialize iterator, opening file.
 authz_entry_iterator authz_entry_iterator_initialize() {
   authz_entry_iterator iterator;
@@ -340,6 +352,7 @@ authz_entry_iterator authz_entry_iterator_initialize() {
 // Clear up global variables, including closing file.
 void authz_entry_iterator_finish(authz_entry_iterator iterator) {
   cfs_close(iterator.entry_file_fd);
+  iterator.entry_file_fd = -1;
 }
 
 // Get next entry from file.
