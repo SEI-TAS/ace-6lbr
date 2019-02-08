@@ -25,7 +25,7 @@ DM18-1273
 #define PAIRING_KEY_ID "Authentication01"
 #define NON_TOKEN_ENTRY_CBOR_LENGTH "0000"
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #define HEX_PRINTF_DBG(byte_array, length) HEX_PRINTF(byte_array, length)
@@ -361,6 +361,7 @@ void authz_entry_iterator_finish(authz_entry_iterator iterator) {
 
 // Get next entry from file.
 authz_entry* authz_entry_iterator_get_next(authz_entry_iterator* iterator) {
+  PRINTF("Pos is %d, size is %d\n", iterator->curr_pos, iterator->file_size);
   if(iterator->curr_pos < iterator->file_size) {
     authz_entry* curr_entry;
     int bytes_read = read_entry_from_file(&curr_entry, iterator->entry_file_fd);
