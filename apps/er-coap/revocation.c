@@ -59,6 +59,12 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry);
 static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len);
 void check_introspection_response(void* data, void* response);
+static void delete_revoked_tokens();
+
+/*-----------------------------------------------------------------------------------*/
+// List of tokens to remove after each check iteration.
+int num_tokens_to_remove = 0;
+authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
 
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -132,6 +138,8 @@ PROCESS_THREAD(revocation_check, ev, data)
 
       authz_entry_iterator_finish(iterator);
       printf("Finished executing check iteration.\n");
+
+      delete_revoked_tokens();
     }
 
      // Set or reset timer and check again in a while.
@@ -218,12 +226,8 @@ void check_introspection_response(void* data, void* response) {
 
   // Add token to removal list if revoked, or free its temp memory if not.
   if(token_was_revoked) {
-    printf("Removing token.\n");
-    int num_tokens_to_remove = 0;
-    authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
-
+    printf("Adding token to removal list.\n");
     tokens_to_remove[num_tokens_to_remove++] = curr_entry;
-    remove_authz_entries(tokens_to_remove, num_tokens_to_remove);
   }
   else {
     printf("Token is active, not removing.\n");
@@ -272,4 +276,28 @@ static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_l
   }
 
   return token_was_revoked;
+}
+
+//---------------------------------------------------------------------------
+static
+void delete_revoked_tokens()
+  // Remove all revoked tokens, and then free the memory for their temp structs.
+  printf("Total tokens to remove: %d\n", num_tokens_to_remove);
+  if(num_tokens_to_remove > 0) {
+    int num_removed = remove_authz_entries(tokens_to_remove, num_tokens_to_remove);
+    printf("Removed %d tokens.\n", num_removed);
+
+    int i = 0;
+    for(i = 0; i < num_tokens_to_remove; i++) {
+      authz_entry* curr_entry = tokens_to_remove[i];
+      free_authz_entry(curr_entry);
+      free(curr_entry);
+    }
+
+    num_tokens_to_remove = 0
+  }
+  else {
+    printf("No tokens to remove.\n");
+  }
+
 }
