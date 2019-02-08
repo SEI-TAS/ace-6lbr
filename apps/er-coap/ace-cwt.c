@@ -243,10 +243,11 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
 
   // Parse bytes into a cwt object.
   cwt* token_info = parse_cbor_claims(decrypted_cbor, decrypted_cbor_len);
-
-  // Store authz info.
-  token_info->authz_info = create_authz_entry(token_info->kid, token_info->kid_len, token_info->key,
-                                              decrypted_cbor_len, decrypted_cbor, (uint64_t) time(NULL));
+  if(token_info != 0) {
+    // Store authz info.
+    token_info->authz_info = create_authz_entry(token_info->kid, token_info->kid_len, token_info->key,
+                                                decrypted_cbor_len, decrypted_cbor, (uint64_t) time(NULL));
+  }
 
   return token_info;
 }
