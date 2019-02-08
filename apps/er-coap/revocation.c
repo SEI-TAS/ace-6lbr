@@ -294,7 +294,7 @@ void delete_revoked_tokens() {
       free(curr_entry);
     }
 
-    num_tokens_to_remove = 0
+    num_tokens_to_remove = 0;
   }
   else {
     printf("No tokens to remove.\n");
