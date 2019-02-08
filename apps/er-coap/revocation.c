@@ -280,7 +280,7 @@ static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_l
 
 //---------------------------------------------------------------------------
 static
-void delete_revoked_tokens()
+void delete_revoked_tokens() {
   // Remove all revoked tokens, and then free the memory for their temp structs.
   printf("Total tokens to remove: %d\n", num_tokens_to_remove);
   if(num_tokens_to_remove > 0) {
@@ -299,5 +299,4 @@ void delete_revoked_tokens()
   else {
     printf("No tokens to remove.\n");
   }
-
 }
