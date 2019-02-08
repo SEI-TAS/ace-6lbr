@@ -328,7 +328,7 @@ void authz_entry_iterator_reopen(authz_entry_iterator* iterator) {
       PRINTF("ERROR: could not reopen tokens file '%s' for reading\n", TOKENS_FILE_NAME);
       return;
     }
-    cfs_seek(iterator.entry_file_fd, iterator->curr_pos, CFS_SEEK_SET);
+    cfs_seek(iterator->entry_file_fd, iterator->curr_pos, CFS_SEEK_SET);
   }
 }
 
