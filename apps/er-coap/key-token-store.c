@@ -25,7 +25,7 @@ DM18-1273
 #define PAIRING_KEY_ID "Authentication01"
 #define NON_TOKEN_ENTRY_CBOR_LENGTH "0000"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #define HEX_PRINTF_DBG(byte_array, length) HEX_PRINTF(byte_array, length)
