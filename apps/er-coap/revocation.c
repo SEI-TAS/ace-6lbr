@@ -88,11 +88,13 @@ PROCESS_THREAD(revocation_check, ev, data)
   printf("Starting revoked tokens checker!\n");
   static struct etimer et;
   static int timer_started = 0;
+  static authz_entry_iterator iterator;
 
-  static struct dtls_context_t* ctx = get_default_context_dtls();
+  static struct dtls_context_t* ctx;
   static uip_ipaddr_t as_ip;
   static int has_pairing_as_ip = 0;
 
+  ctx = get_default_context_dtls();
   while(1) {
     printf("Executing check iteration.\n");
 
@@ -106,7 +108,7 @@ PROCESS_THREAD(revocation_check, ev, data)
     }
     else {
       printf("Starting token iterator.\n");
-      static authz_entry_iterator iterator = authz_entry_iterator_initialize();
+      iterator = authz_entry_iterator_initialize();
 
       // Go over all tokens, ask if each is revoked, and remove it if so.
       printf("Looping over all tokens to find revoked ones.\n");
