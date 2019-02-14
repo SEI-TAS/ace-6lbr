@@ -243,7 +243,7 @@ int find_authz_entry(const unsigned char* const index, size_t idx_len, authz_ent
   }
 
   PRINTF("Freeing iterator and padded idx.\n");
-  authz_entry_iterator_finish(iterator);
+  authz_entry_iterator_close(&iterator);
   free(padded_idx);
 
   if (key_found == 0)
