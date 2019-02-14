@@ -354,7 +354,7 @@ authz_entry_iterator authz_entry_iterator_initialize() {
 }
 
 // Clear up global variables, including closing file.
-void authz_entry_iterator_close(authz_entry_iterator& iterator) {
+void authz_entry_iterator_close(authz_entry_iterator* iterator) {
   cfs_close(iterator->entry_file_fd);
   iterator->entry_file_fd = -1;
 }
