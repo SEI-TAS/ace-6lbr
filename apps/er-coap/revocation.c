@@ -143,7 +143,7 @@ PROCESS_THREAD(revocation_check, ev, data)
         curr_entry = authz_entry_iterator_get_next(&iterator);
       }
 
-      authz_entry_iterator_finish(iterator);
+      authz_entry_iterator_close(&iterator);
       printf("Finished executing check iteration.\n");
 
       delete_revoked_tokens();

@@ -303,7 +303,7 @@ int remove_authz_entries(authz_entry* key_id_list[], int key_id_list_len) {
     curr_entry = authz_entry_iterator_get_next(&iterator);
   }
 
-  authz_entry_iterator_finish(iterator);
+  authz_entry_iterator_close(&iterator);
 
   // Now write them all but the removed one back to the file, removing what was in the file before.
   PRINTF("Re-writing all entries but the deleted one to file.\n");
@@ -354,9 +354,9 @@ authz_entry_iterator authz_entry_iterator_initialize() {
 }
 
 // Clear up global variables, including closing file.
-void authz_entry_iterator_finish(authz_entry_iterator iterator) {
-  cfs_close(iterator.entry_file_fd);
-  iterator.entry_file_fd = -1;
+void authz_entry_iterator_close(authz_entry_iterator& iterator) {
+  cfs_close(iterator->entry_file_fd);
+  iterator->entry_file_fd = -1;
 }
 
 // Get next entry from file.

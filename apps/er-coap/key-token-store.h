@@ -40,7 +40,7 @@ typedef struct authz_entry_iterator {
 } authz_entry_iterator;
 
 authz_entry_iterator authz_entry_iterator_initialize();
-void authz_entry_iterator_finish(authz_entry_iterator iterator);
+void authz_entry_iterator_close(authz_entry_iterator iterator);
 authz_entry* authz_entry_iterator_get_next(authz_entry_iterator* iterator);
 void authz_entry_iterator_reopen(authz_entry_iterator* iterator);
 
