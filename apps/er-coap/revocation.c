@@ -126,7 +126,7 @@ PROCESS_THREAD(revocation_check, ev, data)
                                        token_info->cti_len, curr_entry);
 
             // Close file since it will be used by others.
-            authz_entry_iterator_finish(iterator);
+            authz_entry_iterator_close(&iterator);
 
             // Wait until response is processed for this token.
             printf("Checker process will wait until introspection request is responded and processed..\n");
