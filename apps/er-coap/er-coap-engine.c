@@ -176,15 +176,15 @@ coap_receive(void* ctx, int dtls)
           /* invoke resource handler */
           if(service_cbk) {
 
-            int access_error_found = 0;
+            int has_access = 0;
             if(dtls) {
               // Call function to verify if client can access resource.
-              access_error_found = check_access_error(ctx, (void*) message, (void*) response);
+              has_access = parse_and_check_access(ctx, (void*) message, (void*) response);
             }
 
             // TODO: somehow register the handler for introspection responses as services in the REST framework?
             /* call REST framework and check if found and allowed */
-            if(access_error_found || service_cbk
+            if(has_access && service_cbk
                  (message, response, transaction->packet + COAP_MAX_HEADER_SIZE,
                  block_size, &new_offset)) {
 

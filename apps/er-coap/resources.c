@@ -26,6 +26,10 @@ DM18-1273
 #include "key-token-store.h"
 #include "dtls_helpers.h"
 
+//---------------------------------------------------------------------------------------------
+// Module to check if given requester has access to a given resource.
+//---------------------------------------------------------------------------------------------
+
 // TODO: improve this too.
 // First position in array is GET, second is POST, third is PUT, fourth is DELETE.
 static const char* res_hw_scopes[] = {"HelloWorld", 0, 0, 0};
@@ -33,7 +37,9 @@ static const char* res_lock_scopes[] = {"r_Lock;rw_Lock", 0, "rw_Lock", 0};
 
 static char* last_error = 0;
 
+//---------------------------------------------------------------------------------------------
 // Checks if the token associated with the given key has access to the resource in the method being used.
+static
 int can_access_resource(const char* resource, int res_length, rest_resource_flags_t method, unsigned char* key_id, int key_id_len) {
   printf("Checking access to resource (%.*s), method (%d).\n", res_length, resource, method);
 
@@ -157,9 +163,10 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   return 1;
 }
 
+//---------------------------------------------------------------------------------------------
 // Call function to verify if client can access resource.
-int check_access_error(struct dtls_context_t* ctx, void* request, void* response) {
-  int access_error_found = 0;
+int parse_and_check_access(struct dtls_context_t* ctx, void* request, void* response) {
+  int has_access = 0;
 
   unsigned char* key_id = 0;
   int key_id_len = find_dtls_context_key_id(ctx, &key_id);
@@ -168,7 +175,6 @@ int check_access_error(struct dtls_context_t* ctx, void* request, void* response
     printf("%s\n", error_msg);
     REST.set_response_status(response, REST.status.UNAUTHORIZED);
     REST.set_response_payload(response, error_msg, strlen(error_msg));
-    access_error_found = 1;
   }
   else {
     const char* resource = 0;
@@ -181,13 +187,13 @@ int check_access_error(struct dtls_context_t* ctx, void* request, void* response
       printf("Can't access resource: %s\n", last_error);
       REST.set_response_status(response, REST.status.UNAUTHORIZED);
       REST.set_response_payload(response, last_error, strlen(last_error));
-      access_error_found = 1;
     }
     else {
       printf("Can access resource!\n");
+      has_access = 1;
     }
   }
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-  return access_error_found;
+  return has_access;
 }
