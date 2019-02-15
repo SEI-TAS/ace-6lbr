@@ -278,7 +278,7 @@ int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
 /*---------------------------------------------------------------------------*/
 // Set up a DTLS connection.
 static
-void start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port) {
+int start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port) {
   printf("Starting DTLS handshake\n");
   session_t session;
   dtls_session_init(&session);
@@ -286,11 +286,12 @@ void start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, in
   session.port = no_port;
   int result = dtls_connect(ctx, &session);
   printf("Result of first DTLS handshake message: %d\n", result);
+  return result;
 }
 
 /*---------------------------------------------------------------------------*/
 // Sends an message starting a new DTLS connection.
-void send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port, char* url,
+int send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port, char* url,
                            const unsigned char* payload, int payload_len,
                            restful_response_handler callback, void* callback_data) {
   printf("Sending (queueing) message.\n");
@@ -325,5 +326,9 @@ void send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, in
   queued_message->serialized_message_len = serialized_message_len;
     printf("Message queued.\n");
 
-  start_dtls_connection(ctx, ip_addr, no_port);
+  int result = start_dtls_connection(ctx, ip_addr, no_port);
+  if(result == -1) {
+    printf("Could not start DTLS connection!\n");
+  }
+  return result;
 }

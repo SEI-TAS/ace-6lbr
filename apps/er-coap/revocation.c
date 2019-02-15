@@ -46,7 +46,8 @@ DM18-1273
 
 #define IPV6_ADDRESS_LENGTH_BYTES 16
 #define CHECK_WAIT_TIME_SECS 30
-#define PROCESS_EVENT_INTRO_DONE 0x70
+#define REQUEST_TIMEOUT_SECS 5
+#define PROCESS_EVENT_INTROSPECTION_RESPONSE_RECEIVED 0x70
 
 #define INTROSPECTION_ENDPOINT "introspect"
 #define INTROSPECTION_ACTIVE_KEY 29
@@ -89,6 +90,7 @@ PROCESS_THREAD(revocation_check, ev, data)
   static struct etimer et;
   static int timer_started = 0;
   static authz_entry_iterator iterator;
+  static struct etimer timeout_timer;
 
   static struct dtls_context_t* ctx;
   static uip_ipaddr_t as_ip;
@@ -125,18 +127,38 @@ PROCESS_THREAD(revocation_check, ev, data)
             printf("Entry does not have valid CBOR claims; ignoring it since it is not a valid token.\n");
           }
           else {
-            send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
-                                       token_info->cti_len, curr_entry);
+            int result = send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
+                                                    token_info->cti_len, curr_entry);
 
-            // Close file since it will be used by others.
-            authz_entry_iterator_close(&iterator);
+            // If sending of message was successful, wait for asynch response.
+            if(result == 1) {
+              // Close file since it will be used by others.
+              authz_entry_iterator_close(&iterator);
 
-            // Wait until response is processed for this token.
-            printf("Checker process will wait until introspection request is responded and processed..\n");
-            PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_INTRO_DONE);
+              // Wait until response is processed for this token.
+              printf("Checker process will wait until introspection request is responded and processed..\n");
+              etimer_set(&timeout_timer, REQUEST_TIMEOUT_SECS * CLOCK_SECOND);
+              while(1) {
+                PROCESS_WAIT_EVENT();
+                if(ev == PROCESS_EVENT_INTROSPECTION_RESPONSE_RECEIVED) {
+                  printf("Received completion event, checker thread will resume.\n");
+                  etimer_stop(&timeout_timer);
+                  break;
+                else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
+                  printf("Timed out waiting for completion of introspection response, skipping entry this cycle.\n");
+                  break;
+                }
+                else {
+                  printf("Unexpected event received (%d); ignoring.\n", ev);
+                }
+              }
 
-            // Reopen file access for iterator.
-            authz_entry_iterator_reopen(&iterator);
+              // Reopen file access for iterator.
+              authz_entry_iterator_reopen(&iterator);
+            }
+            else {
+              printf("Could not send request, ignoring entry for this cycle.\n");
+            }
           }
         }
         else {
@@ -159,8 +181,8 @@ PROCESS_THREAD(revocation_check, ev, data)
       timer_started = 1;
     }
     else {
-      printf("Revocation check timer reset.\n");
-      etimer_reset(&et);
+      printf("Revocation check timer restarted.\n");
+      etimer_restart(&et);
     }
 
     printf("Waiting till next revocation check cycle for %d seconds...\n", CHECK_WAIT_TIME_SECS);
@@ -196,7 +218,7 @@ static int get_as_ip_addr(uip_ipaddr_t* as_ip) {
 
 /*---------------------------------------------------------------------------*/
 // Sends an introspection request, and returns the result.
-static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
+static int send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry) {
   printf("Preparing introspection request.\n");
 
@@ -213,12 +235,19 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
   printf("\n");
 
   printf("Sending (queuing) introspection request message.\n");
-  send_new_dtls_message(ctx, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT), INTROSPECTION_ENDPOINT,
-                        payload, payload_len, check_introspection_response, curr_entry);
-
-  printf("Introspection request queued.\n");
+  int result = send_new_dtls_message(ctx, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT), INTROSPECTION_ENDPOINT,
+                                     payload, payload_len, check_introspection_response, curr_entry);
   free(payload);
   free(token_as_byte_string);
+
+  if(result == -1) {
+    printf("Could not queue introspection request.\n");
+    return -1;
+  }
+  else {
+    printf("Introspection request queued.\n");
+    return 1;
+  }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -247,7 +276,7 @@ void check_introspection_response(void* data, void* response) {
   }
 
   // Notify main checker process that it can move on into the next token.
-  process_post(&revocation_check, PROCESS_EVENT_INTRO_DONE, 0);
+  process_post(&revocation_check, PROCESS_EVENT_INTROSPECTION_RESPONSE_RECEIVED, 0);
 }
 
 /*---------------------------------------------------------------------------*/
