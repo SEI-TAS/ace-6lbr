@@ -287,36 +287,36 @@ void free_cwt_token_info(cwt* token) {
 
 // Frees claims allocated to a cwt structure.
 void free_claims(cwt* token) {
-  if(token_info->key) {
-    free(token_info->key);
+  if(token->key) {
+    free(token->key);
   }
 
-  if(token_info->key_id) {
-    free(token_info->key_id);
+  if(token->key_id) {
+    free(token->key_id);
   }
 
-  if(token_info->iss) {
-    free(token_info->iss);
+  if(token->iss) {
+    free(token->iss);
   }
 
-  if(token_info->sub) {
-    free(token_info->sub);
+  if(token->sub) {
+    free(token->sub);
   }
 
-  if(token_info->aud) {
-    free(token_info->aud);
+  if(token->aud) {
+    free(token->aud);
   }
 
-  if(token_info->cti) {
-    free(token_info->cti);
+  if(token->cti) {
+    free(token->cti);
   }
 
-  if(token_info->sco) {
-    free(token_info->sco);
+  if(token->sco) {
+    free(token->sco);
   }
 
-  if(token_info->cnf) {
-    free(token_info->cnf);
+  if(token->cnf) {
+    free(token->cnf);
   }
 
   free(token;)
