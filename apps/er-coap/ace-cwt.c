@@ -291,8 +291,8 @@ void free_claims(cwt* token) {
     free(token->key);
   }
 
-  if(token->key_id) {
-    free(token->key_id);
+  if(token->kid) {
+    free(token->kid);
   }
 
   if(token->iss) {
@@ -319,7 +319,7 @@ void free_claims(cwt* token) {
     free(token->cnf);
   }
 
-  free(token;)
+  free(token);
 }
 
 #define INVALID_AUDIENCE_ERROR "Invalid audience: %s"
