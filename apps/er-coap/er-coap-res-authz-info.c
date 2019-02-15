@@ -59,9 +59,10 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
 
   // Validate claims in token.
   char* error;
-  if(validate_claims(token, &error) == 0) {
+  if(validate_claims(token, &error, 0) == 0) {
     REST.set_response_status(response, REST.status.BAD_REQUEST);
     REST.set_response_payload(response, error, strlen(error));
+    free_cwt_token_info(token);
     return;
   }
 
@@ -72,6 +73,7 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
     REST.set_response_payload(response, error_message, strlen(error_message));
   }
 
+  free_cwt_token_info(token);
   printf("Stored token in tokens file.\n");
   REST.set_response_status(response, REST.status.CREATED);
   const char* success_message = "Token was validated and stored.";

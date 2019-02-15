@@ -73,19 +73,9 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     last_error = "Could not parse claims.";
     printf("%s\n", last_error);
     free_authz_entry(&entry);
+    free_claims(claims);
     return 0;
   }
-
-  printf("Validating claims... \n");
-  char* error;
-  if(validate_claims(claims, &error) == 0) {
-    last_error = error;
-    // TODO: note: since this will never be freed, any errors of this type will be memory leaks.
-    printf("Problem validating claims: %s\n", error);
-    free_authz_entry(&entry);
-    return 0;
-  }
-  free_authz_entry(&entry);
 
   // TODO: fix extensibility here too.
   // Now validate that the scope makes sense for the current resource.
@@ -100,6 +90,8 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   else {
     last_error = "Unknown resource!";
     printf("%s\n", last_error);
+    free_authz_entry(&entry);
+    free_claims(claims);
     return 0;
   }
 
@@ -121,6 +113,8 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     default:
       last_error = "Unknown method!";
       printf("%s\n", last_error);
+      free_authz_entry(&entry);
+      free_claims(claims);
       return 0;
   }
 
@@ -129,6 +123,8 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   if(valid_scopes == 0) {
     last_error = "Token scopes do not give access to resource.";
     printf("For resource (%.*s), token scopes (%s) do not give access using this method (%d) - no scopes found.\n", res_length, resource, claims->sco, method);
+    free_authz_entry(&entry);
+    free_claims(claims);
     return 0;
   }
 
@@ -154,11 +150,24 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   if(scope_found == 0) {
     last_error = "Token scopes do not give access to resource.";
     printf("For resource (%.*s), token scopes (%s) do not give access using this method (%d).\n", res_length, resource, claims->sco, method);
+    free_authz_entry(&entry);
+    free_claims(claims);
     return 0;
   }
 
-  // TODO: free everything in the cwt when it is no longer needed.
+  printf("Validating expiration... \n");
+  char* error;
+  if(validate_claims(claims, &error, 1) == 0) {
+    last_error = error;
+    // TODO: note: since this will never be freed, any errors of this type will be memory leaks.
+    printf("Problem validating expiration: %s\n", error);
+    free_authz_entry(&entry);
+    free_claims(claims);
+    return 0;
+  }
 
+  free_authz_entry(&entry);
+  free_claims(claims);
   printf("Can access resource according to check.\n");
   return 1;
 }

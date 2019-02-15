@@ -59,7 +59,9 @@ typedef struct cosewt {
 
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
 cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len);
-int validate_claims(const cwt* token, char** error);
+int validate_claims(const cwt* token, char** error, int expiration_only);
+void free_cwt_token_info(cwt* token);
+void free_claims(cwt* token);
 
 #define KEY_ID_LENGTH 16
 #define KEY_LENGTH 16

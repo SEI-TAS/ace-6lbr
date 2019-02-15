@@ -182,9 +182,11 @@ void initialize_key_token_store() {
 authz_entry* create_authz_entry(unsigned char* kid, int kid_len, unsigned char* key, int claims_len, unsigned char* claims, uint64_t time) {
   authz_entry* authz_info = (authz_entry*) malloc(sizeof(authz_entry));
   authz_info->kid = left_pad_array(kid, kid_len, KEY_ID_LENGTH, 0);
-  authz_info->key = key;
+  authz_info->key = (unsigned char*) malloc(key_len);
+  memcpy(authz_info->key, key, key_len);
   authz_info->claims_len = claims_len;
-  authz_info->claims = claims;
+  authz_info->claims = (unsigned char*) malloc(claims_len);
+  memcpy(authz_info->claims, claims, claims_len);
   authz_info->time_received_seconds = time;
   return authz_info;
 }
