@@ -198,7 +198,7 @@ read_from_peer(struct dtls_context_t *ctx,
   memmove(uip_appdata, data, len);
 
   // Call a function to parse COAP and handle the actual message.
-  printf("TinyDTLS called us, it received information. Calling coap parser and handler.");
+  printf("TinyDTLS called us, it received information. Calling coap parser and handler.\n");
   coap_receive(ctx, 1);
   return 0;
 }
