@@ -176,7 +176,7 @@ coap_receive(void* ctx, int dtls)
           /* invoke resource handler */
           if(service_cbk) {
 
-            int has_access = 0;
+            int has_access = 1;
             if(dtls) {
               // Call function to verify if client can access resource.
               has_access = parse_and_check_access(ctx, (void*) message, (void*) response);
