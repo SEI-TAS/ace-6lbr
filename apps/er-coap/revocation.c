@@ -56,7 +56,7 @@ DM18-1273
 extern struct dtls_context_t* get_default_context_dtls();
 
 static int get_as_ip_addr(uip_ipaddr_t* as_ip);
-static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
+static int send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t* as_ip,
                                        const unsigned char* token_cti, int token_cti_len, authz_entry* curr_entry);
 static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_len);
 void check_introspection_response(void* data, void* response);
@@ -144,6 +144,7 @@ PROCESS_THREAD(revocation_check, ev, data)
                   printf("Received completion event, checker thread will resume.\n");
                   etimer_stop(&timeout_timer);
                   break;
+                }
                 else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
                   printf("Timed out waiting for completion of introspection response, skipping entry this cycle.\n");
                   break;
