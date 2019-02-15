@@ -16,15 +16,19 @@ DM18-1273
 #include "utils.h"
 #include "cbor-encode.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
-#define HEX_PRINTF_INL(byte_array, length) HEX_PRINTF(byte_array, length)
+#define HEX_PRINTF_DBG(byte_array, length) HEX_PRINTF(byte_array, length)
 #else
 #define PRINTF(...)
-#define HEX_PRINTF_INL(byte_array, length)
+#define HEX_PRINTF_DBG(byte_array, length)
 #endif
+
+//---------------------------------------------------------------------------------------------
+// Module with some simple CBOR encoding functions.
+//---------------------------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------------------------
 // Encodes a pair, assuming an int key, and a value that can be either an int, or a byte string, or a text string.
@@ -44,12 +48,12 @@ int encode_pair_to_cbor(int key, int int_value, const unsigned char* bytes_value
   int encoded_value_len;
   if(bytes_value != 0) {
     PRINTF("Encoding byte string value: ");
-    HEX_PRINTF_INL(bytes_value, value_len);
+    HEX_PRINTF_DBG(bytes_value, value_len);
     encoded_value_len = encode_bytes_to_cbor(bytes_value, value_len, &encoded_value);
   }
   else if(txt_value != 0) {
     PRINTF("Encoding text string value: ");
-    HEX_PRINTF_INL(txt_value, value_len);
+    HEX_PRINTF_DBG(txt_value, value_len);
 
     encoded_value_len = encode_string_to_cbor(txt_value, value_len, &encoded_value);
   }
@@ -68,7 +72,7 @@ int encode_pair_to_cbor(int key, int int_value, const unsigned char* bytes_value
   free(encoded_value);
 
   PRINTF("Encoded bytes: ");
-  HEX_PRINTF_INL((*cbor_result), encoded_len);
+  HEX_PRINTF_DBG((*cbor_result), encoded_len);
 
   return encoded_len;
 }
@@ -99,7 +103,7 @@ int encode_map_to_cbor(unsigned char* pairs[], int pairs_lengths[], int number_o
   }
 
   PRINTF("Final encoded bytes: ");
-  HEX_PRINTF_INL((*cbor_result), cbor_bytes_len);
+  HEX_PRINTF_DBG((*cbor_result), cbor_bytes_len);
   return cbor_bytes_len;
 }
 
@@ -165,7 +169,7 @@ int encode_num_to_cbor(int int_value, unsigned char** cbor_result, int prefix) {
   }
 
   PRINTF("Encoded num: ");
-  HEX_PRINTF_INL((*cbor_result), encoded_len);
+  HEX_PRINTF_DBG((*cbor_result), encoded_len);
   return encoded_len;
 }
 
@@ -184,7 +188,7 @@ int encode_int_to_cbor(int int_value, unsigned char** cbor_result) {
 static
 int encode_bytes_or_string_to_cbor(const unsigned char* input_array, int input_array_len, unsigned char** cbor_result, int prefix) {
   PRINTF("Encoding byte array of length %d, contents: ", input_array_len);
-  HEX_PRINTF_INL(input_array, input_array_len);
+  HEX_PRINTF_DBG(input_array, input_array_len);
 
   // Encode the header and gets the length.
   int header_len = encode_num_to_cbor(input_array_len, cbor_result, prefix);
@@ -197,7 +201,7 @@ int encode_bytes_or_string_to_cbor(const unsigned char* input_array, int input_a
   // Now copy the byte string to the result, after the header.
   memcpy((*cbor_result) + header_len, input_array, input_array_len);
   PRINTF("Encoded byte array: ");
-  HEX_PRINTF_INL((*cbor_result), encoded_len);
+  HEX_PRINTF_DBG((*cbor_result), encoded_len);
 
   return encoded_len;
 }

@@ -154,16 +154,16 @@ PROCESS_THREAD(revocation_check, ev, data)
 
      // Set or reset timer and check again in a while.
     if(timer_started == 0) {
-      printf("Initial timer setup\n");
+      printf("Initial revocation check timer setup\n");
       etimer_set(&et, CHECK_WAIT_TIME_SECS * CLOCK_SECOND);
       timer_started = 1;
     }
     else {
-      printf("Timer reset.\n");
+      printf("Revocation check timer reset.\n");
       etimer_reset(&et);
     }
 
-    printf("Waiting till next cycle for %d seconds...\n", CHECK_WAIT_TIME_SECS);
+    printf("Waiting till next revocation check cycle for %d seconds...\n", CHECK_WAIT_TIME_SECS);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
 
@@ -261,7 +261,7 @@ static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_l
       printf("Map found in response!\n");
       cn_cbor* pair_key = map_object->first_child;
       if(pair_key->v.uint == INTROSPECTION_ACTIVE_KEY) {
-        printf("Active key found in response!\n");
+        printf("'Active' key found in response!\n");
         cn_cbor* active_value = pair_key->next;
 
         if(active_value == 0) {
@@ -276,7 +276,7 @@ static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_l
         }
       }
       else {
-        printf("Response did not have 'active' key first.\n");
+        printf("Response did not have 'active' key as the first key in the map; stopped processing.\n");
       }
     }
     else {
