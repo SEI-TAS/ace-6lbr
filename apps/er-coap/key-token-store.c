@@ -183,7 +183,7 @@ authz_entry* create_authz_entry(unsigned char* kid, int kid_len, unsigned char* 
   authz_entry* authz_info = (authz_entry*) malloc(sizeof(authz_entry));
   authz_info->kid = left_pad_array(kid, kid_len, KEY_ID_LENGTH, 0);
   authz_info->key = (unsigned char*) malloc(key_len);
-  memcpy(authz_info->key, key, key_len);
+  memcpy(authz_info->key, key, KEY_LENGTH);
   authz_info->claims_len = claims_len;
   authz_info->claims = (unsigned char*) malloc(claims_len);
   memcpy(authz_info->claims, claims, claims_len);
