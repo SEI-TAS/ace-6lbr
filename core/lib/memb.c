@@ -43,7 +43,6 @@
  * \author Adam Dunkels <adam@sics.se>
  */
 #include <string.h>
-#include <stdio.h>
 
 #include "contiki.h"
 #include "lib/memb.h"
@@ -60,7 +59,6 @@ void *
 memb_alloc(struct memb *m)
 {
   int i;
-  printf("In memb alloc\n");
   for(i = 0; i < m->num; ++i) {
     if(m->count[i] == 0) {
       /* If this block was unused, we increase the reference count to

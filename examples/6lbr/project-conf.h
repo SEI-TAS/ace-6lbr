@@ -339,6 +339,8 @@ NO WARRANTY. THIS CARNEGIE MELLON UNIVERSITY AND SOFTWARE ENGINEERING INSTITUTE 
 
 #endif
 
+#define DTLS_PEER_MAX 3
+
 //IP64 DHCP is manually started in cetic-6lbr if needed
 #define IP64_CONF_DHCP 0
 
