@@ -77,6 +77,7 @@ dtls_new_peer(struct dtls_context_t *ctx, const session_t *session) {
     peer->security_params[0] = dtls_security_new();
 
     if (!peer->security_params[0]) {
+      printf("No security params found for peer!\n");
       dtls_free_peer(peer);
       return NULL;
     }
@@ -85,6 +86,9 @@ dtls_new_peer(struct dtls_context_t *ctx, const session_t *session) {
     ctimer_set(&peer->timeout, DTLS_CONN_TIMEOUT*CLOCK_SECOND, dtls_peer_timeout, peer);
 #endif
     dtls_dsrv_log_addr(DTLS_LOG_DEBUG, "dtls_new_peer", session);
+  }
+  else {
+    printf("Malloc peer returned null!\n");
   }
 
   return peer;
