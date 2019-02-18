@@ -20,6 +20,10 @@ DM18-1273
 extern struct dtls_cipher_context_t *dtls_cipher_context_get(void);
 extern void dtls_cipher_context_release(void);
 
+//---------------------------------------------------------------------------------------------
+// Method to call AES decryption from TinyDTLS but being able to set a specific Nonce size.
+// (By default, TinyDTLS's AES implementation has a harcoded Nonce size that is only useful for
+// the AES profile used by DTLS).
 int
 dtls_decrypt_with_nounce_len(const unsigned char *src, size_t srclen,
 	     unsigned char *buf,

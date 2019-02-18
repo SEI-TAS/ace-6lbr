@@ -68,7 +68,8 @@ DM18-1273
 #define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
 #else
 #define PRINTF(...)
-#define PRINT6ADDR(addr)
+//#define PRINT6ADDR(addr)
+#define PRINT6ADDR(addr) printf("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 #define PRINTLLADDR(addr)
 #endif
 
@@ -88,6 +89,10 @@ struct dtls_context_t * coap_default_context_dtls = NULL;
 /*---------------------------------------------------------------------------*/
 /*- Internal API ------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
+struct dtls_context_t* get_default_context_dtls() {
+  return coap_default_context_dtls;
+}
+
 int
 coap_receive(void* ctx, int dtls)
 {
@@ -103,9 +108,9 @@ coap_receive(void* ctx, int dtls)
 
   if(uip_newdata()) {
 
-    PRINTF("receiving UDP datagram from: ");
+    printf("receiving UDP datagram from: ");
     PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-    PRINTF(":%u\n  Length: %u\n", uip_ntohs(UIP_UDP_BUF->srcport),
+    printf(":%u\n  Length: %u\n", uip_ntohs(UIP_UDP_BUF->srcport),
            uip_datalen());
 
     erbium_status_code =
@@ -117,7 +122,7 @@ coap_receive(void* ctx, int dtls)
 
       PRINTF("  Parsed: v %u, t %u, tkl %u, c %u, mid %u\n", message->version,
              message->type, message->token_len, message->code, message->mid);
-      PRINTF("  URL: %.*s\n", message->uri_path_len, message->uri_path);
+      PRINTF("  URL: %.*s\n", (int) message->uri_path_len, message->uri_path);
       PRINTF("  Payload: %.*s\n", message->payload_len, message->payload);
 
       /* handle requests */
@@ -163,7 +168,7 @@ coap_receive(void* ctx, int dtls)
           if(coap_get_header_block2
                (message, &block_num, NULL, &block_size, &block_offset)) {
             PRINTF("Blockwise: block request %lu (%u/%u) @ %lu bytes\n",
-                   block_num, block_size, COAP_MAX_BLOCK_SIZE, block_offset);
+                   (unsigned long int) block_num, block_size, COAP_MAX_BLOCK_SIZE, (unsigned long) block_offset);
             block_size = MIN(block_size, COAP_MAX_BLOCK_SIZE);
             new_offset = block_offset;
           }
@@ -171,14 +176,15 @@ coap_receive(void* ctx, int dtls)
           /* invoke resource handler */
           if(service_cbk) {
 
-            int access_error_found = 0;
+            int has_access = 1;
             if(dtls) {
               // Call function to verify if client can access resource.
-              access_error_found = check_access_error(ctx, (void*) message, (void*) response);
+              has_access = parse_and_check_access(ctx, (void*) message, (void*) response);
             }
 
+            // TODO: somehow register the handler for introspection responses as services in the REST framework?
             /* call REST framework and check if found and allowed */
-            if(access_error_found || service_cbk
+            if(has_access && service_cbk
                  (message, response, transaction->packet + COAP_MAX_HEADER_SIZE,
                  block_size, &new_offset)) {
 
@@ -223,7 +229,7 @@ coap_receive(void* ctx, int dtls)
                     /* resource provides chunk-wise data */
                   } else {
                     PRINTF("Blockwise: blockwise resource, new offset %ld\n",
-                           new_offset);
+                           (long int) new_offset);
                     coap_set_header_block2(response, block_num,
                                            new_offset != -1
                                            || response->payload_len >
@@ -404,13 +410,16 @@ extern resource_t res_authz_info;
 
    coap_register_as_transaction_handler();
    coap_init_connection(SERVER_LISTEN_PORT);
-   printf("CoAPs server listening on port %d\n", COAP_DEFAULT_PORT);
+   printf("CoAP server listening on port %d\n", COAP_DEFAULT_PORT);
 
    while(1) {
      PROCESS_YIELD();
 
      if(ev == tcpip_event) {
-       coap_handle_receive(coap_default_context);
+       printf("CoAP: TCP/IP event received; dest port is: %d\n", UIP_HTONS(UIP_UDP_BUF->destport));
+       if(UIP_HTONS(UIP_UDP_BUF->destport) == COAP_DEFAULT_PORT) {
+         coap_handle_receive(coap_default_context);
+       }
      } else if(ev == PROCESS_EVENT_TIMER) {
        /* retransmissions are handled here */
        coap_check_transactions(0);
@@ -433,14 +442,17 @@ PROCESS_THREAD(coaps_engine, ev, data)
   rest_activate_resource(&res_lock, "ace/lock");
 
   coap_register_as_transaction_handler_dtls();
-  coap_init_connection_dtls(SERVER_DTLS_LISTEN_PORT);
+  coap_init_connection_dtls(COAPS_DEFAULT_PORT);
   printf("CoAPs server listening on port %d\n", COAPS_DEFAULT_PORT);
 
   while(1) {
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      coap_handle_receive_dtls(coap_default_context_dtls);
+      printf("CoAPs: TCP/IP event received; dest port is: %d\n", UIP_HTONS(UIP_UDP_BUF->destport));
+      if(UIP_HTONS(UIP_UDP_BUF->destport) == COAPS_DEFAULT_PORT) {
+        coap_handle_receive_dtls(coap_default_context_dtls);
+      }
     } else if(ev == PROCESS_EVENT_TIMER) {
       /* retransmissions are handled here */
       coap_check_transactions(1);
@@ -501,7 +513,7 @@ PT_THREAD(coap_blocking_request
 
       // TODO: passing 0 here will make this not work if using DTLS. Should be fixed better.
       coap_send_transaction(state->transaction, 0);
-      PRINTF("Requested #%lu (MID %u)\n", state->block_num, request->mid);
+      PRINTF("Requested #%lu (MID %u)\n", (unsigned long int) state->block_num, request->mid);
 
       PT_YIELD_UNTIL(&state->pt, ev == PROCESS_EVENT_POLL);
 
@@ -512,14 +524,14 @@ PT_THREAD(coap_blocking_request
 
       coap_get_header_block2(state->response, &res_block, &more, NULL, NULL);
 
-      PRINTF("Received #%lu%s (%u bytes)\n", res_block, more ? "+" : "",
+      PRINTF("Received #%lu%s (%u bytes)\n", (unsigned long int) res_block, more ? "+" : "",
              state->response->payload_len);
 
       if(res_block == state->block_num) {
         request_callback(state->response);
         ++(state->block_num);
       } else {
-        PRINTF("WRONG BLOCK %lu/%lu\n", res_block, state->block_num);
+        PRINTF("WRONG BLOCK %lu/%lu\n", (unsigned long int) res_block, (unsigned long int) state->block_num);
         ++block_error;
       }
     } else {

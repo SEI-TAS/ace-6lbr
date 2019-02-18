@@ -32,6 +32,8 @@ DM18-1273
 #define CNF_KID 2
 #define CNK_KEY -1
 
+#define TOKEN_KEY 27
+
 typedef struct cwt {
   char* iss;
   char* sub;
@@ -41,6 +43,7 @@ typedef struct cwt {
   time_t nbf;
   time_t iat;
   char* cti;
+  int cti_len;
   char* sco;
   char* cnf;
   unsigned char* kid;
@@ -56,7 +59,9 @@ typedef struct cosewt {
 
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
 cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len);
-int validate_claims(const cwt* token, char** error);
+int validate_claims(const cwt* token, char** error, int expiration_only);
+void free_cwt_token_info(cwt* token);
+void free_claims(cwt* token);
 
 #define KEY_ID_LENGTH 16
 #define KEY_LENGTH 16

@@ -16,6 +16,7 @@ DM18-1273
 #define UTILS_H
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define HEX_PRINTF(byte_array, length) {                        \
         printf("Hex bytes: ");                                      \
@@ -24,5 +25,7 @@ DM18-1273
           printf("%02x ", (unsigned int) (byte_array[i]));     \
         printf("\n");                                           \
      }
+
+#define PRINTIP6ADDR(addr) printf("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
 
 #endif // UTILS_H

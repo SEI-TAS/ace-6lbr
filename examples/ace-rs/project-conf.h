@@ -41,9 +41,14 @@
 #define NETSTACK_CONF_RDC     nullrdc_driver
 
 #define REST_MAX_CHUNK_SIZE   64
+
+#ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE  200
+#endif
 
 #define RPL_CONF_WITH_DAO_ACK 1
+
+//#define DTLS_PEER_MAX 3
 
 #endif /* PROJECT_CONF_H_ */
 

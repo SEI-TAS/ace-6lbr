@@ -15,6 +15,7 @@ DM18-1273
 #define _ER_COAP_DTLS_H_
 
 #include "er-coap.h"
+#include "rest-engine.h"
 
 struct dtls_context_t *
 coap_init_communication_layer_dtls(uint16_t port);
@@ -24,5 +25,9 @@ coap_send_message_dtls(struct dtls_context_t * ctx, uip_ipaddr_t *addr, uint16_t
 
 void
 coap_handle_receive_dtls(struct dtls_context_t *ctx);
+
+int send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port, char* url,
+                                  const unsigned char* payload, int payload_len,
+                                  restful_response_handler callback, void* callback_data);
 
 #endif

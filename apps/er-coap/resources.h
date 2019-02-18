@@ -23,6 +23,6 @@ DM18-1273
 // TODO: fix this, this is NOT extensible to add more resources.
 #define SCOPES "HelloWorld;rw_Lock;r_Lock"
 
-int check_access_error(struct dtls_context_t* ctx, void* request, void* response);
+int parse_and_check_access(struct dtls_context_t* ctx, void* request, void* response);
 
 #endif // RESOURCES_H

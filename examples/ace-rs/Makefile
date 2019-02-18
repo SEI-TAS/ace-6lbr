@@ -16,6 +16,5 @@ all: $(CONTIKI_PROJECT)
 
 # Ensure the TCP/IP stack is included.
 CONTIKI_WITH_IPV6 = 1
-#CONTIKI_WITH_RIME = 1
 
 include $(CONTIKI)/Makefile.include

@@ -118,6 +118,8 @@
 extern void cetic_6lbr_save_ip(void);
 #endif
 
+extern void start_revocation_checker();
+
 //Initialisation flags
 int ethernet_ready = 0;
 int eth_mac_addr_ready = 0;
@@ -744,6 +746,9 @@ PROCESS_THREAD(cetic_6lbr_process, ev, data)
   platform_load_config(CONFIG_LEVEL_APP);
 
   LOG6LBR_INFO("CETIC 6LBR Started\n");
+
+  printf("Starting revocation check process.\n");
+  start_revocation_checker();
 
   PROCESS_WAIT_EVENT_UNTIL(ev == cetic_6lbr_restart_event);
 
