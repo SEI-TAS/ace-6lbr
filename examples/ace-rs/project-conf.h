@@ -48,7 +48,7 @@
 
 #define RPL_CONF_WITH_DAO_ACK 1
 
-#define DTLS_PEER_MAX 3
+//#define DTLS_PEER_MAX 3
 
 #endif /* PROJECT_CONF_H_ */
 
