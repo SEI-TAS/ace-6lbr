@@ -39,23 +39,24 @@ static char* last_error = 0;
 
 //---------------------------------------------------------------------------------------------
 // Checks if the token associated with the given key has access to the resource in the method being used.
+// Returns 0 if resource can be accessed, or a REST error response code if applicable.
 static
 int can_access_resource(const char* resource, int res_length, rest_resource_flags_t method, unsigned char* key_id, int key_id_len) {
   printf("Checking access to resource (%.*s), method (%d).\n", res_length, resource, method);
 
   if(memcmp(resource, "pair", res_length) == 0) {
     printf("Pairing resource is always accessible.\n");
-    return 1;
+    return 0;
   }
 
   printf("Finding token for given identity...\n");
   HEX_PRINTF(key_id, key_id_len);
   authz_entry entry = {0};
   if(find_authz_entry(key_id, key_id_len, &entry) == 0) {
-    last_error = "Entry not found!";
+    last_error = "Token entry not found!";
     printf("%s\n", last_error);
     free_authz_entry(&entry);
-    return 0;
+    return REST.status.UNAUTHORIZED;
   }
 
   printf("Entry found, checking if it has claims...\n");
@@ -63,7 +64,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     last_error = "Entry has no claims!";
     printf("%s\n", last_error);
     free_authz_entry(&entry);
-    return 0;
+    return REST.status.UNAUTHORIZED;
   }
 
   printf("Parsing claims... \n");
@@ -74,10 +75,11 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     printf("%s\n", last_error);
     free_authz_entry(&entry);
     free_claims(claims);
-    return 0;
+    return REST.status.UNAUTHORIZED;
   }
 
   // TODO: fix extensibility here too.
+  // Ok, we have an access token for this id/client!
   // Now validate that the scope makes sense for the current resource.
   printf("Finding scopes for resource. Scopes in token: %s\n", claims->sco);
   const char** scope_map;
@@ -92,7 +94,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
     printf("%s\n", last_error);
     free_authz_entry(&entry);
     free_claims(claims);
-    return 0;
+    return REST.status.FORBIDDEN;
   }
 
   printf("Resource found, checking method.\n");
@@ -115,17 +117,18 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
       printf("%s\n", last_error);
       free_authz_entry(&entry);
       free_claims(claims);
-      return 0;
+      return REST.status.METHOD_NOT_ALLOWED;
   }
 
+  // Checking if token gives access to the requested action/method.
   printf("Getting scope for method in pos %d.\n", pos);
   const char* valid_scopes = scope_map[pos];
   if(valid_scopes == 0) {
-    last_error = "Token scopes do not give access to resource.";
+    last_error = "Token scopes do not give access to resource with this method.";
     printf("For resource (%.*s), token scopes (%s) do not give access using this method (%d) - no scopes found.\n", res_length, resource, claims->sco, method);
     free_authz_entry(&entry);
     free_claims(claims);
-    return 0;
+    return REST.status.METHOD_NOT_ALLOWED;
   }
 
   printf("Looking for scopes in list: %s, len %u\n", valid_scopes, (unsigned int) strlen(valid_scopes));
@@ -149,27 +152,28 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   if(scope_found == 0) {
     last_error = "Token scopes do not give access to resource.";
-    printf("For resource (%.*s), token scopes (%s) do not give access using this method (%d).\n", res_length, resource, claims->sco, method);
+    printf("For resource (%.*s), token scopes (%s) do not give access using this method (%d) - wrong resource?.\n", res_length, resource, claims->sco, method);
     free_authz_entry(&entry);
     free_claims(claims);
-    return 0;
+    return REST.status.FORBIDDEN;
   }
 
   printf("Validating expiration... \n");
   char* error;
-  if(validate_claims(claims, &error, 1) == 0) {
+  int error_code = validate_expiration(claims, &error);
+  if(error_code) {
     last_error = error;
     // TODO: note: since this will never be freed, any errors of this type will be memory leaks.
     printf("Problem validating expiration: %s\n", error);
     free_authz_entry(&entry);
     free_claims(claims);
-    return 0;
+    return error_code;
   }
 
   free_authz_entry(&entry);
   free_claims(claims);
   printf("Can access resource according to check.\n");
-  return 1;
+  return 0;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -191,10 +195,10 @@ int parse_and_check_access(struct dtls_context_t* ctx, void* request, void* resp
     printf("Got resource (%.*s) with length: %d\n", res_length, resource, res_length);
     rest_resource_flags_t method = REST.get_method_type(request);
 
-    int can_access = can_access_resource(resource, res_length, method, key_id, key_id_len);
-    if(!can_access) {
+    int error_code = can_access_resource(resource, res_length, method, key_id, key_id_len);
+    if(error_code != 0) {
       printf("Can't access resource: %s\n", last_error);
-      REST.set_response_status(response, REST.status.UNAUTHORIZED);
+      REST.set_response_status(response, error_code);
       REST.set_response_payload(response, last_error, strlen(last_error));
     }
     else {

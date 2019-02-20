@@ -17,6 +17,7 @@ DM18-1273
 #include <time.h>
 
 #include "cfs/cfs.h"
+#include "rest-constants.h"
 
 #include "tinydtls_aes.h"
 #include "cn-cbor/cn-cbor/cn-cbor.h"
@@ -327,11 +328,8 @@ void free_claims(cwt* token) {
 #define NO_SCOPE_ERROR "Token has no scope"
 #define UNKNOWN_SCOPE_ERROR "Unknown scope: %s"
 
-int validate_claims(const cwt* token, char** error, int expiration_only) {
-  PRINTF("Validating claims.\n");
-
-  // TODO: time() needs gettimeofday() implementation for CC2538dk TI boards for this version to compile and work.
-  // 1. Check if the token has expired. We use the exi claim and not the exp claim since exp requires clock synch.
+// Checks if the token has expired. If so, return UNAUTHORIZED. Otherwise, returns 0.
+int validate_expiration(const cwt* token, char** error) {
   uint64_t curr_time_seconds = (uint64_t) time(NULL);
   uint64_t time_since_received = curr_time_seconds - token->authz_info->time_received_seconds;
   PRINTF("Checking if time since token was received %ld is greater than expires in time %ld\n", time_since_received, token->exi);
@@ -339,13 +337,23 @@ int validate_claims(const cwt* token, char** error, int expiration_only) {
     int error_len = strlen(TOKEN_EXPIRED_ERROR) + 1;
     *error = (char*) malloc(error_len);
     snprintf(*error, error_len, TOKEN_EXPIRED_ERROR);
-    PRINTF("Error validating token: %s\n", *error);
-    return 0;
+    PRINTF("Error validating token expiration: %s\n", *error);
+    return REST.status.UNAUTHORIZED;
   }
 
-  if(expiration_only) {
-    PRINTF("Expiration claim is valid; not checking any more as instructed.\n");
-    return 1;
+  return 0;
+}
+
+// Returns 0 if there is no error, or a REST error response code if there are issues.
+int validate_claims(const cwt* token, char** error) {
+  PRINTF("Validating claims.\n");
+
+  // TODO: ISS claim is not being checked.
+
+  // 1. Check if the token has expired. We use the exi claim and not the exp claim since exp requires clock synch.
+  int error_code = validate_expiration(token, error);
+  if(error_code != 0) {
+    return error_code;
   }
 
   // 2. Check if we are the audience.
@@ -354,7 +362,7 @@ int validate_claims(const cwt* token, char** error, int expiration_only) {
     *error = (char*) malloc(error_len);
     snprintf(*error, error_len, INVALID_AUDIENCE_ERROR, token->aud);
     PRINTF("Error validating token: %s\n", *error);
-    return 0;
+    return REST.status.FORBIDDEN;
   }
 
   // 3. Check if the token has a scope.
@@ -363,7 +371,7 @@ int validate_claims(const cwt* token, char** error, int expiration_only) {
     *error = (char*) malloc(error_len);
     snprintf(*error, error_len, NO_SCOPE_ERROR);
     PRINTF("Error validating token: %s\n", *error);
-    return 0;
+    return REST.status.BAD_REQUEST;
   }
 
   // 4. Check if the token has a known scope.
@@ -381,7 +389,7 @@ int validate_claims(const cwt* token, char** error, int expiration_only) {
       snprintf(*error, error_len, UNKNOWN_SCOPE_ERROR, curr_scope);
       PRINTF("Error validating token: %s\n", *error);
       free(scope_list);
-      return 0;
+      return REST.status.BAD_REQUEST;
     }
 
     // Move to next scope.
@@ -390,5 +398,5 @@ int validate_claims(const cwt* token, char** error, int expiration_only) {
   free(scope_list);
 
   PRINTF("All claims are valid.\n");
-  return 1;
+  return 0;
 }

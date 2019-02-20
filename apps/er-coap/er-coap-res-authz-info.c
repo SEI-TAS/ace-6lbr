@@ -59,8 +59,9 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
 
   // Validate claims in token.
   char* error;
-  if(validate_claims(token, &error, 0) == 0) {
-    REST.set_response_status(response, REST.status.BAD_REQUEST);
+  int error_code = validate_claims(token, &error);
+  if(error_code != 0) {
+    REST.set_response_status(response, error_code);
     REST.set_response_payload(response, error, strlen(error));
     free_cwt_token_info(token);
     return;
