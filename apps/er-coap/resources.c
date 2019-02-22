@@ -26,11 +26,6 @@ DM18-1273
 #include "key-token-store.h"
 #include "dtls_helpers.h"
 
-#define POS_GET 1
-#define POS_POST 2
-#define POS_PUT 3
-#define POS_DEL 4
-
 // Hardcoded to 2 as we only have 2 for now. Can be increased, but avoiding that for now to reduce memory usage.
 #define MAX_RESOURCES 2
 

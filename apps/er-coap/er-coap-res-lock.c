@@ -87,8 +87,8 @@ resource_info* get_resource_info_lock() {
 
   resource_info* resource = (resource_info*) malloc(sizeof(resource_info));
   resource->name = "ace/lock";
-  resource->scope_info_len = 2;
-  resource->scope_info_list = (scope_info**) malloc(sizeof(scope_info*) * resource->scope_info_len);
+  resource->scope_info_list_len = 2;
+  resource->scope_info_list = (scope_info**) malloc(sizeof(scope_info*) * resource->scope_info_list_len);
   resource->scope_info_list[0] = scope1;
   resource->scope_info_list[1] = scope2;
 

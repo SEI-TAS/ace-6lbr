@@ -22,6 +22,11 @@ DM18-1273
 // TODO: fix this, this is NOT extensible to add more resources.
 #define SCOPES "HelloWorld;rw_Lock;r_Lock"
 
+#define POS_GET 1
+#define POS_POST 2
+#define POS_PUT 3
+#define POS_DEL 4
+
 // Information about a scope: its name, and methods allowed by this scope.
 typedef struct scope_info {
   char* name;
