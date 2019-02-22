@@ -304,7 +304,7 @@ int send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int
 
   // Set up a transaction so we can process the result when returned.
   printf("Preparing transaction.\n");
-  static coap_transaction_t *transaction = NULL;
+  static coap_transaction_t* transaction = NULL;
   transaction = coap_new_transaction(message->mid, ip_addr, no_port, 1);
   coap_set_transaction_context_dtls(transaction, ctx);
   transaction->callback = callback;
@@ -324,11 +324,16 @@ int send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int
   queued_message->no_port = no_port;
   queued_message->serialized_message = serialized_message;
   queued_message->serialized_message_len = serialized_message_len;
-    printf("Message queued.\n");
+  printf("Message queued.\n");
 
   int result = start_dtls_connection(ctx, ip_addr, no_port);
   if(result == -1) {
     printf("Could not start DTLS connection!\n");
+    free(queued_message->ip_addr);
+    free(serialized_message);
+    free(queued_message);
+    queued_message = 0;
+    coap_clear_transaction(transaction);
   }
   return result;
 }
