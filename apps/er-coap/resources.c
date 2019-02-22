@@ -33,11 +33,6 @@ DM18-1273
 // Module to check if given requester has access to a given resource.
 //---------------------------------------------------------------------------------------------
 
-// TODO: improve this too.
-// First position in array is GET, second is POST, third is PUT, fourth is DELETE.
-static const char* res_hw_scopes[] = {"HelloWorld", 0, 0, 0};
-static const char* res_lock_scopes[] = {"r_Lock;rw_Lock", 0, "rw_Lock", 0};
-
 // All registered resources.
 static resource_info* registered_resources[MAX_RESOURCES];
 static int num_registered_resources = 0;
@@ -100,7 +95,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
   int i = 0;
   for(i = 0; i < num_registered_resources; i++)
   {
-    if(memcmp(resource, registered_resources[i].name, res_length) == 0) {
+    if(memcmp(resource, registered_resources[i]->name, res_length) == 0) {
       curr_resource = registered_resources[i];
       break;
     }
@@ -145,7 +140,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
       // At least one scope associated to this resource is validated by the token. We have to check method now.
       some_scopes_in_claims_match_requested_resource = 1;
       if(curr_scope->methods[pos] == 1) {
-        printf("Scope %s allows access to this resource using method %s\n"curr_scope->name, method);
+        printf("Scope %s allows access to this resource using method %s\n", curr_scope->name, method);
         method_allowed = 1;
         break;
       }
@@ -162,7 +157,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
 
   if(method_allowed == 0) {
     last_error = "No scopes in token give access to this resource with the requested method.";
-    printf("For resource (%.*s), there are no scopes that give access using this method (%d) (requested scope in token: (%s)).\n", res_length, resource, claims->sco, method);
+    printf("For resource (%.*s), there are no scopes that give access using this method (%d) (requested scope in token: (%s)).\n", res_length, resource, method, claims->sco);
     free_authz_entry(&entry);
     free_claims(claims);
     return REST.status.METHOD_NOT_ALLOWED;

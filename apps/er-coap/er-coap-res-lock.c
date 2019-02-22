@@ -78,7 +78,7 @@ resource_info* get_resource_info_lock() {
   memset(scope1, 0, sizeof(scope_info));
   scope1->name = "rw_Lock";
   scope1->methods[POS_GET] = 1;
-  scope1->methods[POS_POST] = 1;
+  scope1->methods[POS_PUT] = 1;
 
   scope_info* scope2 = (scope_info*) malloc(sizeof(scope_info));
   memset(scope2, 0, sizeof(scope_info));
