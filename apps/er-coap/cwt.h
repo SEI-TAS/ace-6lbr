@@ -25,7 +25,7 @@ DM18-1273
 #define NBF 5
 #define IAT 6
 #define CTI 7
-#define SCO 12
+#define SCO 9
 #define CNF 25
 #define EXI 41
 

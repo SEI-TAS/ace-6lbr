@@ -35,6 +35,7 @@ DM18-1273
 #define NONCE_SIZE 13
 #define MAC_LENGTH 8
 #define COSE_PROTECTED_HEADER_SIZE 6
+#define MAX_VALID_KEY 50
 
 #define DEBUG 1
 #if DEBUG
@@ -133,7 +134,7 @@ static void load_cwt_object(signed long *curr_claim, cwt *token, const cn_cbor* 
     case CN_CBOR_UINT:
       PRINTF("Type is Positive Int\n");
       PRINTF("UINT: %lu\n", cbor_object->v.uint);
-      if(cbor_object->v.uint < 40){ // TODO: fix very fragile way of checking if this is claim or value.
+      if(cbor_object->v.uint < MAX_VALID_KEY){ // TODO: fix very fragile way of checking if this is claim or value.
         *curr_claim = cbor_object->v.uint;
         PRINTF("Found CLM: %ld\n", *curr_claim);
       }
@@ -369,7 +370,7 @@ int validate_claims(const cwt* token, char** error) {
 
   // 3. Check if the token has a scope.
   PRINTF("Validating that token has a scope.\n");
-  if(strlen(token->sco) == 0) {
+  if(token->sco == 0 || strlen(token->sco) == 0) {
     int error_len = strlen(NO_SCOPE_ERROR) + 1;
     *error = (char*) malloc(error_len);
     snprintf(*error, error_len, NO_SCOPE_ERROR);
