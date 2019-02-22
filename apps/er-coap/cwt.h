@@ -27,7 +27,7 @@ DM18-1273
 #define CTI 7
 #define SCO 12
 #define CNF 25
-#define EXI 35
+#define EXI 41
 
 #define CNF_KID 2
 #define CNK_KEY -1

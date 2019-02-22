@@ -22,8 +22,8 @@ DM18-1273
 #include <stdlib.h>
 #include <string.h>
 #include "rest-engine.h"
-#include "cfs/cfs.h"
 
+#include "resources.h"
 #include "cbor-encode.h"
 #include "utils.h"
 
@@ -70,5 +70,28 @@ void return_lock_value(void* response) {
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
   REST.set_response_payload(response, encoded_result, encoded_len);
+}
+
+// Returns a structure with the information about scope and methods for this resource.
+resource_info* get_resource_info_lock() {
+  scope_info* scope1 = (scope_info*) malloc(sizeof(scope_info));
+  memset(scope1, 0, sizeof(scope_info));
+  scope1->name = "rw_Lock";
+  scope1->methods[POS_GET] = 1;
+  scope1->methods[POS_POST] = 1;
+
+  scope_info* scope2 = (scope_info*) malloc(sizeof(scope_info));
+  memset(scope2, 0, sizeof(scope_info));
+  scope2->name = "r_Lock";
+  scope2->methods[POS_GET] = 1;
+
+  resource_info* resource = (resource_info*) malloc(sizeof(resource_info));
+  resource->name = "ace/lock";
+  resource->scope_info_len = 2;
+  resource->scope_info_list = (scope_info**) malloc(sizeof(scope_info*) * resource->scope_info_len);
+  resource->scope_info_list[0] = scope1;
+  resource->scope_info_list[1] = scope2;
+
+  return resource;
 }
 
