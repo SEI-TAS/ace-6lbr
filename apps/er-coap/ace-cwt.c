@@ -37,7 +37,7 @@ DM18-1273
 #define COSE_PROTECTED_HEADER_SIZE 6
 #define MAX_VALID_KEY 50
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #define HEX_PRINTF_DBG(byte_array, length) HEX_PRINTF(byte_array, length)
