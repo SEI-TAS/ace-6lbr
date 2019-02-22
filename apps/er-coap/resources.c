@@ -140,7 +140,7 @@ int can_access_resource(const char* resource, int res_length, rest_resource_flag
       // At least one scope associated to this resource is validated by the token. We have to check method now.
       some_scopes_in_claims_match_requested_resource = 1;
       if(curr_scope->methods[pos] == 1) {
-        printf("Scope %s allows access to this resource using method %s\n", curr_scope->name, method);
+        printf("Scope %s allows access to this resource using method %d\n", curr_scope->name, method);
         method_allowed = 1;
         break;
       }
