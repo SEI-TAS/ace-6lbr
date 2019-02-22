@@ -36,7 +36,7 @@ DM18-1273
 #define MAC_LENGTH 8
 #define COSE_PROTECTED_HEADER_SIZE 6
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #define HEX_PRINTF_DBG(byte_array, length) HEX_PRINTF(byte_array, length)
@@ -351,12 +351,14 @@ int validate_claims(const cwt* token, char** error) {
   // TODO: ISS claim is not being checked.
 
   // 1. Check if the token has expired. We use the exi claim and not the exp claim since exp requires clock synch.
+  PRINTF("Validating expiration.\n"");
   int error_code = validate_expiration(token, error);
   if(error_code != 0) {
     return error_code;
   }
 
   // 2. Check if we are the audience.
+  PRINTF("Validating that we are the audience.\n"");
   if(strncmp(RS_ID, token->aud, strlen(RS_ID)) != 0) {
     int error_len = strlen(INVALID_AUDIENCE_ERROR) - 2 + strlen(token->aud) + 1;
     *error = (char*) malloc(error_len);
@@ -366,6 +368,7 @@ int validate_claims(const cwt* token, char** error) {
   }
 
   // 3. Check if the token has a scope.
+  PRINTF("Validating that token has a scope.\n"");
   if(strlen(token->sco) == 0) {
     int error_len = strlen(NO_SCOPE_ERROR) + 1;
     *error = (char*) malloc(error_len);

@@ -58,6 +58,7 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
   }
 
   // Validate claims in token.
+  printf("Token was parsed; validating claims now.\n");
   char* error;
   int error_code = validate_claims(token, &error);
   if(error_code != 0) {
