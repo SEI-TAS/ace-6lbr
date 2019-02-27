@@ -340,9 +340,11 @@ void clear_queued_message() {
   free(queued_message->serialized_message);
   free(queued_message);
   queued_message = 0;
+  printf("Queued message deleted.\n");
 }
 
 // Clears the transaction associated to a queued message.
 void clear_queued_message_transaction() {
   coap_clear_transaction(queued_message->transaction);
+  printf("Queued transaction deleted.\n");
 }

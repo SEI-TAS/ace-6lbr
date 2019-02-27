@@ -243,6 +243,8 @@ void load_scopes_string() {
   if(strlen(combined_scopes) > 0) {
     combined_scopes[strlen(combined_scopes) - 1] = 0;
   }
+
+  printf("Combined scopes: %s\n", combined_scopes);
 }
 
 //---------------------------------------------------------------------------------------------
