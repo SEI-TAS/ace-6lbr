@@ -147,6 +147,8 @@ PROCESS_THREAD(revocation_check, ev, data)
                 }
                 else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
                   printf("Timed out waiting for completion of introspection response, skipping entry this cycle.\n");
+                  clear_queued_message_transaction();
+                  clear_queued_message();
                   break;
                 }
                 else {

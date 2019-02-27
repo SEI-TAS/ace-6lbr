@@ -233,6 +233,7 @@ typedef struct dtls_queued_message_t {
   int no_port;
   unsigned char* serialized_message;
   int serialized_message_len;
+  coap_transaction_t* transaction;
 } dtls_queued_message_t;
 
 // Message queue (of 1 for now).
@@ -254,10 +255,7 @@ void send_queued_dtls_message() {
   printf("\n");
   coap_send_message_dtls(queued_message->ctx, queued_message->ip_addr, queued_message->no_port,
                          queued_message->serialized_message, queued_message->serialized_message_len);
-  free(queued_message->serialized_message);
-  free(queued_message->ip_addr);
-  free(queued_message);
-  queued_message = 0;
+  clear_queued_message();
   printf("Message sent.\n");
 }
 
@@ -324,16 +322,27 @@ int send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int
   queued_message->no_port = no_port;
   queued_message->serialized_message = serialized_message;
   queued_message->serialized_message_len = serialized_message_len;
+  queued_message->transaction = transaction;
   printf("Message queued.\n");
 
   int result = start_dtls_connection(ctx, ip_addr, no_port);
   if(result == -1) {
     printf("Could not start DTLS connection!\n");
-    free(queued_message->ip_addr);
-    free(serialized_message);
-    free(queued_message);
-    queued_message = 0;
-    coap_clear_transaction(transaction);
+    clear_queued_message_transaction();
+    clear_queued_message();
   }
   return result;
+}
+
+// Removes memory from a queued message.
+void clear_queued_message() {
+  free(queued_message->ip_addr);
+  free(queued_message->serialized_message);
+  free(queued_message);
+  queued_message = 0;
+}
+
+// Clears the transaction associated to a queued message.
+void clear_queued_message_transaction() {
+  coap_clear_transaction(queued_message->transaction);
 }
