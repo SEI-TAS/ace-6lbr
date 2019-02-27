@@ -73,7 +73,7 @@ void return_lock_value(void* response) {
 }
 
 // Returns a structure with the information about scope and methods for this resource.
-resource_info* get_resource_info_lock() {
+resource_info* get_resource_info_lock(char* resource_name) {
   scope_info* scope1 = (scope_info*) malloc(sizeof(scope_info));
   memset(scope1, 0, sizeof(scope_info));
   scope1->name = "rw_Lock";
@@ -86,7 +86,7 @@ resource_info* get_resource_info_lock() {
   scope2->methods[POS_GET] = 1;
 
   resource_info* resource = (resource_info*) malloc(sizeof(resource_info));
-  resource->name = "ace/lock";
+  resource->name = resource_name;
   resource->scope_info_list_len = 2;
   resource->scope_info_list = (scope_info**) malloc(sizeof(scope_info*) * resource->scope_info_list_len);
   resource->scope_info_list[0] = scope1;

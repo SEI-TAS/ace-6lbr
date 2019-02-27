@@ -74,8 +74,8 @@ DM18-1273
 #endif
 
 // TODO: As said below, find a better way than having these two functions.
-resource_info* get_resource_info_lock();
-resource_info* get_resource_info_hello_world();
+resource_info* get_resource_info_lock(char* resource_name);
+resource_info* get_resource_info_hello_world(char* resource_name);
 
 PROCESS(coap_engine, "CoAP Engine");
 PROCESS(coaps_engine, "CoAPs Engine");
@@ -446,8 +446,8 @@ PROCESS_THREAD(coaps_engine, ev, data)
   rest_activate_resource(&res_lock, "ace/lock");
 
   // TODO: find a more elegant way to do this than to have differently named functions for each.
-  register_resource_info(get_resource_info_hello_world());
-  register_resource_info(get_resource_info_lock());
+  register_resource_info(get_resource_info_hello_world("ace/helloWorld"));
+  register_resource_info(get_resource_info_lock("ace/lock"));
   load_scopes_string();
 
   coap_register_as_transaction_handler_dtls();

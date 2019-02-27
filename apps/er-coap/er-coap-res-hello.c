@@ -37,14 +37,14 @@ static void res_get_handler(void *request, void *response, uint8_t *buffer, uint
 }
 
 // Returns a structure with the information about scope and methods for this resource.
-resource_info* get_resource_info_hello_world() {
+resource_info* get_resource_info_hello_world(char* resource_name) {
   scope_info* scope1 = (scope_info*) malloc(sizeof(scope_info));
   memset(scope1, 0, sizeof(scope_info));
   scope1->name = "HelloWorld";
   scope1->methods[POS_GET] = 1;
 
   resource_info* resource = (resource_info*) malloc(sizeof(resource_info));
-  resource->name = "ace/helloWorld";
+  resource->name = resource_name;
   resource->scope_info_list_len = 1;
   resource->scope_info_list = (scope_info**) malloc(sizeof(scope_info*) * resource->scope_info_list_len);
   resource->scope_info_list[0] = scope1;
