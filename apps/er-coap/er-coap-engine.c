@@ -448,6 +448,7 @@ PROCESS_THREAD(coaps_engine, ev, data)
   // TODO: find a more elegant way to do this than to have differently named functions for each.
   register_resource_info(get_resource_info_hello_world());
   register_resource_info(get_resource_info_lock());
+  load_scopes_string();
 
   coap_register_as_transaction_handler_dtls();
   coap_init_connection_dtls(COAPS_DEFAULT_PORT);

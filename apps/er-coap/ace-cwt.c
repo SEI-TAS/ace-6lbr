@@ -384,10 +384,11 @@ int validate_claims(const cwt* token, char** error) {
   char* scope_list = (char*) malloc(scope_list_len);
   memcpy(scope_list, token->sco, scope_list_len);
   char* curr_scope = strtok(scope_list, " ");
+  char* known_scopes = get_combined_scopes_string();
   while(curr_scope) {
     // Check if this scope is in the list of known scopes.
     PRINTF("Checking next scope: %s, length %u\n", curr_scope, (unsigned int) strlen(curr_scope));
-    if(strstr(SCOPES, curr_scope) == 0) {
+    if(strstr(known_scopes, curr_scope) == 0) {
       int error_len = strlen(UNKNOWN_SCOPE_ERROR) - 2 + strlen(curr_scope) + 1;
       *error = (char*) malloc(error_len);
       snprintf(*error, error_len, UNKNOWN_SCOPE_ERROR, curr_scope);

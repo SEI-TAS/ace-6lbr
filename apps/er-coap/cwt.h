@@ -32,7 +32,7 @@ DM18-1273
 #define CNF_KID 2
 #define CNK_KEY -1
 
-#define TOKEN_KEY 27
+#define TOKEN_KEY 27 // TODO: must be changed to 12, leaving it to 27 for now to test error handling
 
 typedef struct cwt {
   char* iss;

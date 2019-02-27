@@ -29,6 +29,10 @@ DM18-1273
 // Hardcoded to 2 as we only have 2 for now. Can be increased, but avoiding that for now to reduce memory usage.
 #define MAX_RESOURCES 2
 
+// Limits the amount of scope names in the combined string.
+#define MAX_SCOPES_STRING_LENGTH 40
+#define SCOPE_SEPARATOR ';'
+
 //---------------------------------------------------------------------------------------------
 // Module to check if given requester has access to a given resource.
 //---------------------------------------------------------------------------------------------
@@ -36,6 +40,9 @@ DM18-1273
 // All registered resources.
 static resource_info* registered_resources[MAX_RESOURCES];
 static int num_registered_resources = 0;
+
+// A string storing all scopes in this RS.
+static char combined_scopes[MAX_SCOPES_STRING_LENGTH] = {0};
 
 // Store the latest error.
 static char* last_error = 0;
@@ -214,4 +221,32 @@ int parse_and_check_access(struct dtls_context_t* ctx, void* request, void* resp
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
   return has_access;
+}
+
+//---------------------------------------------------------------------------------------------
+// Creates a string will all this RS scopes.
+void load_scopes_string() {
+  // Loop for each resource.
+  int i = 0;
+  for(i = 0; i < num_registered_resources; i++) {
+    // Loop for each scope in the resource.
+    int j = 0;
+    for(j = 0; j < registered_resources[i]->scope_info_list_len; j++) {
+      strcat(combined_scopes, registered_resources[i]->scope_info_list[j]->name);
+      strcat(combined_scopes, SCOPE_SEPARATOR);
+    }
+  }
+
+  // Remove trailing separator.
+  if(strlen(combined_scopes) > 0) {
+    combined_scopes[strlen(combined_scopes) - 1] = 0;
+  }
+
+  return combined_scopes;
+}
+
+//---------------------------------------------------------------------------------------------
+// Getter.
+char* get_combined_scopes_string() {
+  return combined_scopes;
 }

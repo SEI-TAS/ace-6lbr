@@ -77,7 +77,7 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
         printf("Encoding response with device id and scopes.\n");
         unsigned char* cbor_bytes = 0;
         int cbor_bytes_len = encode_2_pair_map_to_cbor(CBOR_DEVICE_ID_KEY, 0, RS_ID,
-                                                       CBOR_DEVICE_INFO_KEY, 0, SCOPES, &cbor_bytes);
+                                                       CBOR_DEVICE_INFO_KEY, 0, get_combined_scopes_string(), &cbor_bytes);
 
         // Set the CBOR data in the response.
         printf("Sending reply.\n");
