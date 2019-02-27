@@ -31,7 +31,7 @@ DM18-1273
 
 // Limits the amount of scope names in the combined string.
 #define MAX_SCOPES_STRING_LENGTH 40
-#define SCOPE_SEPARATOR ';'
+#define SCOPE_SEPARATOR ";"
 
 //---------------------------------------------------------------------------------------------
 // Module to check if given requester has access to a given resource.
@@ -226,6 +226,8 @@ int parse_and_check_access(struct dtls_context_t* ctx, void* request, void* resp
 //---------------------------------------------------------------------------------------------
 // Creates a string will all this RS scopes.
 void load_scopes_string() {
+  memset(combined_scopes, 0, MAX_SCOPES_STRING_LENGTH);
+
   // Loop for each resource.
   int i = 0;
   for(i = 0; i < num_registered_resources; i++) {
@@ -241,8 +243,6 @@ void load_scopes_string() {
   if(strlen(combined_scopes) > 0) {
     combined_scopes[strlen(combined_scopes) - 1] = 0;
   }
-
-  return combined_scopes;
 }
 
 //---------------------------------------------------------------------------------------------
