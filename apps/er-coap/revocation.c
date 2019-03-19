@@ -112,8 +112,12 @@ PROCESS_THREAD(revocation_check, ev, data)
       // Go over all tokens, ask if each is revoked, and remove it if so.
       printf("Looping over all tokens to find revoked ones.\n");
       authz_entry* curr_entry = 0;
-      while(curr_entry != 0) {
+      while(1) {
         curr_entry = authz_entry_iterator_get_next(&iterator);
+        if(curr_entry == 0) {
+          break;
+        }
+
         printf("Curr entry kid: ");
         HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
         printf("Curr entry claims len: %d\n", curr_entry->claims_len);
