@@ -273,7 +273,7 @@ void check_introspection_response(void* data, void* response) {
     tokens_to_remove[num_tokens_to_remove++] = curr_entry;
   }
   else {
-    printf("Token is active, not removing.\n");
+    printf("Token is active or could not be checked; not removing.\n");
     free_authz_entry(curr_entry);
     free(curr_entry);
   }

@@ -211,7 +211,7 @@ coap_handle_receive_dtls(struct dtls_context_t *ctx)
 
   // We use the "uip_newdata()" to check if there is actually data, and ignore orther TCP/IP events.
   if(uip_newdata()) {
-    printf("We recieved new data!\n");
+    printf("We received new data!\n");
     // Get connection info into a session object.
     dtls_session_init(&session);
     uip_ipaddr_copy(&session.addr, &UIP_IP_BUF->srcipaddr);
@@ -255,8 +255,8 @@ void send_queued_dtls_message() {
   printf("\n");
   coap_send_message_dtls(queued_message->ctx, queued_message->ip_addr, queued_message->no_port,
                          queued_message->serialized_message, queued_message->serialized_message_len);
-  clear_queued_message();
   printf("Message sent.\n");
+  clear_queued_message();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -265,8 +265,20 @@ static
 int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
 		             dtls_alert_level_t level, unsigned short code) {
 
-  printf("Received DTLS event, level %d, code %d\n", level, code);
+  printf("Received DTLS event. ");
+  if(level == 0) {
+    printf("Event is an internal DTLS session change with code %d\n", code);
+  }
+  else {
+    printf("Event is an alert of level %d and code %d\n", level, code);
+  }
+
+  if((level == 0) && (code == DTLS_EVENT_CONNECT)) {
+    printf("DTLS handshake starting!\n");
+  }
+
   if((level == 0) && (code == DTLS_EVENT_CONNECTED)) {
+    printf("DTLS handshake finished successfully!\n");
     send_queued_dtls_message();
   }
 
@@ -283,7 +295,18 @@ int start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int
   uip_ipaddr_copy(&session.addr, ip_addr);
   session.port = no_port;
   int result = dtls_connect(ctx, &session);
+
   printf("Result of first DTLS handshake message: %d\n", result);
+  if(result > 0) {
+    printf("New DTLS connection/handshake started, client hello message sent.\n");
+  }
+  else if (result == 0) {
+    printf("Renegotiating existing DTLS connection.\n");
+  }
+  else {
+    printf("Could not start new DTLS handshake!.\n");
+  }
+
   return result;
 }
 
