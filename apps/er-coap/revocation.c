@@ -130,7 +130,7 @@ PROCESS_THREAD(revocation_check, ev, data)
         }
 
         // We found a valid token we want to ask about, connect to AS.
-        connected = start_dtls_connection(ctx, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT));
+        connected = start_dtls_connection(ctx, &as_ip, UIP_HTONS(AS_INTROSPECTION_PORT));
         if(connected == -1) {
             printf("Could not start DTLS connection! Aborting further requests in this cycle.\n");
             break;
@@ -217,6 +217,7 @@ PROCESS_THREAD(revocation_check, ev, data)
 // Used to start the process.
 void start_revocation_checker() {
   process_start(&revocation_check, NULL);
+}
 
 /*---------------------------------------------------------------------------*/
 // Notify main checker process that it can send messages.
