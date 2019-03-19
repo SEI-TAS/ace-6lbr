@@ -127,7 +127,8 @@ PROCESS_THREAD(revocation_check, ev, data)
           continue;
         }
 
-        static cwt* token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
+        static cwt* token_info;
+        token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
         if(!token_info) {
           printf("Entry does not have valid CBOR claims; ignoring it since it is not a valid token.\n");
           continue;
