@@ -91,7 +91,7 @@ PROCESS_THREAD(revocation_check, ev, data)
   static struct dtls_context_t* ctx;
   static uip_ipaddr_t as_ip;
   static int has_pairing_as_ip = 0;
-  static connected = -1;
+  static int connected = -1;
 
   ctx = get_default_context_dtls();
   while(1) {
@@ -118,7 +118,7 @@ PROCESS_THREAD(revocation_check, ev, data)
         HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
         printf("Curr entry claims len: %d\n", curr_entry->claims_len);
 
-        if(curr_entry->claims_len = 0) {
+        if(curr_entry->claims_len == 0) {
           printf("Entry does not have information; ignoring it since it is not a valid token.\n");
           continue;
         }
@@ -130,7 +130,7 @@ PROCESS_THREAD(revocation_check, ev, data)
         }
 
         // We found a valid token we want to ask about, connect to AS.
-        connected = start_dtls_connection(ctx, ip_addr, no_port);
+        connected = start_dtls_connection(ctx, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT));
         if(connected == -1) {
             printf("Could not start DTLS connection! Aborting further requests in this cycle.\n");
             break;
@@ -167,7 +167,7 @@ PROCESS_THREAD(revocation_check, ev, data)
         send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
                                    token_info->cti_len, curr_entry);
 
-\        // Wait until response is processed for this token.
+        // Wait until response is processed for this token.
         printf("Checker process will wait until introspection request is responded and processed..\n");
         authz_entry_iterator_close(&iterator);
         etimer_set(&timeout_timer, REQUEST_TIMEOUT_SECS * CLOCK_SECOND);

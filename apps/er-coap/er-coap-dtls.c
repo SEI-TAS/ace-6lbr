@@ -267,7 +267,6 @@ int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
 
 /*---------------------------------------------------------------------------*/
 // Set up a DTLS connection.
-static
 int start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port) {
   printf("Starting DTLS handshake\n");
   session_t session;
