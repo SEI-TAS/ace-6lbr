@@ -173,10 +173,11 @@ PROCESS_THREAD(revocation_check, ev, data)
                                    token_info->cti_len, curr_entry);
 
         // Wait until response is processed for this token.
-        printf("Checker process will wait until introspection request is responded and processed..\n");
+        printf("Checker process will wait until introspection request is responded and processed.\n");
         authz_entry_iterator_close(&iterator);
         etimer_set(&timeout_timer, REQUEST_TIMEOUT_SECS * CLOCK_SECOND);
         while(1) {
+          printf("Waiting...\n");
           PROCESS_WAIT_EVENT();
           if(ev == PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED) {
             printf("Received completion event, checker thread will resume.\n");
