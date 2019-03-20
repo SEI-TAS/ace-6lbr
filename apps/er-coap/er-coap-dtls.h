@@ -28,6 +28,8 @@ coap_handle_receive_dtls(struct dtls_context_t *ctx);
 
 int start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port);
 
+int close_current_dtls_connection();
+
 void send_new_dtls_message(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port, char* url,
                                   const unsigned char* payload, int payload_len,
                                   restful_response_handler callback, void* callback_data);

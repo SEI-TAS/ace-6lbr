@@ -229,15 +229,8 @@ coap_handle_receive_dtls(struct dtls_context_t *ctx)
 // DTLS client-specific functions.
 /*---------------------------------------------------------------------------*/
 
-// Used to store a message that is waiting for a DTLS handshake to happen.
-typedef struct dtls_queued_message_t {
-  struct dtls_context_t* ctx;
-  uip_ipaddr_t* ip_addr;
-  int no_port;
-  unsigned char* serialized_message;
-  int serialized_message_len;
-  coap_transaction_t* transaction;
-} dtls_queued_message_t;
+static session_t curr_client_session;
+static struct dtls_context_t* curr_client_ctx;
 
 /*---------------------------------------------------------------------------*/
 // Called when a DTLS event is sent, used to detect end of DTLS handshake.
@@ -269,11 +262,13 @@ int dtls_event_check(struct dtls_context_t *ctx, session_t *session,
 // Set up a DTLS connection.
 int start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int no_port) {
   printf("Starting DTLS handshake\n");
-  session_t session;
-  dtls_session_init(&session);
-  uip_ipaddr_copy(&session.addr, ip_addr);
-  session.port = no_port;
-  int result = dtls_connect(ctx, &session);
+
+  curr_client_ctx = ctx;
+  dtls_session_init(&curr_client_session);
+  uip_ipaddr_copy(&curr_client_session.addr, ip_addr);
+  curr_client_session.port = no_port;
+
+  int result = dtls_connect(ctx, &curr_client_session);
 
   printf("Result of first DTLS handshake message: %d\n", result);
   if(result > 0) {
@@ -287,6 +282,12 @@ int start_dtls_connection(struct dtls_context_t* ctx, uip_ipaddr_t* ip_addr, int
   }
 
   return result;
+}
+
+/*---------------------------------------------------------------------------*/
+// Close the current DTLS connection.
+int close_current_dtls_connection() {
+  return dtls_close(curr_client_ctx, &curr_client_session);
 }
 
 /*---------------------------------------------------------------------------*/

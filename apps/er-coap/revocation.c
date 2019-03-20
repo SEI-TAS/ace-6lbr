@@ -91,126 +91,9 @@ PROCESS_THREAD(revocation_check, ev, data)
   static struct dtls_context_t* ctx;
   static uip_ipaddr_t as_ip;
   static int has_pairing_as_ip = 0;
-  static int connected = -1;
 
   ctx = get_default_context_dtls();
   while(1) {
-    printf("Executing check iteration.\n");
-
-    if(has_pairing_as_ip == 0) {
-      // Attempt to get the AS IP address.
-      has_pairing_as_ip = get_as_ip_addr(&as_ip);
-    }
-
-    if(has_pairing_as_ip == 0) {
-      printf("RS not paired, skipping this check iteration.\n");
-    }
-    else {
-      printf("Starting token iterator.\n");
-      iterator = authz_entry_iterator_initialize();
-
-      // Go over all tokens, ask if each is revoked, and remove it if so.
-      printf("Looping over all tokens to find revoked ones.\n");
-      static authz_entry* curr_entry = 0;
-      while(1) {
-        curr_entry = authz_entry_iterator_get_next(&iterator);
-        if(curr_entry == 0) {
-          break;
-        }
-
-        printf("Curr entry kid: ");
-        HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
-        printf("Curr entry claims len: %d\n", curr_entry->claims_len);
-
-        if(curr_entry->claims_len == 0) {
-          printf("Entry does not have information; ignoring it since it is not a valid token.\n");
-          continue;
-        }
-
-        static cwt* token_info;
-        token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
-        if(!token_info) {
-          printf("Entry does not have valid CBOR claims; ignoring it since it is not a valid token.\n");
-          continue;
-        }
-
-        // We found a valid token we want to ask about, connect to AS.
-        if(connected == -1) {
-          int connection_started = start_dtls_connection(ctx, &as_ip, UIP_HTONS(AS_INTROSPECTION_PORT));
-          if(connection_started == -1) {
-              printf("Could not start DTLS connection! Aborting further requests in this cycle.\n");
-              break;
-          }
-
-          // Wait till connection is established.
-          static int handshake_timed_out = 0;
-          printf("Checker process will wait until DTLS connection is finished...\n");
-          authz_entry_iterator_close(&iterator);
-          etimer_set(&timeout_timer, REQUEST_TIMEOUT_SECS * CLOCK_SECOND);
-          while(1) {
-            PROCESS_WAIT_EVENT();
-            if(ev == PROCESS_EVENT_DTLS_HANDSHAKE_FINISHED) {
-              printf("Received DTLS connection completed event, checker thread will resume.\n");
-              connected = 1;
-              etimer_stop(&timeout_timer);
-              break;
-            }
-            else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
-              printf("Timed out waiting for completion of DTLS handshake, skipping entry this cycle.\n");
-              handshake_timed_out = 1;
-              break;
-            }
-            else {
-              printf("Unexpected event received (%d); ignoring.\n", ev);
-            }
-          }
-          authz_entry_iterator_reopen(&iterator);
-
-          if(handshake_timed_out) {
-            continue;
-          }
-        }
-
-        // Actually send the request.
-        send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
-                                   token_info->cti_len, curr_entry);
-
-        // Wait until response is processed for this token.
-        printf("Checker process will wait until introspection request is responded and processed.\n");
-        authz_entry_iterator_close(&iterator);
-        etimer_set(&timeout_timer, REQUEST_TIMEOUT_SECS * CLOCK_SECOND);
-        while(1) {
-          printf("Waiting...\n");
-          PROCESS_WAIT_EVENT();
-          if(ev == PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED) {
-            printf("Received completion event, checker thread will resume.\n");
-            etimer_stop(&timeout_timer);
-
-            if((int) data == 0) {
-              printf("Token will not be deleted, freeing local iterator entry.\n");
-              free_authz_entry(curr_entry);
-              free(curr_entry);
-            }
-
-            break;
-          }
-          else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
-            printf("Timed out waiting for completion of introspection response, skipping entry this cycle.\n");
-            break;
-          }
-          else {
-            printf("Unexpected event received (%d); ignoring.\n", ev);
-          }
-        }
-        authz_entry_iterator_reopen(&iterator);
-      }
-
-      authz_entry_iterator_close(&iterator);
-      printf("Finished executing check iteration.\n");
-
-      delete_revoked_tokens();
-    }
-
      // Set or reset timer and check again in a while.
     if(timer_started == 0) {
       printf("Initial revocation check timer setup\n");
@@ -224,6 +107,119 @@ PROCESS_THREAD(revocation_check, ev, data)
 
     printf("Waiting till next revocation check cycle for %d seconds...\n", CHECK_WAIT_TIME_SECS);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+    printf("Wait timer finished. Executing revocation check cycle.\n");
+
+    if(has_pairing_as_ip == 0) {
+      // Attempt to get the AS IP address.
+      has_pairing_as_ip = get_as_ip_addr(&as_ip);
+      if(has_pairing_as_ip == 0) {
+        printf("Not paired to AS yet, skipping this check cycle.\n");
+        continue;
+      }
+    }
+
+    printf("Starting DTLS connection for this cycle.\n");
+    int connection_started = start_dtls_connection(ctx, &as_ip, UIP_HTONS(AS_INTROSPECTION_PORT));
+    if(connection_started == -1) {
+      printf("Could not start DTLS connection! Skipping this check cycle.\n");
+      continue;
+    }
+
+    // Wait till connection is established.
+    static int handshake_timed_out = 0;
+    printf("Checker process will wait until DTLS connection is finished...\n");
+    etimer_set(&timeout_timer, REQUEST_TIMEOUT_SECS * CLOCK_SECOND);
+    while(1) {
+      PROCESS_WAIT_EVENT();
+      if(ev == PROCESS_EVENT_DTLS_HANDSHAKE_FINISHED) {
+        printf("Received DTLS connection completed event, checker thread will resume.\n");
+        etimer_stop(&timeout_timer);
+        break;
+      }
+      else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
+        printf("Timed out waiting for completion of DTLS handshake, skipping entry this cycle.\n");
+        handshake_timed_out = 1;
+        break;
+      }
+      else {
+        printf("Unexpected event received (%d); ignoring.\n", ev);
+      }
+    }
+
+    if(handshake_timed_out) {
+      continue;
+    }
+
+    // Go over all tokens, ask if each is revoked, and remove it if so.
+    printf("Starting token iterator.\n");
+    iterator = authz_entry_iterator_initialize();
+    printf("Looping over all tokens to find revoked ones.\n");
+    static authz_entry* curr_entry = 0;
+    while(1) {
+      curr_entry = authz_entry_iterator_get_next(&iterator);
+      if(curr_entry == 0) {
+        break;
+      }
+
+      printf("Curr entry kid: ");
+      HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
+      printf("Curr entry claims len: %d\n", curr_entry->claims_len);
+
+      if(curr_entry->claims_len == 0) {
+        printf("Entry does not have information; ignoring it since it is not a valid token.\n");
+        continue;
+      }
+
+      static cwt* token_info;
+      token_info = parse_cbor_claims(curr_entry->claims, curr_entry->claims_len);
+      if(!token_info) {
+        printf("Entry does not have valid CBOR claims; ignoring it since it is not a valid token.\n");
+        continue;
+      }
+
+      // Actually send the request.
+      send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
+                                 token_info->cti_len, curr_entry);
+
+      // Wait until response is processed for this token.
+      printf("Checker process will wait until introspection request is responded and processed.\n");
+      authz_entry_iterator_close(&iterator);
+      etimer_set(&timeout_timer, REQUEST_TIMEOUT_SECS * CLOCK_SECOND);
+      while(1) {
+        printf("Waiting...\n");
+        PROCESS_WAIT_EVENT();
+        if(ev == PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED) {
+          printf("Received completion event, checker thread will resume.\n");
+          etimer_stop(&timeout_timer);
+
+          if((int) data == 0) {
+            printf("Token will not be deleted, freeing local iterator entry.\n");
+            free_authz_entry(curr_entry);
+            free(curr_entry);
+          }
+
+          break;
+        }
+        else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
+          printf("Timed out waiting for completion of introspection response, skipping entry this cycle.\n");
+          break;
+        }
+        else {
+          printf("Unexpected event received (%d); ignoring.\n", ev);
+        }
+      }
+      authz_entry_iterator_reopen(&iterator);
+    }
+
+    authz_entry_iterator_close(&iterator);
+    printf("Finished executing check iteration.\n");
+
+    printf("Closing DTLS connection.\n");
+    close_current_dtls_connection();
+
+    printf("Deleting revoked tokens.\n");
+    delete_revoked_tokens();
   }
 
   PROCESS_END();
