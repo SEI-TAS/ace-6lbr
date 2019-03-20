@@ -136,38 +136,39 @@ PROCESS_THREAD(revocation_check, ev, data)
 
         // We found a valid token we want to ask about, connect to AS.
         if(connected == -1) {
-          connected = start_dtls_connection(ctx, &as_ip, UIP_HTONS(AS_INTROSPECTION_PORT));
-          if(connected == -1) {
+          int connection_started = start_dtls_connection(ctx, &as_ip, UIP_HTONS(AS_INTROSPECTION_PORT));
+          if(connection_started == -1) {
               printf("Could not start DTLS connection! Aborting further requests in this cycle.\n");
               break;
           }
-        }
 
-        // Wait till connection is established.
-        static int handshake_timed_out = 0;
-        printf("Checker process will wait until DTLS connection is finished...\n");
-        authz_entry_iterator_close(&iterator);
-        etimer_set(&timeout_timer, REQUEST_TIMEOUT_SECS * CLOCK_SECOND);
-        while(1) {
-          PROCESS_WAIT_EVENT();
-          if(ev == PROCESS_EVENT_DTLS_HANDSHAKE_FINISHED) {
-            printf("Received DTLS connection completed event, checker thread will resume.\n");
-            etimer_stop(&timeout_timer);
-            break;
+          // Wait till connection is established.
+          static int handshake_timed_out = 0;
+          printf("Checker process will wait until DTLS connection is finished...\n");
+          authz_entry_iterator_close(&iterator);
+          etimer_set(&timeout_timer, REQUEST_TIMEOUT_SECS * CLOCK_SECOND);
+          while(1) {
+            PROCESS_WAIT_EVENT();
+            if(ev == PROCESS_EVENT_DTLS_HANDSHAKE_FINISHED) {
+              printf("Received DTLS connection completed event, checker thread will resume.\n");
+              connected = 1;
+              etimer_stop(&timeout_timer);
+              break;
+            }
+            else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
+              printf("Timed out waiting for completion of DTLS handshake, skipping entry this cycle.\n");
+              handshake_timed_out = 1;
+              break;
+            }
+            else {
+              printf("Unexpected event received (%d); ignoring.\n", ev);
+            }
           }
-          else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
-            printf("Timed out waiting for completion of DTLS handshake, skipping entry this cycle.\n");
-            handshake_timed_out = 1;
-            break;
-          }
-          else {
-            printf("Unexpected event received (%d); ignoring.\n", ev);
-          }
-        }
-        authz_entry_iterator_reopen(&iterator);
+          authz_entry_iterator_reopen(&iterator);
 
-        if(handshake_timed_out) {
-          continue;
+          if(handshake_timed_out) {
+            continue;
+          }
         }
 
         // Actually send the request.
