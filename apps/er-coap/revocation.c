@@ -182,6 +182,13 @@ PROCESS_THREAD(revocation_check, ev, data)
           if(ev == PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED) {
             printf("Received completion event, checker thread will resume.\n");
             etimer_stop(&timeout_timer);
+
+            if(data == 0) {
+              printf("Token will not be deleted, freeing local iterator entry.\n");
+              free_authz_entry(curr_entry);
+              free(curr_entry);
+            }
+
             break;
           }
           else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
@@ -295,13 +302,11 @@ void check_introspection_response(void* data, void* response) {
   }
   else {
     printf("Token is active or could not be checked; not removing.\n");
-    free_authz_entry(curr_entry);
-    free(curr_entry);
   }
 
   // Notify main checker process that it can move on into the next token.
   printf("Notifying that we finished processing introspection response.\n");
-  process_post(&revocation_check, PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED, 0);
+  process_post(&revocation_check, PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED, token_was_revoked);
 }
 
 /*---------------------------------------------------------------------------*/
