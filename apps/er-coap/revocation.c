@@ -135,7 +135,7 @@ PROCESS_THREAD(revocation_check, ev, data)
         }
 
         // We found a valid token we want to ask about, connect to AS.
-        if(!connected) {
+        if(connected == -1) {
           connected = start_dtls_connection(ctx, &as_ip, UIP_HTONS(AS_INTROSPECTION_PORT));
           if(connected == -1) {
               printf("Could not start DTLS connection! Aborting further requests in this cycle.\n");
