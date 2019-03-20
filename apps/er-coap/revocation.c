@@ -135,10 +135,12 @@ PROCESS_THREAD(revocation_check, ev, data)
         }
 
         // We found a valid token we want to ask about, connect to AS.
-        connected = start_dtls_connection(ctx, &as_ip, UIP_HTONS(AS_INTROSPECTION_PORT));
-        if(connected == -1) {
-            printf("Could not start DTLS connection! Aborting further requests in this cycle.\n");
-            break;
+        if(!connected) {
+          connected = start_dtls_connection(ctx, &as_ip, UIP_HTONS(AS_INTROSPECTION_PORT));
+          if(connected == -1) {
+              printf("Could not start DTLS connection! Aborting further requests in this cycle.\n");
+              break;
+          }
         }
 
         // Wait till connection is established.
@@ -183,7 +185,7 @@ PROCESS_THREAD(revocation_check, ev, data)
             printf("Received completion event, checker thread will resume.\n");
             etimer_stop(&timeout_timer);
 
-            if(data == 0) {
+            if((int) data == 0) {
               printf("Token will not be deleted, freeing local iterator entry.\n");
               free_authz_entry(curr_entry);
               free(curr_entry);
@@ -306,7 +308,7 @@ void check_introspection_response(void* data, void* response) {
 
   // Notify main checker process that it can move on into the next token.
   printf("Notifying that we finished processing introspection response.\n");
-  process_post(&revocation_check, PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED, token_was_revoked);
+  process_post(&revocation_check, PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED, (void *) (uintptr_t) token_was_revoked);
 }
 
 /*---------------------------------------------------------------------------*/
