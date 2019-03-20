@@ -42,7 +42,7 @@ DM18-1273
 #define CHECK_WAIT_TIME_SECS 60
 #define REQUEST_TIMEOUT_SECS 5
 
-#define PROCESS_EVENT_INTROSPECTION_RESPONSE_RECEIVED 0x70
+#define PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED 0x70
 #define PROCESS_EVENT_DTLS_HANDSHAKE_FINISHED 0x71
 
 #define INTROSPECTION_ENDPOINT "introspect"
@@ -178,7 +178,7 @@ PROCESS_THREAD(revocation_check, ev, data)
         etimer_set(&timeout_timer, REQUEST_TIMEOUT_SECS * CLOCK_SECOND);
         while(1) {
           PROCESS_WAIT_EVENT();
-          if(ev == PROCESS_EVENT_INTROSPECTION_RESPONSE_RECEIVED) {
+          if(ev == PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED) {
             printf("Received completion event, checker thread will resume.\n");
             etimer_stop(&timeout_timer);
             break;
@@ -266,7 +266,7 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
   HEX_PRINTF(payload, payload_len);
   printf("\n");
 
-  printf("Sendingintrospection request message.\n");
+  printf("Sending introspection request message.\n");
   send_new_dtls_message(ctx, as_ip, UIP_HTONS(AS_INTROSPECTION_PORT), INTROSPECTION_ENDPOINT,
                         payload, payload_len, check_introspection_response, curr_entry);
   free(payload);
@@ -299,7 +299,8 @@ void check_introspection_response(void* data, void* response) {
   }
 
   // Notify main checker process that it can move on into the next token.
-  process_post(&revocation_check, PROCESS_EVENT_INTROSPECTION_RESPONSE_RECEIVED, 0);
+  printf("Notifying that we finished processing introspection response.\n");
+  process_post(&revocation_check, PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED, 0);
 }
 
 /*---------------------------------------------------------------------------*/
