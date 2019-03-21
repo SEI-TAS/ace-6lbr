@@ -45,8 +45,12 @@ DM18-1273
 #define PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED 0x70
 #define PROCESS_EVENT_DTLS_HANDSHAKE_FINISHED 0x71
 
+// Introspection request and response keys.
+#define INTRO_REQ_TOKEN_KEY 11
+#define INTRO_RES_ACTIVE_KEY 10
+
+// Introspection access.
 #define INTROSPECTION_ENDPOINT "introspect"
-#define INTROSPECTION_ACTIVE_KEY 29
 #define AS_INTROSPECTION_PORT 5684
 
 extern struct dtls_context_t* get_default_context_dtls();
@@ -268,7 +272,7 @@ static void send_introspection_request(struct dtls_context_t* ctx, uip_ipaddr_t*
   printf("Token as BS: ");
   HEX_PRINTF(token_as_byte_string, token_as_byte_string_len);
   unsigned char* payload;
-  int payload_len = encode_single_pair_map_to_cbor(TOKEN_KEY, token_as_byte_string, token_as_byte_string_len, &payload);
+  int payload_len = encode_single_pair_map_to_cbor(INTRO_REQ_TOKEN_KEY, token_as_byte_string, token_as_byte_string_len, &payload);
   printf("Encoded payload: ");
   HEX_PRINTF(payload, payload_len);
   printf("\n");
@@ -318,7 +322,7 @@ static int was_token_revoked(const unsigned char* cbor_result, int cbor_result_l
     if(map_object->type == CN_CBOR_MAP) {
       printf("Map found in response!\n");
       cn_cbor* pair_key = map_object->first_child;
-      if(pair_key->v.uint == INTROSPECTION_ACTIVE_KEY) {
+      if(pair_key->v.uint == INTRO_RES_ACTIVE_KEY) {
         printf("'Active' key found in response!\n");
         cn_cbor* active_value = pair_key->next;
 

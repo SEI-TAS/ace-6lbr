@@ -18,6 +18,7 @@ DM18-1273
 #include <time.h>
 #include "key-token-store.h"
 
+// Token claim keys.
 #define ISS 1
 #define SUB 2
 #define AUD 3
@@ -25,14 +26,12 @@ DM18-1273
 #define NBF 5
 #define IAT 6
 #define CTI 7
+#define CNF 8
 #define SCO 9
-#define CNF 25
-#define EXI 41
+#define EXI 40
 
 #define CNF_KID 2
 #define CNK_KEY -1
-
-#define TOKEN_KEY 27 // TODO: must be changed to 12, leaving it to 27 for now to test error handling
 
 typedef struct cwt {
   char* iss;
