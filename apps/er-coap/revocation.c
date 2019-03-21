@@ -304,7 +304,8 @@ void check_introspection_response(void* data, void* response) {
     printf("Adding token kid to removal list.\n");
     unsigned char* kid_to_delete = (unsigned char*) malloc(KEY_ID_LENGTH);
     memcpy(kid_to_delete, curr_entry->kid, KEY_ID_LENGTH);
-    tokens_to_remove[num_tokens_to_remove++] = kid_to_delete;
+    tokens_to_remove[num_tokens_to_remove] = kid_to_delete;
+    num_tokens_to_remove++;
   }
   else {
     printf("Token is active or could not be checked; not removing.\n");
@@ -359,6 +360,9 @@ static
 void delete_revoked_tokens() {
   // Remove all revoked tokens, and then free the memory for their temp structs.
   printf("Total tokens to remove: %d\n", num_tokens_to_remove);
+  for(i = 0; i < num_tokens_to_remove; i++) {
+      HEX_PRINTF(tokens_to_remove[i], KEY_ID_LENGTH);
+  }
   if(num_tokens_to_remove > 0) {
     int num_removed = remove_authz_entries(tokens_to_remove, num_tokens_to_remove);
     printf("Removed %d tokens.\n", num_removed);
