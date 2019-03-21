@@ -293,6 +293,8 @@ void check_introspection_response(void* data, void* response) {
   int cbor_result_len = ((coap_packet_t*) response)->payload_len;
   printf("CBOR response, len %d: ", cbor_result_len);
   HEX_PRINTF(cbor_result, cbor_result_len);
+  printf("KID we got from DTLS event call: \n");
+  HEX_PRINTF(curr_entry->kid, KEY_ID_LENGTH);
 
   // Check the response.
   int token_was_revoked = was_token_revoked(cbor_result, cbor_result_len);
