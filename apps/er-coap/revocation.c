@@ -40,7 +40,7 @@ DM18-1273
 
 #define IPV6_ADDRESS_LENGTH_BYTES 16
 #define CHECK_WAIT_TIME_SECS 60
-#define REQUEST_TIMEOUT_SECS 10
+#define REQUEST_TIMEOUT_SECS 15
 
 #define PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED 0x70
 #define PROCESS_EVENT_DTLS_HANDSHAKE_FINISHED 0x71
@@ -131,7 +131,8 @@ PROCESS_THREAD(revocation_check, ev, data)
     }
 
     // Wait till connection is established.
-    static int handshake_timed_out = 0;
+    static int handshake_timed_out;
+    handshake_timed_out = 0;
     printf("Checker process will wait until DTLS connection is finished...\n");
     etimer_set(&timeout_timer, REQUEST_TIMEOUT_SECS * CLOCK_SECOND);
     while(1) {
@@ -142,7 +143,7 @@ PROCESS_THREAD(revocation_check, ev, data)
         break;
       }
       else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
-        printf("Timed out waiting for completion of DTLS handshake, skipping entry this cycle.\n");
+        printf("Timed out waiting for completion of DTLS handshake!\n");
         handshake_timed_out = 1;
         break;
       }
@@ -152,6 +153,7 @@ PROCESS_THREAD(revocation_check, ev, data)
     }
 
     if(handshake_timed_out) {
+      printf("Timed out waiting for completion of DTLS handshake, skipping entry this cycle.\n");
       continue;
     }
 
@@ -159,7 +161,8 @@ PROCESS_THREAD(revocation_check, ev, data)
     printf("Starting token iterator.\n");
     iterator = authz_entry_iterator_initialize();
     printf("Looping over all tokens to find revoked ones.\n");
-    static authz_entry* curr_entry = 0;
+    static authz_entry* curr_entry;
+    curr_entry = 0;
     while(1) {
       curr_entry = authz_entry_iterator_get_next(&iterator);
       if(curr_entry == 0) {
