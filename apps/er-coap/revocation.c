@@ -65,7 +65,7 @@ static void delete_revoked_tokens();
 /*-----------------------------------------------------------------------------------*/
 // List of tokens to remove after each check iteration.
 static int num_tokens_to_remove = 0;
-unsigned char* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
+unsigned char** tokens_to_remove;
 
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -96,6 +96,8 @@ PROCESS_THREAD(revocation_check, ev, data)
   static uip_ipaddr_t as_ip;
   static int has_pairing_as_ip = 0;
 
+  tokens_to_remove = (unsigned char**) malloc(sizeof(unsigned char*) * MAX_AUTHZ_ENTRIES);
+
   ctx = get_default_context_dtls();
   while(1) {
      // Set or reset timer and check again in a while.
@@ -122,6 +124,10 @@ PROCESS_THREAD(revocation_check, ev, data)
         continue;
       }
     }
+
+    // Clear up buffer.
+    memset(tokens_to_remove, 0, sizeof(unsigned char*) * MAX_AUTHZ_ENTRIES);
+    num_tokens_to_remove = 0;
 
     printf("Starting DTLS connection for this cycle.\n");
     int connection_started = start_dtls_connection(ctx, &as_ip, UIP_HTONS(AS_INTROSPECTION_PORT));
@@ -311,7 +317,7 @@ void check_introspection_response(void* data, void* response) {
     printf("Token is active or could not be checked; not removing.\n");
   }
 
-  printf("Total tokens to remove: %d\n", num_tokens_to_remove);
+  printf("Total tokens to remove so far: %d\n", num_tokens_to_remove);
   int i = 0;
   for(i = 0; i < num_tokens_to_remove; i++) {
       HEX_PRINTF(tokens_to_remove[i], KEY_ID_LENGTH);
