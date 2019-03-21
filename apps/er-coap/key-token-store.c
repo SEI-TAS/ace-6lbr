@@ -300,7 +300,7 @@ int remove_authz_entries(unsigned char* key_id_list[], int key_id_list_len) {
         HEX_PRINTF_DBG(curr_entry->kid, KEY_ID_LENGTH);
 
         number_of_removed_tokens++;
-        curr_entry_marked_for_deletion = 1
+        curr_entry_marked_for_deletion = 1;
 
         free_authz_entry(curr_entry);
         free(curr_entry);
