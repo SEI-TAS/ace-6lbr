@@ -360,9 +360,11 @@ static
 void delete_revoked_tokens() {
   // Remove all revoked tokens, and then free the memory for their temp structs.
   printf("Total tokens to remove: %d\n", num_tokens_to_remove);
+  int i = 0;
   for(i = 0; i < num_tokens_to_remove; i++) {
       HEX_PRINTF(tokens_to_remove[i], KEY_ID_LENGTH);
   }
+
   if(num_tokens_to_remove > 0) {
     int num_removed = remove_authz_entries(tokens_to_remove, num_tokens_to_remove);
     printf("Removed %d tokens.\n", num_removed);
