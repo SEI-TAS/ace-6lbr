@@ -292,19 +292,24 @@ int remove_authz_entries(unsigned char* key_id_list[], int key_id_list_len) {
     }
 
     // Loop over all the tokens to delete to see if this is one of them.
+    int curr_entry_marked_for_deletion = 0;
     int i = 0;
     for(i = 0; i < key_id_list_len; i++) {
       if (memcmp(key_id_list[i], curr_entry->kid, KEY_ID_LENGTH) == 0){
         PRINTF("Token to remove found; identified by key id: ");
         HEX_PRINTF_DBG(curr_entry->kid, KEY_ID_LENGTH);
+
         number_of_removed_tokens++;
+        curr_entry_marked_for_deletion = 1
+
         free_authz_entry(curr_entry);
         free(curr_entry);
-        continue;
+        break;
       }
-      else {
-        entry_list[total_entries++] = curr_entry;
-      }
+    }
+
+    if(!curr_entry_marked_for_deletion) {
+      entry_list[total_entries++] = curr_entry;
     }
 
     curr_entry = authz_entry_iterator_get_next(&iterator);

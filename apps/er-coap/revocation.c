@@ -317,12 +317,6 @@ void check_introspection_response(void* data, void* response) {
     printf("Token is active or could not be checked; not removing.\n");
   }
 
-  printf("Total tokens to remove so far: %d\n", num_tokens_to_remove);
-  int i = 0;
-  for(i = 0; i < num_tokens_to_remove; i++) {
-      HEX_PRINTF(tokens_to_remove[i], KEY_ID_LENGTH);
-  }
-
   // Notify main checker process that it can move on into the next token.
   printf("Notifying that we finished processing introspection response.\n");
   process_post(&revocation_check, PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED, (void *) (uintptr_t) token_was_revoked);
