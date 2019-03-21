@@ -276,7 +276,7 @@ void free_authz_entry(authz_entry* entry) {
 }
 
 // Removes the tokens for the given key ids. Assumption is that all key ids are of length KEY_ID_LENGTH.
-int remove_authz_entries(authz_entry* key_id_list[], int key_id_list_len) {
+int remove_authz_entries(unsigned char* key_id_list[], int key_id_list_len) {
   int number_of_removed_tokens = 0;
 
   authz_entry_iterator iterator = authz_entry_iterator_initialize();
@@ -294,7 +294,7 @@ int remove_authz_entries(authz_entry* key_id_list[], int key_id_list_len) {
     // Loop over all the tokens to delete to see if this is one of them.
     int i = 0;
     for(i = 0; i < key_id_list_len; i++) {
-      if (memcmp(key_id_list[i]->kid, curr_entry->kid, KEY_ID_LENGTH) == 0){
+      if (memcmp(key_id_list[i], curr_entry->kid, KEY_ID_LENGTH) == 0){
         PRINTF("Token to remove found; identified by key id: ");
         HEX_PRINTF_DBG(curr_entry->kid, KEY_ID_LENGTH);
         number_of_removed_tokens++;

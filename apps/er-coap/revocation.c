@@ -64,8 +64,8 @@ static void delete_revoked_tokens();
 
 /*-----------------------------------------------------------------------------------*/
 // List of tokens to remove after each check iteration.
-int num_tokens_to_remove = 0;
-authz_entry* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
+static int num_tokens_to_remove = 0;
+unsigned char* tokens_to_remove[MAX_AUTHZ_ENTRIES] = {0};
 
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -199,13 +199,6 @@ PROCESS_THREAD(revocation_check, ev, data)
         if(ev == PROCESS_EVENT_INTROSPECTION_RESPONSE_PROCESSED) {
           printf("Received completion event, checker thread will resume.\n");
           etimer_stop(&timeout_timer);
-
-          if((int) data == 0) {
-            printf("Token will not be deleted, freeing local iterator entry.\n");
-            free_authz_entry(curr_entry);
-            free(curr_entry);
-          }
-
           break;
         }
         else if(ev == PROCESS_EVENT_TIMER && data == &timeout_timer) {
@@ -216,6 +209,9 @@ PROCESS_THREAD(revocation_check, ev, data)
           printf("Unexpected event received (%d); ignoring.\n", ev);
         }
       }
+
+      free_authz_entry(curr_entry);
+      free(curr_entry);
       authz_entry_iterator_reopen(&iterator);
     }
 
@@ -303,8 +299,10 @@ void check_introspection_response(void* data, void* response) {
 
   // Add token to removal list if revoked, or free its temp memory if not.
   if(token_was_revoked) {
-    printf("Adding token to removal list.\n");
-    tokens_to_remove[num_tokens_to_remove++] = curr_entry;
+    printf("Adding token kid to removal list.\n");
+    unsigned char* kid_to_delete = (unsigned char*) malloc(KEY_ID_LENGTH);
+    memcpy(kid_to_delete, curr_entry->kid, KEY_ID_LENGTH);
+    tokens_to_remove[num_tokens_to_remove++] = kid_to_delete;
   }
   else {
     printf("Token is active or could not be checked; not removing.\n");
@@ -365,9 +363,8 @@ void delete_revoked_tokens() {
 
     int i = 0;
     for(i = 0; i < num_tokens_to_remove; i++) {
-      authz_entry* curr_entry = tokens_to_remove[i];
-      free_authz_entry(curr_entry);
-      free(curr_entry);
+      unsigned char* curr_kid = tokens_to_remove[i];
+      free(curr_kid);
     }
 
     num_tokens_to_remove = 0;
