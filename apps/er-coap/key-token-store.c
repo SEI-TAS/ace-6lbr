@@ -157,14 +157,14 @@ int read_entry_from_file(authz_entry** entry, int fd_tokens_file) {
 // Public functions.
 
 // Initialization of storage.
-void initialize_key_token_store() {
+void initialize_key_token_store(int force) {
   printf("Creating keystore...\n");
   unsigned char pairing_key[KEY_LENGTH] = {'a', 'b', 'c', 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
 
   int fd_check_file = cfs_open(TOKENS_FILE_NAME, CFS_READ);
   cfs_close(fd_check_file);
-  if(fd_check_file == -1) {
-    // File does not exist, let's create it with the pairing key.
+  if(fd_check_file == -1 || force) {
+    // File does not exist or we want to recreate it, let's create it with the pairing key.
     int bytes_written = 0;
     int fd_write = cfs_open(TOKENS_FILE_NAME, CFS_WRITE);
     bytes_written += cfs_write(fd_write, PAIRING_KEY_ID, KEY_ID_LENGTH);
@@ -174,7 +174,7 @@ void initialize_key_token_store() {
     cfs_close(fd_write);
   }
   else {
-    printf("Won't create keystore, already exists.\n");
+    printf("Won't create keystore, already exists and no forced recreation required.\n");
   }
 }
 

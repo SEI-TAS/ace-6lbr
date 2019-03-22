@@ -404,7 +404,7 @@ extern resource_t res_authz_info;
    PROCESS_BEGIN();
    PRINTF("Starting %s CoAP receiver...\n", coap_rest_implementation.name);
 
-   initialize_key_token_store();
+   initialize_key_token_store(0);
 
    rest_activate_resource(&res_authz_info, "authz-info");
 

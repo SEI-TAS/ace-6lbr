@@ -67,6 +67,10 @@ static void res_post_handler(void *request, void *response, uint8_t *buffer, uin
       PRINTIP6ADDR(&UIP_IP_BUF->srcipaddr);
       printf("\n");
 
+      // Remove existing tokens and keys.
+      printf("Removing all existing keys/tokens except for default one\n");
+      initialize_key_token_store(1);
+
       // We will ignore the AS id, since our id is what the AS will use as the Key ID for this key.
       // NOTE: instead of storing CBOR-encoded claims, we will store the byte for the AS IP in that slot.
       printf("Will store key with our id: %s\n", RS_ID);
