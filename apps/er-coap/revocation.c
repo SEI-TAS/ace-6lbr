@@ -192,8 +192,11 @@ PROCESS_THREAD(revocation_check, ev, data)
       }
 
       // Before checking for revocation, purge if token has already expired.
+      // Since token does not have authz_info set, we temporarily set it.
       char* error_buffer = 0;
+      token_info->authz_info = curr_entry;
       int token_expired = validate_expiration(token_info, &error_buffer);
+      token_info->authz_info = 0;
       if(token_expired) {
         printf("Adding expired token kid to removal list.\n");
         unsigned char* kid_to_delete = (unsigned char*) malloc(KEY_ID_LENGTH);
