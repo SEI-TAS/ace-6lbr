@@ -333,12 +333,12 @@ void free_claims(cwt* token) {
 int validate_expiration(const cwt* token, char** error) {
   uint64_t curr_time_seconds = (uint64_t) time(NULL);
   uint64_t time_since_received = curr_time_seconds - token->authz_info->time_received_seconds;
-  PRINTF("Checking if time since token was received %ld is greater than expires in time %ld\n", time_since_received, token->exi);
+  prtinf("Checking if time since token was received %ld is greater than expires in time %ld\n", time_since_received, token->exi);
   if((token->exi != 0) && (time_since_received > token->exi)) {
     int error_len = strlen(TOKEN_EXPIRED_ERROR) + 1;
     *error = (char*) malloc(error_len);
     snprintf(*error, error_len, TOKEN_EXPIRED_ERROR);
-    PRINTF("Error validating token expiration: %s\n", *error);
+    printf("Error validating token expiration: %s\n", *error);
     return REST.status.UNAUTHORIZED;
   }
 
