@@ -333,7 +333,7 @@ void free_claims(cwt* token) {
 int validate_expiration(const cwt* token, char** error) {
   uint64_t curr_time_seconds = (uint64_t) time(NULL);
   uint64_t time_since_received = curr_time_seconds - token->authz_info->time_received_seconds;
-  prtinf("Checking if time since token was received %ld is greater than expires in time %ld\n", time_since_received, token->exi);
+  printf("Checking if time since token was received %ld is greater than expires in time %ld\n", time_since_received, token->exi);
   if((token->exi != 0) && (time_since_received > token->exi)) {
     int error_len = strlen(TOKEN_EXPIRED_ERROR) + 1;
     *error = (char*) malloc(error_len);
