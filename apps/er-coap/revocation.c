@@ -191,6 +191,17 @@ PROCESS_THREAD(revocation_check, ev, data)
         continue;
       }
 
+      // Before checking for revocation, purge if token has already expired.
+      char* error_buffer = 0;
+      int token_expired = validate_expiration(token_info, &error_buffer);
+      if(token_expired) {
+        printf("Adding expired token kid to removal list.\n");
+        unsigned char* kid_to_delete = (unsigned char*) malloc(KEY_ID_LENGTH);
+        memcpy(kid_to_delete, curr_entry->kid, KEY_ID_LENGTH);
+        tokens_to_remove[num_tokens_to_remove++] = kid_to_delete;
+        continue;
+      }
+
       // Actually send the request.
       send_introspection_request(ctx, &as_ip, (const unsigned char *) token_info->cti,
                                  token_info->cti_len, curr_entry);
@@ -310,8 +321,7 @@ void check_introspection_response(void* data, void* response) {
     printf("Adding token kid to removal list.\n");
     unsigned char* kid_to_delete = (unsigned char*) malloc(KEY_ID_LENGTH);
     memcpy(kid_to_delete, curr_entry->kid, KEY_ID_LENGTH);
-    tokens_to_remove[num_tokens_to_remove] = kid_to_delete;
-    num_tokens_to_remove++;
+    tokens_to_remove[num_tokens_to_remove++] = kid_to_delete;
   }
   else {
     printf("Token is active or could not be checked; not removing.\n");
