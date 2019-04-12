@@ -17,6 +17,7 @@ DM18-1273
 #include <time.h>
 
 #include "cfs/cfs.h"
+#include "rest-constants.h"
 
 #include "tinydtls_aes.h"
 #include "cn-cbor/cn-cbor/cn-cbor.h"
@@ -34,19 +35,23 @@ DM18-1273
 #define NONCE_SIZE 13
 #define MAC_LENGTH 8
 #define COSE_PROTECTED_HEADER_SIZE 6
-
+#define MAX_VALID_KEY 50
 
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
-#define HEX_PRINTF_INL(byte_array, length) HEX_PRINTF(byte_array, length)
+#define HEX_PRINTF_DBG(byte_array, length) HEX_PRINTF(byte_array, length)
 #else
 #define PRINTF(...)
-#define HEX_PRINTF_INL(byte_array, length)
+#define HEX_PRINTF_DBG(byte_array, length)
 #endif
 
-// Parses the unencrypted CBOR bytes of a CWT token, and loads all claims into a cwt C struct object.
-static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbor_object) {
+//---------------------------------------------------------------------------------------------
+// Module that handles CWT token parsing and validation.
+//---------------------------------------------------------------------------------------------
+
+// Creates a CWT struct from a cb_cbor generic CBOR object.
+static void load_cwt_object(signed long *curr_claim, cwt *token, const cn_cbor* cbor_object) {
   if (!cbor_object) {
     return;
   }
@@ -60,17 +65,18 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
       PRINTF("Will analyze children objects\n");
       cn_cbor* current;
       for (current = cbor_object->first_child; current; current = current->next) {
-        parse_claims(curr_claim, token, current);
+        load_cwt_object(curr_claim, token, current);
       }
       PRINTF("Finished analyzing children objects\n");
       break;
 
     case CN_CBOR_BYTES:
       PRINTF("Type is Byte String\n");
-      HEX_PRINTF_INL(cbor_object->v.str, cbor_object->length)
+      HEX_PRINTF_DBG(cbor_object->v.str, cbor_object->length)
       switch(*curr_claim){
         case CTI:
           token->cti = (char *) malloc(cbor_object->length);
+          token->cti_len = cbor_object->length;
           memcpy(token->cti, cbor_object->v.str, cbor_object->length);
           PRINTF("cti found\n");
           break;
@@ -128,7 +134,7 @@ static void parse_claims(signed long *curr_claim, cwt *token, const cn_cbor* cbo
     case CN_CBOR_UINT:
       PRINTF("Type is Positive Int\n");
       PRINTF("UINT: %lu\n", cbor_object->v.uint);
-      if(cbor_object->v.uint < 40){ // TODO: fix very fragile way of checking if this is claim or value.
+      if(cbor_object->v.uint < MAX_VALID_KEY){ // TODO: fix very fragile way of checking if this is claim or value.
         *curr_claim = cbor_object->v.uint;
         PRINTF("Found CLM: %ld\n", *curr_claim);
       }
@@ -204,7 +210,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
     return 0;
   }
   PRINTF("Key is: ");
-  HEX_PRINTF_INL(pairing_key_info.key, KEY_LENGTH);
+  HEX_PRINTF_DBG(pairing_key_info.key, KEY_LENGTH);
 
   // After the key id, there are 2 bytes indicating that the nonce is coming, and it size. We assume it will always be 13.
   int nonce_pos = key_id_pos + key_id_size + 2;
@@ -212,7 +218,7 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   unsigned char* nonce = (unsigned char *) malloc(NONCE_SIZE);
   memcpy(nonce, &cbor_token[nonce_pos], NONCE_SIZE);
   PRINTF("Nonce is: ");
-  HEX_PRINTF_INL(nonce, NONCE_SIZE);
+  HEX_PRINTF_DBG(nonce, NONCE_SIZE);
 
   // After the nonce there are 2 bytes indicating that a byte string is coming and its size.
   PRINTF("Getting encrypted claims.\n");
@@ -237,15 +243,16 @@ cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length) {
   free(encrypted_cbor);
 
   PRINTF("Decrypted CBOR:");
-  HEX_PRINTF_INL(decrypted_cbor, decrypted_cbor_len)
+  HEX_PRINTF_DBG(decrypted_cbor, decrypted_cbor_len)
   PRINTF("Decrypted CBOR length: %d\n", decrypted_cbor_len);
 
   // Parse bytes into a cwt object.
   cwt* token_info = parse_cbor_claims(decrypted_cbor, decrypted_cbor_len);
-
-  // Store authz info.
-  token_info->authz_info = create_authz_entry(token_info->kid, token_info->kid_len, token_info->key,
-                                              decrypted_cbor_len, decrypted_cbor, (uint64_t) time(NULL));
+  if(token_info != 0) {
+    // Store authz info.
+    token_info->authz_info = create_authz_entry(token_info->kid, token_info->kid_len, token_info->key,
+                                                decrypted_cbor_len, decrypted_cbor, (uint64_t) time(NULL));
+  }
 
   return token_info;
 }
@@ -259,17 +266,62 @@ cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len) {
     return 0;
   }
 
-  PRINTF("Parsing claims into cwt object.\n");
+  PRINTF("Loading CBOR claims into cwt object.\n");
   cwt* token_info = (cwt*) malloc(sizeof(cwt));
-  token_info->sco = 0;
-  token_info->aud = 0;
-  token_info->exp = 0;
-  token_info->exi = 0;
+  memset(token_info, 0, sizeof(cwt));
+
   long curr_claim = 0;
-  parse_claims(&curr_claim, token_info, cbor_claims);
+  load_cwt_object(&curr_claim, token_info, cbor_claims);
   PRINTF("Finished parsing claims into cwt object.\n");
 
+  PRINTF("Freeing cn cbor structure.\n");
+  cn_cbor_free(cbor_claims);
+
   return token_info;
+}
+
+// Feest a CWT token generated by the CWT token function above.
+void free_cwt_token_info(cwt* token) {
+  free_authz_entry(token->authz_info);
+  free(token->authz_info);
+  free_claims(token);
+}
+
+// Frees claims allocated to a cwt structure.
+void free_claims(cwt* token) {
+  if(token->key) {
+    free(token->key);
+  }
+
+  if(token->kid) {
+    free(token->kid);
+  }
+
+  if(token->iss) {
+    free(token->iss);
+  }
+
+  if(token->sub) {
+    free(token->sub);
+  }
+
+  if(token->aud) {
+    free(token->aud);
+  }
+
+  if(token->cti) {
+    free(token->cti);
+  }
+
+  if(token->sco) {
+    free(token->sco);
+  }
+
+  if(token->cnf) {
+    free(token->cnf);
+  }
+
+  free(token);
 }
 
 #define INVALID_AUDIENCE_ERROR "Invalid audience: %s"
@@ -277,38 +329,53 @@ cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len) {
 #define NO_SCOPE_ERROR "Token has no scope"
 #define UNKNOWN_SCOPE_ERROR "Unknown scope: %s"
 
-int validate_claims(const cwt* token, char** error) {
-  PRINTF("Validating claims.\n");
-
-  // TODO: time() needs gettimeofday() implementation for CC2538dk TI boards for this version to compile and work.
-  // 1. Check if the token has expired. We use the exi claim and not the exp claim since exp requires clock synch.
+// Checks if the token has expired. If so, return UNAUTHORIZED. Otherwise, returns 0.
+int validate_expiration(const cwt* token, char** error) {
   uint64_t curr_time_seconds = (uint64_t) time(NULL);
   uint64_t time_since_received = curr_time_seconds - token->authz_info->time_received_seconds;
-  PRINTF("Checking if time since token was received %ld is greater than expires in time %ld\n", time_since_received, token->exi);
+  printf("Checking if time since token was received %ld is greater than expires in time %ld\n", time_since_received, token->exi);
   if((token->exi != 0) && (time_since_received > token->exi)) {
     int error_len = strlen(TOKEN_EXPIRED_ERROR) + 1;
     *error = (char*) malloc(error_len);
     snprintf(*error, error_len, TOKEN_EXPIRED_ERROR);
-    PRINTF("Error validating token: %s\n", *error);
-    return 0;
+    printf("Error validating token expiration: %s\n", *error);
+    return REST.status.UNAUTHORIZED;
+  }
+
+  return 0;
+}
+
+// Returns 0 if there is no error, or a REST error response code if there are issues.
+int validate_claims(const cwt* token, char** error) {
+  PRINTF("Validating claims.\n");
+
+  // TODO: ISS claim is not being checked.
+
+  // 1. Check if the token has expired. We use the exi claim and not the exp claim since exp requires clock synch.
+  PRINTF("Validating expiration.\n");
+  int error_code = validate_expiration(token, error);
+  if(error_code != 0) {
+    return error_code;
   }
 
   // 2. Check if we are the audience.
+  PRINTF("Validating that we are the audience.\n");
   if(strncmp(RS_ID, token->aud, strlen(RS_ID)) != 0) {
     int error_len = strlen(INVALID_AUDIENCE_ERROR) - 2 + strlen(token->aud) + 1;
     *error = (char*) malloc(error_len);
     snprintf(*error, error_len, INVALID_AUDIENCE_ERROR, token->aud);
     PRINTF("Error validating token: %s\n", *error);
-    return 0;
+    return REST.status.FORBIDDEN;
   }
 
   // 3. Check if the token has a scope.
-  if(strlen(token->sco) == 0) {
+  PRINTF("Validating that token has a scope.\n");
+  if(token->sco == 0 || strlen(token->sco) == 0) {
     int error_len = strlen(NO_SCOPE_ERROR) + 1;
     *error = (char*) malloc(error_len);
     snprintf(*error, error_len, NO_SCOPE_ERROR);
     PRINTF("Error validating token: %s\n", *error);
-    return 0;
+    return REST.status.BAD_REQUEST;
   }
 
   // 4. Check if the token has a known scope.
@@ -317,16 +384,17 @@ int validate_claims(const cwt* token, char** error) {
   char* scope_list = (char*) malloc(scope_list_len);
   memcpy(scope_list, token->sco, scope_list_len);
   char* curr_scope = strtok(scope_list, " ");
+  char* known_scopes = get_combined_scopes_string();
   while(curr_scope) {
     // Check if this scope is in the list of known scopes.
     PRINTF("Checking next scope: %s, length %u\n", curr_scope, (unsigned int) strlen(curr_scope));
-    if(strstr(SCOPES, curr_scope) == 0) {
+    if(strstr(known_scopes, curr_scope) == 0) {
       int error_len = strlen(UNKNOWN_SCOPE_ERROR) - 2 + strlen(curr_scope) + 1;
       *error = (char*) malloc(error_len);
       snprintf(*error, error_len, UNKNOWN_SCOPE_ERROR, curr_scope);
       PRINTF("Error validating token: %s\n", *error);
       free(scope_list);
-      return 0;
+      return REST.status.BAD_REQUEST;
     }
 
     // Move to next scope.
@@ -335,5 +403,5 @@ int validate_claims(const cwt* token, char** error) {
   free(scope_list);
 
   PRINTF("All claims are valid.\n");
-  return 1;
+  return 0;
 }

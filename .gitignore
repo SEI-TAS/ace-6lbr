@@ -141,4 +141,4 @@ LOG_OPENOCD
 *.nrf52dk
 
 .idea/*
-autom4ate.cache/
+autom4te.cache/

@@ -18,6 +18,7 @@ DM18-1273
 #include <time.h>
 #include "key-token-store.h"
 
+// Token claim keys.
 #define ISS 1
 #define SUB 2
 #define AUD 3
@@ -25,9 +26,9 @@ DM18-1273
 #define NBF 5
 #define IAT 6
 #define CTI 7
-#define SCO 12
-#define CNF 25
-#define EXI 35
+#define CNF 8
+#define SCO 9
+#define EXI 40
 
 #define CNF_KID 2
 #define CNK_KEY -1
@@ -41,6 +42,7 @@ typedef struct cwt {
   time_t nbf;
   time_t iat;
   char* cti;
+  int cti_len;
   char* sco;
   char* cnf;
   unsigned char* kid;
@@ -56,7 +58,10 @@ typedef struct cosewt {
 
 cwt* parse_cwt_token(const unsigned char* cbor_token, int token_length);
 cwt* parse_cbor_claims(const unsigned char* cbor_bytes, int cbor_bytes_len);
+int validate_expiration(const cwt* token, char** error);
 int validate_claims(const cwt* token, char** error);
+void free_cwt_token_info(cwt* token);
+void free_claims(cwt* token);
 
 #define KEY_ID_LENGTH 16
 #define KEY_LENGTH 16

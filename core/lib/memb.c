@@ -59,7 +59,6 @@ void *
 memb_alloc(struct memb *m)
 {
   int i;
-
   for(i = 0; i < m->num; ++i) {
     if(m->count[i] == 0) {
       /* If this block was unused, we increase the reference count to

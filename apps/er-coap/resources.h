@@ -15,14 +15,31 @@ DM18-1273
 #ifndef RESOURCES_H
 #define RESOURCES_H
 
-#include "rest-constants.h"
 #include "er-coap-dtls.h"
 
 #define RS_ID "RS2"
 
-// TODO: fix this, this is NOT extensible to add more resources.
-#define SCOPES "HelloWorld;rw_Lock;r_Lock"
+#define POS_GET 1
+#define POS_POST 2
+#define POS_PUT 3
+#define POS_DEL 4
 
-int check_access_error(struct dtls_context_t* ctx, void* request, void* response);
+// Information about a scope: its name, and methods allowed by this scope.
+typedef struct scope_info {
+  char* name;
+  unsigned char methods[4];
+} scope_info;
+
+// Information about a resource: its name, and the scope info (their name and methods allowed for each).
+typedef struct resource_info {
+  char* name;
+  scope_info** scope_info_list;
+  int scope_info_list_len;
+} resource_info;
+
+void register_resource_info(resource_info* resource);
+int parse_and_check_access(struct dtls_context_t* ctx, void* request, void* response);
+void load_scopes_string();
+char* get_combined_scopes_string();
 
 #endif // RESOURCES_H

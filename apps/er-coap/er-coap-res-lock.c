@@ -22,8 +22,8 @@ DM18-1273
 #include <stdlib.h>
 #include <string.h>
 #include "rest-engine.h"
-#include "cfs/cfs.h"
 
+#include "resources.h"
 #include "cbor-encode.h"
 #include "utils.h"
 
@@ -66,9 +66,32 @@ void return_lock_value(void* response) {
   char lock_as_string[2];
   snprintf(lock_as_string, 2, "%d", lock_status);
   unsigned char* encoded_result;
-  int encoded_len = encode_string_to_cbor(lock_as_string, &encoded_result);
+  int encoded_len = encode_string_to_cbor(lock_as_string, strlen(lock_as_string), &encoded_result);
 
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
   REST.set_response_payload(response, encoded_result, encoded_len);
+}
+
+// Returns a structure with the information about scope and methods for this resource.
+resource_info* get_resource_info_lock(char* resource_name) {
+  scope_info* scope1 = (scope_info*) malloc(sizeof(scope_info));
+  memset(scope1, 0, sizeof(scope_info));
+  scope1->name = "rw_Lock";
+  scope1->methods[POS_GET] = 1;
+  scope1->methods[POS_PUT] = 1;
+
+  scope_info* scope2 = (scope_info*) malloc(sizeof(scope_info));
+  memset(scope2, 0, sizeof(scope_info));
+  scope2->name = "r_Lock";
+  scope2->methods[POS_GET] = 1;
+
+  resource_info* resource = (resource_info*) malloc(sizeof(resource_info));
+  resource->name = resource_name;
+  resource->scope_info_list_len = 2;
+  resource->scope_info_list = (scope_info**) malloc(sizeof(scope_info*) * resource->scope_info_list_len);
+  resource->scope_info_list[0] = scope1;
+  resource->scope_info_list[1] = scope2;
+
+  return resource;
 }
 
